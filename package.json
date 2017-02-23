@@ -6,8 +6,11 @@
   "scripts": {
     "start": "node ./src/server.js",
     "build": "tsc -p ./",
-    "pretest": "tslint \"src/**/*.ts\"",
-    "test": "echo \"Tests complete\"",
+    "pretest": "tslint \"src/**/*.ts\" \"test/**/*.ts\" && tsc -p ./",
+    "test": "./node_modules/.bin/mocha --reporter spec test/**/*.js",
+    "preversion": "npm test",
+    "version": "npm run build",
+    "postversion": "git push && git push --tags",
     "postinstall": "npm run build",
     "buildRun": "tsc -p ./ && node ./src/server.js"
   },
@@ -32,6 +35,8 @@
     "typescript": "^2.1.6"
   },
   "devDependencies": {
+    "@types/mocha": "^2.2.39",
+    "mocha": "^3.2.0",
     "tslint": "^4.4.2"
   }
 }
