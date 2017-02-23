@@ -150,8 +150,8 @@ export class PriorityQueue {
      * @returns {Array}
      */
     public asArray(): any[] {
-        const arr = [];
-        const it = this.iterator;
+        const arr: any[] = [];
+        const it: QueueIterator = this.getIterator();
 
         while (!it.isEnd()) {
             arr.push(it.next());
