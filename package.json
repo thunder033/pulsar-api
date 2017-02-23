@@ -1,0 +1,37 @@
+{
+  "name": "pulsar-api",
+  "version": "1.0.0",
+  "description": "Backend services for Pulsar, including multiplayer Warp",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "build": "tsc -p ./",
+    "pretest": "tslint \"src/**/*.ts\"",
+    "test": "echo \"Tests complete\"",
+    "postinstall": "npm run build",
+    "buildRun": "tsc -p ./ && node ./src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://thunder033@github.com/thunder033/pulsar-api.git"
+  },
+  "author": "Greg Rozmarynowycz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thunder033/pulsar-api/issues"
+  },
+  "homepage": "https://pulsar-api.herokuapp.com/",
+  "dependencies": {
+    "@types/express": "^4.0.35",
+    "@types/node": "^7.0.5",
+    "@types/q": "0.0.32",
+    "@types/socket.io": "^1.4.28",
+    "express": "^4.14.1",
+    "q": "^1.4.1",
+    "socket.io": "^1.7.2",
+    "typescript": "^2.1.6"
+  },
+  "devDependencies": {
+    "tslint": "^4.4.2"
+  }
+}
