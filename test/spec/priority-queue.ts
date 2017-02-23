@@ -64,6 +64,24 @@ import { PriorityQueue } from "../../src/priority-queue";
         expect(this.priorityQueue.getIterator()).respondsTo('next').and.respondsTo('isEnd');
     }
 
+    @test 'iterator traverses the queue in order'() {
+        this.priorityQueue.enqueue(0, 'item1');
+        this.priorityQueue.enqueue(0, 'item2');
+
+        const it = this.priorityQueue.getIterator();
+        expect(it.next()).to.equal('item1');
+        expect(it.next()).to.equal('item2');
+    }
+
+    @test 'iterator indicates when it has reached the end of queue'() {
+        this.priorityQueue.enqueue(0, 'item1');
+
+        const it = this.priorityQueue.getIterator();
+        expect(it.isEnd()).to.be.false;
+        it.next();
+        expect(it.isEnd()).to.be.true;
+    }
+
     @test 'asArray returns an ordered array of all items in the Queue'() {
         this.priorityQueue.enqueue(0, 'item1');
         this.priorityQueue.enqueue(2, 'item2');
