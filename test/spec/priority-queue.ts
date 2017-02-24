@@ -3,9 +3,9 @@
  * Created by gjrwcs on 2/23/2017.
  */
 
-import { only, skip, slow, suite, test, timeout } from "mocha-typescript";
-import { expect } from "chai";
-import { PriorityQueue } from "../../src/priority-queue";
+import { only, skip, slow, suite, test, timeout } from 'mocha-typescript';
+import { expect } from 'chai';
+import { PriorityQueue } from '../../src/priority-queue';
 
 @suite class PriorityQueueSpec {
 

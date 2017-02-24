@@ -1,12 +1,12 @@
 'use strict';
-/// <reference path="../node_modules/@types/node/index.d.ts" />
+/// <reference path='../node_modules/@types/node/index.d.ts' />
 /**
  * Created by gjrwcs on 2/16/2017.
  */
 
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
-import {MatchMaker} from "./match-maker";
+import {MatchMaker} from './match-maker';
 
 const HTTP_ROUTES = {
     '/': 'client/index.html',
