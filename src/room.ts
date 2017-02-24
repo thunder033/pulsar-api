@@ -42,8 +42,8 @@ export class Room implements INetworkEntity {
 
     public getSerializable(): Object {
         return {
-            name: this.name,
             capacity: this.capacity,
+            name: this.name,
         };
     }
 }

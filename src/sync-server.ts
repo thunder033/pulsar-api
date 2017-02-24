@@ -7,7 +7,7 @@ import * as socketio from 'socket.io';
 import {Component, Composite, IComponent} from './component';
 import {Room} from './room';
 import Socket = SocketIO.Socket;
-import {User, IUserComponent} from './user';
+import {User} from './user';
 
 function strEnum<T extends string>(o: T[]): {[K in T]: K} {
     return o.reduce((res, key) => {
