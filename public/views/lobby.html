@@ -1,0 +1,8 @@
+<div id="lobby">
+    Lobby<br>
+    Status: <span ng-bind="status"></span><br>
+    In Room: <span ng-bind="room.name"></span><br>
+
+    <button ng-click="createMatch()">Create Match</button>
+    <select multiple ng-options="match as match.label for match in matches track by match.name" ng-model="matches"></select>
+</div>

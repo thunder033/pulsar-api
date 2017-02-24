@@ -9,9 +9,9 @@ import {SyncServer} from './sync-server';
 import {MatchMaker} from './match-maker';
 
 const HTTP_ROUTES = {
-    '/': 'client/index.html',
-    '/priority-queue.js': 'src/priority-queue.js',
-    '/utility.js': 'client/utility.js',
+    '/': 'public/index.html',
+    '/dist/bundle.js': 'public/dist/bundle.js',
+    '/views/lobby.html': 'public/views/lobby.html',
 };
 
 // init the application
