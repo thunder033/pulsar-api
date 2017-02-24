@@ -22,7 +22,7 @@
     "no-string-throw": true,
     "prefer-const": true,
     "no-bitwise": false,
-    "quotemark": true,
+    "quotemark": [true, "single", "avoid-escape"],
     "no-console": false,
     "no-reference": false,
     "variable-name": [true,

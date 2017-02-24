@@ -6,6 +6,7 @@
 
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
+import {MatchMaker} from "./match-maker";
 
 const HTTP_ROUTES = {
     '/': 'client/index.html',
@@ -17,3 +18,6 @@ const HTTP_ROUTES = {
 const httpServer = new ExpressServer(HTTP_ROUTES);
 // Create a new sync server
 const syncServer = new SyncServer(httpServer.getServer());
+
+// Add Components that define server functionality
+syncServer.addComponent(MatchMaker);

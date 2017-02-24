@@ -4,9 +4,10 @@
  */
 import * as http from 'http';
 import * as socketio from 'socket.io';
+import {Component, Composite, IComponent} from './component';
+import {Room} from './room';
 import Socket = SocketIO.Socket;
-import {IUser, User} from './user';
-import {isNullOrUndefined} from "util";
+import {User} from './user';
 
 function strEnum<T extends string>(o: T[]): {[K in T]: K} {
     return o.reduce((res, key) => {
@@ -21,46 +22,63 @@ export const IOEvent = strEnum([
     'disconnect',
 ]);
 
-class Room {
-    public name: string;
-    public userType: IUser;
-    public decorator: ServerDecorator;
+export interface IServerComponent {
+    init(io: SocketIO.Server, server: SyncServer): void;
+    onInit(): void;
+    getName(): string;
+    getUserComponents(): IComponent[];
+}
 
-    constructor(name: string, userType: IUser, decorator) {
-        this.name = name;
-        this.userType = userType;
-        this.decorator = decorator;
+/**
+ * Server components define various server behaviors. They have references to the IO Server and their SyncServer. They
+ * also define what peer behaviors are defined for users on the server
+ */
+export abstract class ServerComponent extends Component implements IServerComponent {
+    protected io: SocketIO.Server;
+    protected userComponents: IComponent[];
+    protected server: SyncServer;
+
+    private name: string;
+
+    /**
+     * @param userComponents: Components that should be initialized on each user created on the server
+     */
+    constructor(userComponents: IComponent[] = []) {
+        super();
+        this.name = this.constructor.name;
+        this.userComponents = userComponents;
+    }
+
+    public init(io: SocketIO.Server, server: SyncServer): Component {
+        this.io = io;
+        this.onInit();
+        return this;
+    }
+
+    public onInit(): void {
+        return undefined;
+    }
+
+    public getName(): string {
+        return this.name;
+    }
+
+    public getUserComponents(): IComponent[] {
+        return this.userComponents;
     }
 }
 
-export abstract class ServerDecorator {
-
-    protected syncServer: SyncServer;
-    private roomName: string;
-
-    constructor(server: SyncServer, roomName: string) {
-        this.syncServer = server;
-        this.roomName = roomName;
-    }
-
-    public getServer(): SyncServer {
-        return this.syncServer;
-    }
-
-    public getRoomName(): string {
-        return this.roomName;
-    }
-}
-
-export class SyncServer {
+export class SyncServer extends Composite {
 
     private rooms = {};
-    private io;
-    private connections: User[];
-    private defaultRoom: string = 'room1';
+    private io: SocketIO.Server;
+    private users: User[];
+    private defaultRoom: Room;
 
     constructor(httpServer: http.Server) {
-        this.connections = [];
+        super();
+        this.users = [];
+        this.defaultRoom = null;
 
         this.io = socketio(httpServer);
         this.io.use((socket: Socket, next) => {
@@ -70,31 +88,51 @@ export class SyncServer {
     }
 
     public getUsers(): User[] {
-        return this.connections;
+        return this.users;
     }
 
-    public addRoom(name: string, userType: IUser, apiDecorator: any) {
-        this.rooms[name] = new Room(name, userType, new apiDecorator(this));
+    public addRoom(room: Room): void {
+        if (this.rooms[room.name] instanceof Room) {
+            throw new Error(`Room with name ${name} already exists on this server! Room names must unique`);
+        }
+
+        this.rooms[room.name] = room;
+
+        if (this.defaultRoom === null) {
+            this.defaultRoom = room;
+        }
+    };
+
+    public createRoom(name: string): Room {
+        if (this.rooms[name] instanceof Room) {
+            throw new Error(`Room with name ${name} already exists on this server! Room names must unique`);
+        }
+
+        const room = new Room(name);
+        this.addRoom(room);
+        return room;
+    }
+
+    public addComponent(component: IComponent): Component {
+        return (super.addComponent(component) as ServerComponent).init(this.io, this);
     }
 
     public registerConnection(socket: Socket) {
-        let user: User = null;
-        const room: Room = this.rooms[socket.handshake.query.room];
-        if (!isNullOrUndefined(room)) {
-            console.log(`connect to ${room.name}`);
-            user = new room.userType(socket, room.decorator);
-        } else {
-            user = new User(socket, this);
-        }
-        this.connections.push(user);
+        this.users.push(new User(socket, this));
     };
 
-    public getRoom(): string {
+    public getDefaultRoom(): Room {
         return this.defaultRoom;
     }
 
-    public broadcast(evt: string, data: any, room: string = this.defaultRoom) {
-        this.io.sockets.in(room).emit(evt, data);
+    /**
+     * Broadcasts an event to users on the server, either in the specified room or the server default
+     * @param evt {string}: the name of the event
+     * @param data {any}: data to send to handlers
+     * @param [room=Server Default] {Room}: the room to broadcast to
+     */
+    public broadcast(evt: string, data: any, room: Room = this.defaultRoom) {
+        this.io.sockets.in(room.getName()).emit(evt, data);
     }
 
     /**
@@ -103,9 +141,9 @@ export class SyncServer {
      * @returns {boolean}
      */
     public removeUser(targetUser: User): boolean {
-        return this.connections.some((user: User, i: number) => {
+        return this.users.some((user: User, i: number) => {
             if (targetUser === user) {
-                this.connections.splice(i, 1);
+                this.users.splice(i, 1);
                 return true;
             }
 
