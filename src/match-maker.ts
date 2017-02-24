@@ -15,6 +15,7 @@ export class MatchMember extends UserComponent {
     private match: Match;
 
     public onInit() {
+        console.log('init match member');
         this.isHost = false;
 
         // Register event handlers
@@ -31,6 +32,7 @@ export class MatchMember extends UserComponent {
      * @param data
      */
     public requestMatch(data) {
+        console.log('new match requested');
         const match = this.server.getComponent(MatchMaker).createMatch({label: data.label, host: this});
 
         if (match instanceof Match) {

@@ -76,6 +76,7 @@ export class User extends Composite implements IUser, INetworkEntity {
     public join(room: Room): void {
         this.socket.join(room.getName());
         room.add(this);
+        this.socket.emit('joinedRoom', room.getSerializable());
         this.invokeComponentEvents('onJoin', room);
     }
 

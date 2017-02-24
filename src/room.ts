@@ -3,11 +3,12 @@
  */
 
 import {IUser} from './user';
+import {INetworkEntity} from './network-entity';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms
  */
-export class Room {
+export class Room implements INetworkEntity {
     public name: string;
 
     protected users: IUser[];
@@ -16,6 +17,7 @@ export class Room {
 
     constructor(name: string) {
         this.name = name;
+        this.users = [];
     }
 
     public add(user: IUser): void {
@@ -36,5 +38,12 @@ export class Room {
 
     public getCapacity(): number {
         return this.capacity;
+    }
+
+    public getSerializable(): Object {
+        return {
+            name: this.name,
+            capacity: this.capacity,
+        };
     }
 }

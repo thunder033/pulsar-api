@@ -7,7 +7,7 @@ import * as socketio from 'socket.io';
 import {Component, Composite, IComponent} from './component';
 import {Room} from './room';
 import Socket = SocketIO.Socket;
-import {User} from './user';
+import {User, IUserComponent} from './user';
 
 function strEnum<T extends string>(o: T[]): {[K in T]: K} {
     return o.reduce((res, key) => {
@@ -51,6 +51,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
 
     public init(io: SocketIO.Server, server: SyncServer): Component {
         this.io = io;
+        this.server = server;
         this.onInit();
         return this;
     }
@@ -118,7 +119,7 @@ export class SyncServer extends Composite {
     }
 
     public registerConnection(socket: Socket) {
-        this.users.push(new User(socket, this));
+        this.users.push(new User(socket, this, this.getUserComponents()));
     };
 
     public getDefaultRoom(): Room {
@@ -149,5 +150,10 @@ export class SyncServer extends Composite {
 
             return false;
         });
+    }
+
+    private getUserComponents(): IComponent[] {
+        // return this.getComponents()
+        return [];
     }
 }

@@ -19,6 +19,19 @@ export abstract class Composite {
         return component;
     }
 
+    protected getComponents(): Component[] {
+        const components = [];
+        const it = this.components.values();
+
+        let item = it.next();
+        while (item instanceof Component) {
+            components.push(item);
+            item = it.next();
+        }
+
+        return components;
+    }
+
     /**
      * Invoke a method on all components (type-unsafe)
      * @param memberMethod: name of the handler to invoke
