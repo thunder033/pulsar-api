@@ -2,7 +2,7 @@
  * Created by gjr8050 on 2/23/2017.
  */
 
-import {IUser} from './user';
+import {IUser, User} from './user';
 import {INetworkEntity} from './network-entity';
 
 /**
@@ -26,6 +26,11 @@ export class Room implements INetworkEntity {
         } else {
             throw new Error(`Room is full and cannot accept any more users`);
         }
+    }
+
+    public remove(user: IUser): void {
+        const userIndex = this.users.indexOf(user);
+        this.users.splice(userIndex, 1);
     }
 
     public getName(): string {

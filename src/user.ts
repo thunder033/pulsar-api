@@ -61,6 +61,7 @@ export class User extends Composite implements IUser, INetworkEntity {
         this.server = server;
         this.socket = socket;
         this.id = uuid();
+        this.room = null;
 
         socket.on(IOEvent.join, this.onJoin.bind(this));
         socket.on(IOEvent.disconnect, this.onDisconnect.bind(this));
@@ -76,12 +77,25 @@ export class User extends Composite implements IUser, INetworkEntity {
     public join(room: Room): void {
         this.socket.join(room.getName());
         room.add(this);
+        this.room = room;
         this.socket.emit('joinedRoom', room.getSerializable());
         this.invokeComponentEvents('onJoin', room);
     }
 
+    public leave(room: Room): void {
+        this.socket.leave(room.getName());
+        room.remove(this);
+        this.room = null;
+        this.socket.emit('leftRoom', room.getSerializable());
+        this.invokeComponentEvents('onLeave', room);
+    }
+
     public getName(): string {
         return this.name;
+    }
+
+    public getId(): string {
+        return this.id;
     }
 
     public getSerializable(): Object {
@@ -92,6 +106,10 @@ export class User extends Composite implements IUser, INetworkEntity {
     }
 
     private onDisconnect() {
+        if (this.room instanceof Room) {
+            this.leave(this.room);
+        }
+
         if (!this.server.removeUser(this)) {
             console.warn(`Failed to remove user [${this.name}] from the server`);
         }

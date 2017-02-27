@@ -9,14 +9,16 @@ import {Room} from './room';
 import Socket = SocketIO.Socket;
 import {User} from './user';
 
-function strEnum<T extends string>(o: T[]): {[K in T]: K} {
+// This might throw errors in webstorm when the typescript service is enabled and TS 2.2.1+ is installed
+// it does not blow up 2.1.6 compiler
+function Enum<T extends string>(o: T[]): {[K in T]: K} {
     return o.reduce((res, key) => {
         res[key] = key;
         return res;
     }, Object.create(null));
 }
 
-export const IOEvent = strEnum([
+export const IOEvent = Enum([
     'connection',
     'join',
     'disconnect',
@@ -115,6 +117,7 @@ export class SyncServer extends Composite {
     }
 
     public addComponent(component: IComponent): Component {
+        console.log('add server component: ', component.name);
         return (super.addComponent(component) as ServerComponent).init(this.io, this);
     }
 
@@ -152,8 +155,12 @@ export class SyncServer extends Composite {
         });
     }
 
+    /**
+     * Generates an flat array of all user components required by server components
+     * @returns {IComponent[]}
+     */
     private getUserComponents(): IComponent[] {
-        // return this.getComponents()
-        return [];
+        const userComponents: any = (this.getComponents() as ServerComponent[]).map((c) => c.getUserComponents());
+        return [].concat.apply([], userComponents);
     }
 }
