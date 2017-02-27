@@ -47,21 +47,15 @@ module.exports = function(grunt){
             prod: {
                 files: [{expand: true, src: [
                     // Pulsar
-                    'pulsar/dist/**/*.gz',
-                    'pulsar/dist/fonts/*',
-                    'pulsar/index.html',
-                    'pulsar/grooveAuthenticate.html',
-                    'pulsar/assets/**',
-                    'pulsar/views/**',
-                    // Prod audio files are stored in an external directory
-                    '!pulsar/assets/audio/songs/**',
-                    '!pulsar/assets/fonts/**',
-                    '!pulsar/assets/css/**',
-                    // JS files are embedded in dist bundle
-                    '!pulsar/assets/js/**',
+                    'public/dist/**/*.js',
+                    'public/index.html',
+                    'public/assets/**',
+                    'public/views/**',
 
-                    '.htaccess',
-                    'index.html',
+                    'src/**/*.js',
+                    //angular js included in dist bundle
+                    '!src/ng/**/*.js',
+
                     'LICENSE',
                     'package.json'
                 ], dest: '.tmp'}]
@@ -84,6 +78,7 @@ module.exports = function(grunt){
     //grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('default', ['build-dev']);
 
@@ -99,7 +94,7 @@ module.exports = function(grunt){
         'clean:pulsarDist',
         'browserify:dist',
         //'copy:pulsarAssets',
-        //'copy:prod',
+        'copy:prod',
         //'clean:pulsarDist'
     ]);
 };

@@ -9,9 +9,10 @@ dependencies:
     - sh ./scripts/global_modules.sh
   override:
     - npm install
+  post:
     - npm run build
 deployment:
   staging:
     branch: master
-    heroku:
-      appname: pulsar-api
+    commands:
+      - sh ./scripts/deploy.sh

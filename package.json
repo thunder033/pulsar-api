@@ -5,15 +5,15 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node ./src/app.js",
-    "build": "grunt build-prod && npm run srcCompile",
-    "srcCompile": "cd src && tsc -p .",
-    "watch": "grunt watch",
+    "build": "npm run srcCompile && grunt build-prod",
+    "srcCompile": "cd src && tsc -p . && cd ..",
     "pretest": "tslint \"src/**/*.ts\" \"test/**/*.ts\" && tsc -p ./",
     "test": "./node_modules/.bin/mocha --reporter spec test/**/*.js",
     "preversion": "npm test",
     "version": "npm run build",
     "postversion": "git push && git push --tags",
     "postinstall": "npm run srcCompile",
+    "watch": "grunt watch",
     "buildRun": "tsc -p ./ && node ./src/app.js"
   },
   "repository": {
@@ -58,6 +58,7 @@
     "grunt-contrib-compress": "^1.4.1",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
+    "heroku-deploy-tarball": "^1.0.0",
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.22",
     "tslint": "^4.4.2"
