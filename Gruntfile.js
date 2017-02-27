@@ -100,6 +100,6 @@ module.exports = function(grunt){
         'browserify:dist',
         //'copy:pulsarAssets',
         //'copy:prod',
-        'clean:pulsarDist'
+        //'clean:pulsarDist'
     ]);
 };

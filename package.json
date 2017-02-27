@@ -5,14 +5,15 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node ./src/server.js",
-    "build": "grunt build-dev && cd src && tsc -p ../",
+    "build": "grunt build-prod && npm run srcCompile",
+    "srcCompile": "cd src && tsc -p ../",
     "watch": "grunt watch",
     "pretest": "tslint \"src/**/*.ts\" \"test/**/*.ts\" && tsc -p ./",
     "test": "./node_modules/.bin/mocha --reporter spec test/**/*.js",
     "preversion": "npm test",
     "version": "npm run build",
     "postversion": "git push && git push --tags",
-    "postinstall": "npm run build",
+    "postinstall": "npm run srcCompile",
     "buildRun": "tsc -p ./ && node ./src/server.js"
   },
   "repository": {

@@ -9,6 +9,7 @@ dependencies:
     - sh ./scripts/global_modules.sh
   override:
     - npm install
+    - npm run build
 deployment:
   staging:
     branch: master
