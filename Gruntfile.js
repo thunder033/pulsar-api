@@ -12,6 +12,9 @@ var browserify = {
         alias: {
             'angular': './scripts/angular.min.proxy.js',
             'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min.js'
+        },
+        browserifyOptions: {
+            paths: ['./node_modules','./src/']
         }
     }
 };
@@ -25,7 +28,8 @@ module.exports = function(grunt){
                 options: {
                     alias: browserify.options.alias,
                     browserifyOptions: {
-                        debug: true
+                        debug: true,
+                        paths: ['./node_modules','./src/']
                     }
                 }
             },
