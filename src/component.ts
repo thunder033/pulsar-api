@@ -10,12 +10,12 @@ export abstract class Composite {
     }
 
     public getComponent<T extends Component>(type: {new(): T}): T {
-        return this.components[type.name];
+        return this.components.get(type.name) as T;
     }
 
     public addComponent(type: IComponent): Component {
         const component = new type();
-        this.components[type.name] = component;
+        this.components.set(type.name, component);
         return component;
     }
 
@@ -24,8 +24,8 @@ export abstract class Composite {
         const it = this.components.values();
 
         let item = it.next();
-        while (item instanceof Component) {
-            components.push(item);
+        while (item.done === false) {
+            components.push(item.value);
             item = it.next();
         }
 
@@ -37,10 +37,17 @@ export abstract class Composite {
      * @param memberMethod: name of the handler to invoke
      * @param data: arbitray data to pass to the event handler
      */
-    protected invokeComponentEvents(memberMethod: string, data?: any) {
-        Object.keys(this.components).forEach((type: string) => {
-            this.components[type][memberMethod](data);
-        });
+    protected invokeComponentEvents(memberMethod: string, data?: any): void {
+        const it = this.components.values();
+
+        let item = it.next();
+        while (item.done === false) {
+            if (item.value[memberMethod] === 'function') {
+                item.value[memberMethod](data);
+            }
+
+            item = it.next();
+        }
     }
 }
 
