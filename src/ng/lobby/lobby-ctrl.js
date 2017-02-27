@@ -6,23 +6,49 @@
 function LobbyCtrl(Socket, $scope) {
     $scope.status = 'loading';
     $scope.matches = [];
+    $scope.user = null;
+    $scope.fields = {
+        matchLabel: ''
+    };
 
-    Socket.on('connect', () => {
-        Socket.emit('join', {name: Math.random().toString()});
-        $scope.status = 'connected'
-    });
+    // creates a callback to assign a value to the scope
+    function assignScope(property) {
+        return function(value) {
+            $scope[property] = value;
+        }
+    }
+
+    Socket.on('connect', () => $scope.status = 'connected');
 
     Socket.on('joinedRoom', (room) => {
         $scope.room = room;
         $scope.status = 'ready';
     });
 
+    Socket.on('matchListUpdate', (matchList) => {
+        $scope.matches.length = 0;
+        $scope.matches.push.apply($scope.matches, matchList);
+    });
+
+    Socket.on('userDetailsUpdate', assignScope('user'));
+
     Socket.on('matchCreated', (match) => {
         $scope.matches.push(match);
     });
 
-    $scope.createMatch = function(){
-        Socket.emit('requestMatch', 'testMatch');
+    Socket.on('serverError', (err) => $scope.errorMessage = err.message);
+
+    $scope.joinLobby = function(username) {
+        if(username.length > 0) {
+            Socket.emit('join', {name: username});
+            $scope.status = 'loading';
+        }
+    };
+
+    $scope.createMatch = function(matchName){
+        if(matchName.length > 0) {
+            Socket.emit('requestMatch', {label: matchName});
+        }
     }
 }
 

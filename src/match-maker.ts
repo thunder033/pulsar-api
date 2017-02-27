@@ -11,20 +11,20 @@ import {Room} from './room';
  */
 export class MatchMember extends UserComponent {
 
-    private isHost: boolean;
     private match: Match;
 
     public onInit() {
-        console.log('init match member');
-        this.isHost = false;
-
         // Register event handlers
         this.socket.on('requestMatch', (data) => this.requestMatch(data));
         this.socket.on('requestJoin', (data) => this.requestJoin(data));
     }
 
-    public onDisconnect() {
-        this.match.end();
+    public onJoin() {
+        const matches = this.server.getComponent(MatchMaker)
+            .getMatches()
+            .map((m) => m.getSerializable());
+
+        this.socket.emit('matchListUpdate', matches);
     }
 
     /**
@@ -32,23 +32,31 @@ export class MatchMember extends UserComponent {
      * @param data
      */
     public requestMatch(data) {
-        console.log('new match requested');
-        const match = this.server.getComponent(MatchMaker).createMatch({label: data.label, host: this});
+        if (!(this.match instanceof Match)) {
+            const match = this.server.getComponent(MatchMaker)
+                .createMatch({label: data.label, host: this});
 
-        if (match instanceof Match) {
-            this.server.broadcast('matchCreated', match.getSerializable());
+            if (match instanceof Match) {
+                this.match = match;
+                this.user.join(match);
+                this.server.broadcast('matchCreated', match.getSerializable());
+            } else {
+                const errMsg =  'A new match could not be created because the server has reached it\'s capacity';
+                this.socket.emit('serverError', {message: errMsg});
+            }
         } else {
-            this.socket.emit('error', {message: 'A new match could not be created because the server has reached it\'s capacity'});
+            const errMsg = 'A new match could not be created because you are already in a match';
+            this.socket.emit('serverError', {message: errMsg});
         }
+
     }
 
-    /**
-     * Marks this user as the host of the current match
-     */
-    public setHost(): void {
-        if (this.match instanceof Match) {
-            this.isHost = true;
-        }
+    public getId(): string {
+        return this.user.getId();
+    }
+
+    public isHost(): boolean {
+        return this.match.getHost() === this;
     }
 
     /**
@@ -56,11 +64,16 @@ export class MatchMember extends UserComponent {
      * @param data
      */
     public requestJoin(data) {
-        try {
-            const match: Match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
-            this.server.broadcast('joinedMatch', {user: this.user.getName(), match: match.getName()});
-        } catch (e) {
-            this.socket.emit('error', e);
+        if (!(this.match instanceof Match)) {
+            try {
+                const match: Match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
+                this.server.broadcast('joinedMatch', {user: this.user.getName(), match: match.getName()});
+            } catch (e) {
+                this.socket.emit('error', e);
+            }
+        } else {
+            const errMsg = 'You can only be in one match at a time';
+            this.socket.emit('serverError', {message: errMsg});
         }
     }
 }
@@ -91,9 +104,9 @@ export class MatchMaker extends ServerComponent {
      */
     public createMatch(params): Match {
         if (this.matches.length < MatchMaker.MAX_MATCHES) {
-            const match: Match = new Match(params.host);
+            const match: Match = new Match(params.host, this);
             this.server.addRoom(match);
-            match.setLabel(params.name);
+            match.setLabel(params.label);
             this.matches.push(match);
             return match;
         } else {
@@ -121,6 +134,22 @@ export class MatchMaker extends ServerComponent {
         } else {
             throw new Error(`Cannot join match ${name}. The match is closed.`);
         }
+    }
+
+    /**
+     * Remove a match and notify users
+     * @param match
+     */
+    public removeMatch(match: Match): void {
+        const matchIndex = this.matches.indexOf(match);
+        if (matchIndex > -1) {
+           this.matches.splice(matchIndex, 1);
+           this.server.broadcast('matchListUpdate', this.matches.map((m) => m.getSerializable()));
+        }
+    }
+
+    public getMatches(): Match[] {
+        return this.matches;
     }
 
     /**
