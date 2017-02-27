@@ -53,7 +53,9 @@ module.exports = function(grunt){
                     'public/views/**',
 
                     'src/**/*.js',
-                    //angular js included in dist bundle
+                    // add tsconfig so tsc doesn't blow up on heroku
+                    'src/tsconfig.json',
+                    // angular js included in dist bundle
                     '!src/ng/**/*.js',
 
                     'LICENSE',
