@@ -4,9 +4,9 @@
 
 import * as uuid from 'uuid/v4';
 import {INetworkEntity} from './network-entity';
-import {MatchMember, MatchMaker} from './match-maker';
+import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
-import {IUser, User} from "./user";
+import {IUser, User} from './user';
 
 /**
  * Specialized Room for staging new play sessions between users
