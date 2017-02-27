@@ -2,11 +2,11 @@
   "name": "pulsar-api",
   "version": "1.0.8",
   "description": "Backend services for Pulsar, including multiplayer Warp",
-  "main": "src/server.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node ./src/server.js",
+    "start": "node ./src/app.js",
     "build": "grunt build-prod && npm run srcCompile",
-    "srcCompile": "cd src && tsc -p ../",
+    "srcCompile": "cd src && tsc -p .",
     "watch": "grunt watch",
     "pretest": "tslint \"src/**/*.ts\" \"test/**/*.ts\" && tsc -p ./",
     "test": "./node_modules/.bin/mocha --reporter spec test/**/*.js",
@@ -14,7 +14,7 @@
     "version": "npm run build",
     "postversion": "git push && git push --tags",
     "postinstall": "npm run srcCompile",
-    "buildRun": "tsc -p ./ && node ./src/server.js"
+    "buildRun": "tsc -p ./ && node ./src/app.js"
   },
   "repository": {
     "type": "git",
