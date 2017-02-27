@@ -9,6 +9,7 @@ const lobby = require('angular')
 lobby.controller('lobby.LobbyCtrl', [
     'network.Socket',
     '$scope',
+    'network.User',
     require('./lobby-ctrl')]);
 
 module.exports = lobby;

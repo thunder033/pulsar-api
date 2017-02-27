@@ -13,4 +13,13 @@ network.factory('network.Socket', [
     'socketFactory',
     require('./socket-factory')]);
 
+network.factory('network.User', [
+    'network.Socket',
+    'network.Room',
+    require('./user-factory')]);
+
+network.factory('network.Room', [
+   'network.Socket',
+    require('./room-factory')]);
+
 module.exports = network;

@@ -3,7 +3,7 @@
  * Created by gjr8050 on 2/24/2017.
  */
 
-function LobbyCtrl(Socket, $scope) {
+function LobbyCtrl(Socket, $scope, User) {
     $scope.status = 'loading';
     $scope.matches = [];
     $scope.user = null;
@@ -30,8 +30,6 @@ function LobbyCtrl(Socket, $scope) {
         $scope.matches.push.apply($scope.matches, matchList);
     });
 
-    Socket.on('userDetailsUpdate', assignScope('user'));
-
     Socket.on('matchCreated', (match) => {
         $scope.matches.push(match);
     });
@@ -40,6 +38,7 @@ function LobbyCtrl(Socket, $scope) {
 
     $scope.joinLobby = function(username) {
         if(username.length > 0) {
+            $scope.user = new User(username, Socket);
             Socket.emit('join', {name: username});
             $scope.status = 'loading';
         }
