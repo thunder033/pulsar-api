@@ -3,11 +3,17 @@
  * Created by gjr8050 on 2/24/2017.
  */
 
-function LobbyCtrl(Socket, $scope, User) {
+const IOEvent = require('event-types').IOEvent;
+const MatchEvent = require('event-types').MatchEvent;
+
+function LobbyCtrl(Socket, $scope, User, Match) {
     $scope.status = 'loading';
-    $scope.matches = [];
+
+    // reference to match list that is updated by factory
+    $scope.matches = Match.getMatchSet();
     $scope.user = null;
     $scope.fields = {
+        username: '',
         matchLabel: ''
     };
 
@@ -18,35 +24,26 @@ function LobbyCtrl(Socket, $scope, User) {
         }
     }
 
-    Socket.on('connect', () => $scope.status = 'connected');
+    Socket.on(IOEvent.connect, () => $scope.status = 'connected');
 
-    Socket.on('joinedRoom', (room) => {
+    Socket.on(IOEvent.joinedRoom, (room) => {
         $scope.room = room;
         $scope.status = 'ready';
     });
 
-    Socket.on('matchListUpdate', (matchList) => {
-        $scope.matches.length = 0;
-        $scope.matches.push.apply($scope.matches, matchList);
-    });
-
-    Socket.on('matchCreated', (match) => {
-        $scope.matches.push(match);
-    });
-
-    Socket.on('serverError', (err) => $scope.errorMessage = err.message);
+    Socket.on(IOEvent.serverError, (err) => $scope.errorMessage = err.message);
 
     $scope.joinLobby = function(username) {
         if(username.length > 0) {
             $scope.user = new User(username, Socket);
-            Socket.emit('join', {name: username});
+            Socket.emit(IOEvent.join, {name: username});
             $scope.status = 'loading';
         }
     };
 
     $scope.createMatch = function(matchName){
         if(matchName.length > 0) {
-            Socket.emit('requestMatch', {label: matchName});
+            Socket.emit(MatchEvent.requestMatch, {label: matchName});
         }
     }
 }

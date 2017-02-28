@@ -14,8 +14,8 @@ network.factory('network.Socket', [
     require('./socket-factory')]);
 
 network.factory('network.User', [
-    'network.Socket',
     'network.Room',
+    'lobby.Match',
     require('./user-factory')]);
 
 network.factory('network.Room', [
