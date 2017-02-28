@@ -3,6 +3,7 @@
  */
 import {Match} from './match';
 import {ServerComponent} from './sync-server';
+import Socket = SocketIO.Socket;
 import {User, UserComponent} from './user';
 import {Room} from './room';
 import {IOEvent, MatchEvent} from './event-types';
@@ -31,8 +32,8 @@ export class MatchMember extends UserComponent {
 
             if (match instanceof Match) {
                 this.match = match;
-                this.user.join(match);
                 this.server.broadcast(MatchEvent.matchCreated, match.getSerializable());
+                this.user.join(match);
             } else {
                 const errMsg =  'A new match could not be created because the server has reached it\'s capacity';
                 this.socket.emit(IOEvent.serverError, {message: errMsg});
@@ -62,7 +63,7 @@ export class MatchMember extends UserComponent {
                 const match: Match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
                 this.server.broadcast(MatchEvent.joinedMatch, {user: this.user.getName(), match: match.getName()});
             } catch (e) {
-                this.socket.emit(IOEvent.serverError, e);
+                this.socket.emit(IOEvent.serverError, e.message || e);
             }
         } else {
             const errMsg = 'You can only be in one match at a time';
@@ -159,6 +160,11 @@ export class MatchMaker extends ServerComponent {
      * @returns {Match|null}
      */
     private getMatch(name: string): Match {
+        // ensure the key were searching by is a string
+        if (typeof name !== 'string') {
+            throw new TypeError(`Message name ${name} is not a string`);
+        }
+
         let match: Match = null;
         this.matches.some((m: Match) => {
             if (m.getName() === name) {

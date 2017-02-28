@@ -8,6 +8,7 @@ import {Component, Composite, IComponent} from './component';
 import {Room} from './room';
 import Socket = SocketIO.Socket;
 import {User} from './user';
+import {IOEvent} from './event-types';
 
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
@@ -102,6 +103,7 @@ export class SyncServer extends Composite {
 
         const room = new Room(name);
         this.addRoom(room);
+        this.broadcast(IOEvent.roomCreated, room.getSerializable());
         return room;
     }
 
