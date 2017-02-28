@@ -47,14 +47,23 @@ export class UserComponent implements IUserComponent {
     public onDisconnect(): void {
         return undefined;
     }
+
+    public onSessionEnd(): void {
+        return undefined;
+    }
 }
 
 export class User extends Composite implements IUser, INetworkEntity {
 
+    // We need more server functionality to support re-connection
+    public static DISCONNECT_TIMEOUT_DURATION: number = 0;
+
     protected server: SyncServer;
     protected socket: Socket;
-    protected room: Room;
+    protected rooms: Room[];
+    protected disconnectTimer: Timer;
 
+    private terminated: boolean;
     private name: string;
     private id: string;
 
@@ -63,12 +72,17 @@ export class User extends Composite implements IUser, INetworkEntity {
         this.server = server;
         this.socket = socket;
         this.id = uuid();
-        this.room = null;
+        this.rooms = [];
+
+        this.terminated = false;
+        this.disconnectTimer = null;
 
         socket.on(IOEvent.join, this.onJoin.bind(this));
         socket.on(IOEvent.disconnect, this.onDisconnect.bind(this));
 
         componentTypes.forEach((type: IComponent) => this.addComponent(type));
+
+        socket.emit(IOEvent.userDetailsUpdate, this.getSerializable());
     }
 
     public addComponent(component: IComponent): Component {
@@ -77,17 +91,22 @@ export class User extends Composite implements IUser, INetworkEntity {
     }
 
     public join(room: Room): void {
+        console.log(`${this.name} join ${room.getName()}`);
         this.socket.join(room.getName());
         room.add(this);
-        this.room = room;
+        this.rooms.push(room);
         this.socket.emit(IOEvent.joinedRoom, room.getSerializable());
         this.invokeComponentEvents('onJoin', room);
     }
 
     public leave(room: Room): void {
+        console.log(`${this.name} leave ${room.getName()}`);
         this.socket.leave(room.getName());
         room.remove(this);
-        this.room = null;
+
+        const roomIndex = this.rooms.indexOf(room);
+        this.rooms.splice(roomIndex, 1);
+
         this.socket.emit(IOEvent.leftRoom, room.getSerializable());
         this.invokeComponentEvents('onLeave', room);
     }
@@ -107,14 +126,26 @@ export class User extends Composite implements IUser, INetworkEntity {
         };
     }
 
-    private onDisconnect() {
-        if (this.room instanceof Room) {
-            this.leave(this.room);
+    private terminateSession() {
+        console.log(`terminate session for ${this.name}`);
+        this.terminated = true;
+
+        while (this.rooms.length > 0) {
+            this.leave(this.rooms[0]);
         }
 
         if (!this.server.removeUser(this)) {
             console.warn(`Failed to remove user [${this.name}] from the server`);
         }
+
+        this.invokeComponentEvents('onSessionEnd');
+    }
+
+    private onDisconnect() {
+        if (!this.terminated) {
+            this.disconnectTimer = setTimeout(() => this.terminateSession(), User.DISCONNECT_TIMEOUT_DURATION);
+        }
+
         this.invokeComponentEvents('onDisconnect');
     }
 

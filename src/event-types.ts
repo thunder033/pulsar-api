@@ -5,20 +5,24 @@
 import {Enum} from './enum';
 
 /**
- * @property connection
+ * @property connect
  * @property serverError
  * @property join
  * @property disconnect
+ * @property roomCreated
  * @property joinedRoom
  * @property leftRoom
+ * @property userDetailsUpdate
  */
 export const IOEvent = Enum([
-    'connection',
+    'connect',
     'join',
     'disconnect',
     'serverError',
+    'roomCreated',
     'joinedRoom',
     'leftRoom',
+    'userDetailsUpdate',
 ]);
 
 /**
