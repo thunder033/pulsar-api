@@ -5,10 +5,12 @@
 
 const lobby = require('./lobby');
 const network = require('./network');
+const game = require('./game');
 
 require('angular').module('warp-test-client', [
     network.name,
     lobby.name,
+    game.name,
     require('angular-ui-router'),
     'btford.socket-io'
 ]).config(['$stateProvider','$urlRouterProvider', ($stateProvider, $urlRouterProvider) => {

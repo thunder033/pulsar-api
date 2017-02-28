@@ -12,6 +12,7 @@ const HTTP_ROUTES = {
     '/': 'public/index.html',
     '/dist/bundle.js': 'public/dist/bundle.js',
     '/views/lobby.html': 'public/views/lobby.html',
+    '/views/staging-match.html': 'public/views/staging-match.html',
 };
 
 // init the application

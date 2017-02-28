@@ -1,0 +1,10 @@
+<div class="staging-match">
+    <h3 ng-bind="match.getLabel()"></h3>
+    <ul class="staging-match-user-list">
+        <li ng-repeat="i in getMaxSize() track by $index">
+            <span ng-bind="match.getUsers()[$index].getName()"></span>
+        </li>
+    </ul>
+
+    <button ng-disabled="!match.canStart()">Start Match</button>
+</div>

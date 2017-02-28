@@ -6,15 +6,16 @@
 const lobby = require('angular')
     .module('client.lobby', []);
 
-lobby.factory('lobby.Match', [
-    'network.Socket',
-    require('./match-factory')]);
-
 lobby.controller('lobby.LobbyCtrl', [
     'network.Socket',
     '$scope',
-    'network.User',
-    'lobby.Match',
+    'game.Player',
+    'game.ClientMatch',
+    'network.ClientRoom',
     require('./lobby-ctrl')]);
+
+lobby.directive('stagingMatch', [
+    'game.ClientMatch',
+    require('./match-directive')]);
 
 module.exports = lobby;

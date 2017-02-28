@@ -3,24 +3,36 @@
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
 
-const Room = require('room');
 const MatchEvents = require('event-types').MatchEvent;
 
-function matchFactory(Socket, roomFactory) {
+function matchFactory(Socket, ClientRoom, User) {
 
     let createMatch = false;
     const matches = {};
 
-    class Match extends Room {
+    class ClientMatch extends ClientRoom {
 
         constructor(name) {
             if(!createMatch) {
                 throw new Error('Matches can only be instantiated through server events');
             }
 
-            this.stale = false;
-            createMatch = false;
             super(name);
+            this.stale = false;
+
+            createMatch = false;
+        }
+
+        getUsers() {
+            return this.users;
+        }
+
+        canStart() {
+            return this.users.filter(user => user instanceof User).length >= ClientMatch.MIN_START_USERS;
+        }
+
+        getLabel() {
+            return this.label;
         }
 
         isStale() {
@@ -36,17 +48,21 @@ function matchFactory(Socket, roomFactory) {
         }
     }
 
+    ClientMatch.MIN_START_USERS = 2;
+    ClientMatch.MAX_MATCH_SIZE = 2;
+
     function parseNetworkEntity(data) {
         let match = matches[data.name];
 
-        if(!(match instanceof Match)) {
+        if(!(match instanceof ClientMatch)) {
             createMatch = true;
-            match = new Match(data.name);
+            match = new ClientMatch(data.name);
             matches[match.getName()] = match;
         }
 
         data.stale = false;
         Object.assign(match, data);
+        console.log(`created match`, match);
         return match;
     }
 
@@ -55,7 +71,7 @@ function matchFactory(Socket, roomFactory) {
         // We don't want to replace the entire collection because we need to preserve references
         Object.keys(matches).forEach(name => matches[name].markStale());
 
-        // Parse each data itme
+        // Parse each data item
         data.forEach(parseNetworkEntity);
 
         // Remove any matches not present on the match list
@@ -69,7 +85,7 @@ function matchFactory(Socket, roomFactory) {
     Socket.on(MatchEvents.matchCreated, parseNetworkEntity);
     Socket.on(MatchEvents.matchListUpdate, updateMatchList);
 
-    return Match;
+    return ClientMatch;
 }
 
 module.exports = matchFactory;

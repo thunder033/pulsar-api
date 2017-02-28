@@ -5,9 +5,9 @@
 'use strict';
 
 const MatchEvents = require('event-types').MatchEvent;
-const IOEvents = require('event-types').MatchEvent;
+const IOEvents = require('event-types').IOEvent;
 
-function userFactory(Room, Match) {
+function userFactory(ClientRoom) {
     class User {
 
         constructor(name, socket) {
@@ -19,19 +19,19 @@ function userFactory(Room, Match) {
 
             socket.on(IOEvents.joinedRoom, data => this.onJoin(data));
 
-            socket.on('userDetailsUpdate', (data) => {
+            socket.on(IOEvents.userDetailsUpdate, (data) => {
                 Object.assign(this, data);
             });
         }
 
         onJoin(data) {
-            const room = Room.getByName(data.name);
-
-            if(room instanceof Match) {
-                this.match = room;
-            }
-
+            const room = ClientRoom.getByName(data.name);
             this.rooms.push(room);
+            room.add(this);
+        }
+
+        getName() {
+            return this.name;
         }
     }
 

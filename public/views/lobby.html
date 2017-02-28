@@ -1,19 +1,28 @@
 <div id="lobby">
-    Lobby<br>
-    Status: <span ng-bind="status"></span><br>
+    <h2>Lobby</h2>
+    <span ng-bind="errorMessage"></span>
+    Status: <span ng-bind="curStatus"></span><br>
 
-    <div ng-if="status === 'connected'">
+    <div ng-if="curStatus === status.CONNECTED">
         <input type="text" placeholder="Name" ng-model="fields.username">
         <button ng-click="joinLobby(fields.username)">Join Lobby</button>
     </div>
 
-    <div ng-if="status === 'ready'">
-        In Room: <span ng-bind="room.name"></span><br>
+    <div ng-if="curStatus === status.READY">
+        In Room: <span ng-bind="room.getName()"></span><br>
 
         <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
         <button ng-click="createMatch(fields.matchLabel)">Create Match</button>
-        <select multiple ng-options="match as match.label for match in matches track by match.name" ng-model="matches"></select>
-        <span ng-bind="errorMessage"></span>
+
+        <div>
+            <h4>Matches</h4>
+            <select title="Matches" name="matchSelect" ng-model="fields.selectedMatch" ng-options="name as match.getLabel() for (name, match) in matches"></select>
+            <button ng-disabled="!fields.selectedMatch" ng-click="joinMatch(fields.selectedMatch)">Join</button>
+        </div>
+    </div>
+
+    <div ng-if="curStatus === status.STAGING">
+        <staging-match match="user.getMatch()"></staging-match>
     </div>
 
 </div>
