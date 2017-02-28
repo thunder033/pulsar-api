@@ -2,7 +2,7 @@
  * Created by gjr8050 on 2/23/2017.
  */
 
-import {IUser, User} from './user';
+import {User} from './user';
 import {INetworkEntity} from './network-entity';
 
 /**
@@ -49,6 +49,7 @@ export class Room implements INetworkEntity {
         return {
             capacity: this.capacity,
             name: this.name,
+            users: this.users.map((user) => user.getId()),
         };
     }
 }

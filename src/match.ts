@@ -86,11 +86,9 @@ export class Match extends Room implements INetworkEntity {
     }
 
     public getSerializable(): Object {
-        return {
-            capacity: this.getCapacity(),
+        return Object.assign(super.getSerializable(), {
             host: this.host.getId(),
             label: this.getLabel(),
-            name: this.getName(),
-        };
+        });
     }
 }
