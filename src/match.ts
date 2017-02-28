@@ -6,7 +6,7 @@ import * as uuid from 'uuid/v4';
 import {INetworkEntity} from './network-entity';
 import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
-import {IUser, User} from './user';
+import {User} from './user';
 
 /**
  * Specialized Room for staging new play sessions between users
@@ -14,6 +14,7 @@ import {IUser, User} from './user';
 export class Match extends Room implements INetworkEntity {
 
     private static MAX_MATCH_SIZE: number = 2;
+    // private static MATCH_START_SYNC_TIME: number = 3000;
 
     private label: string;
     private matchMaker: MatchMaker;
@@ -26,14 +27,14 @@ export class Match extends Room implements INetworkEntity {
         this.matchMaker = matchMaker;
     }
 
-    public remove(user: IUser): void {
+    public remove(user: User): void {
         super.remove(user);
 
         if (this.users.length === 0) {
             this.end();
             this.destroy();
         } else if ((user as User).getComponent(MatchMember).isHost()) {
-            this.host = (this.users[0] as User).getComponent(MatchMember);
+            this.host = this.users[0].getComponent(MatchMember);
         }
     }
 
@@ -43,6 +44,11 @@ export class Match extends Room implements INetworkEntity {
      */
     public end(): void {
         console.log('ended match ', this.name);
+
+        // Return users to the lobby at the end of the match
+        this.users.forEach((user) => {
+            user.join(this.matchMaker.getLobby());
+        });
     }
 
     /**
@@ -70,6 +76,13 @@ export class Match extends Room implements INetworkEntity {
 
     public start(): void {
         console.log('started match', this.name);
+
+        // Players leave the lobby when the match begins
+        this.users.forEach((user) => {
+            user.leave(this.matchMaker.getLobby());
+        });
+
+        // const startTime = (new Date()).getTime() + Match.MATCH_START_SYNC_TIME;
     }
 
     public getSerializable(): Object {

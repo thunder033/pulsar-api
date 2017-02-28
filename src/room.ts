@@ -11,7 +11,7 @@ import {INetworkEntity} from './network-entity';
 export class Room implements INetworkEntity {
     public name: string;
 
-    protected users: IUser[];
+    protected users: User[];
     // How many users the room can contain
     private capacity: number = NaN;
 
@@ -20,7 +20,7 @@ export class Room implements INetworkEntity {
         this.users = [];
     }
 
-    public add(user: IUser): void {
+    public add(user: User): void {
         if (isNaN(this.capacity) || this.users.length < this.capacity) {
             this.users.push(user);
         } else {
@@ -28,7 +28,7 @@ export class Room implements INetworkEntity {
         }
     }
 
-    public remove(user: IUser): void {
+    public remove(user: User): void {
         const userIndex = this.users.indexOf(user);
         this.users.splice(userIndex, 1);
     }
