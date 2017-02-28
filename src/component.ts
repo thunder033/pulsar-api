@@ -35,14 +35,14 @@ export abstract class Composite {
     /**
      * Invoke a method on all components (type-unsafe)
      * @param memberMethod: name of the handler to invoke
-     * @param data: arbitray data to pass to the event handler
+     * @param data: arbitrary data to pass to the event handler
      */
     protected invokeComponentEvents(memberMethod: string, data?: any): void {
         const it = this.components.values();
 
         let item = it.next();
         while (item.done === false) {
-            if (item.value[memberMethod] === 'function') {
+            if (typeof item.value[memberMethod] === 'function') {
                 item.value[memberMethod](data);
             }
 

@@ -12,7 +12,7 @@ export class Room implements INetworkEntity {
     public name: string;
 
     protected users: User[];
-    // How many users the room can contain
+    // How many users the rooms can contain
     private capacity: number = NaN;
 
     constructor(name: string) {
