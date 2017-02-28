@@ -120,7 +120,9 @@ export class User extends Composite implements IUser, INetworkEntity {
 
     private onJoin(data) {
         console.log(`${data.name} joined`);
-        const room = this.room || this.server.getDefaultRoom();
+        const room: Room = this.server.getDefaultRoom();
+
+        this.server.syncClient(this.socket);
 
         this.name = data.name;
         this.join(room);

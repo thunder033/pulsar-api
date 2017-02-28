@@ -20,14 +20,6 @@ export class MatchMember extends UserComponent {
         this.socket.on(MatchEvent.requestJoin, (data) => this.requestJoin(data));
     }
 
-    public onJoin() {
-        const matches = this.server.getComponent(MatchMaker)
-            .getMatches()
-            .map((m) => m.getSerializable());
-
-        this.socket.emit(MatchEvent.matchListUpdate, matches);
-    }
-
     /**
      * Attempt to create a new match with the given parameters
      * @param data
@@ -96,6 +88,10 @@ export class MatchMaker extends ServerComponent {
 
     public onInit(): void {
         this.lobby = this.server.createRoom('lobby');
+    }
+
+    public syncClient(socket: Socket): void {
+        socket.emit(MatchEvent.matchListUpdate, this.matches.map((m) => m.getSerializable()));
     }
 
     /**

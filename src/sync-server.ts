@@ -47,6 +47,10 @@ export abstract class ServerComponent extends Component implements IServerCompon
         return undefined;
     }
 
+    public syncClient(socket: Socket): void {
+        return undefined;
+    }
+
     public getName(): string {
         return this.name;
     }
@@ -108,6 +112,18 @@ export class SyncServer extends Composite {
 
     public registerConnection(socket: Socket) {
         this.users.push(new User(socket, this, this.getUserComponents()));
+    };
+
+    public syncClient(socket: Socket): void {
+        Object.keys(this.rooms).forEach((name) => {
+            const room: Room = this.rooms[name];
+
+            if (room.constructor === Room) {
+                socket.emit(IOEvent.roomCreated, room.getSerializable());
+            }
+        });
+
+        this.invokeComponentEvents('syncClient', socket);
     };
 
     public getDefaultRoom(): Room {
