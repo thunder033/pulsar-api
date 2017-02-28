@@ -9,21 +9,6 @@ import {Room} from './room';
 import Socket = SocketIO.Socket;
 import {User} from './user';
 
-// This might throw errors in webstorm when the typescript service is enabled and TS 2.2.1+ is installed
-// it does not blow up 2.1.6 compiler
-function Enum<T extends string>(o: T[]): {[K in T]: K} {
-    return o.reduce((res, key) => {
-        res[key] = key;
-        return res;
-    }, Object.create(null));
-}
-
-export const IOEvent = Enum([
-    'connection',
-    'join',
-    'disconnect',
-]);
-
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
     onInit(): void;

@@ -5,6 +5,7 @@ import {Match} from './match';
 import {ServerComponent} from './sync-server';
 import {User, UserComponent} from './user';
 import {Room} from './room';
+import {IOEvent, MatchEvent} from './event-types';
 
 /**
  * Providers users the ability to join and leave matches
@@ -15,8 +16,8 @@ export class MatchMember extends UserComponent {
 
     public onInit() {
         // Register event handlers
-        this.socket.on('requestMatch', (data) => this.requestMatch(data));
-        this.socket.on('requestJoin', (data) => this.requestJoin(data));
+        this.socket.on(MatchEvent.requestMatch, (data) => this.requestMatch(data));
+        this.socket.on(MatchEvent.requestJoin, (data) => this.requestJoin(data));
     }
 
     public onJoin() {
@@ -24,7 +25,7 @@ export class MatchMember extends UserComponent {
             .getMatches()
             .map((m) => m.getSerializable());
 
-        this.socket.emit('matchListUpdate', matches);
+        this.socket.emit(MatchEvent.matchListUpdate, matches);
     }
 
     /**
@@ -39,14 +40,14 @@ export class MatchMember extends UserComponent {
             if (match instanceof Match) {
                 this.match = match;
                 this.user.join(match);
-                this.server.broadcast('matchCreated', match.getSerializable());
+                this.server.broadcast(MatchEvent.matchCreated, match.getSerializable());
             } else {
                 const errMsg =  'A new match could not be created because the server has reached it\'s capacity';
-                this.socket.emit('serverError', {message: errMsg});
+                this.socket.emit(IOEvent.serverError, {message: errMsg});
             }
         } else {
             const errMsg = 'A new match could not be created because you are already in a match';
-            this.socket.emit('serverError', {message: errMsg});
+            this.socket.emit(IOEvent.serverError, {message: errMsg});
         }
 
     }
@@ -67,13 +68,13 @@ export class MatchMember extends UserComponent {
         if (!(this.match instanceof Match)) {
             try {
                 const match: Match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
-                this.server.broadcast('joinedMatch', {user: this.user.getName(), match: match.getName()});
+                this.server.broadcast(MatchEvent.joinedMatch, {user: this.user.getName(), match: match.getName()});
             } catch (e) {
-                this.socket.emit('error', e);
+                this.socket.emit(IOEvent.serverError, e);
             }
         } else {
             const errMsg = 'You can only be in one match at a time';
-            this.socket.emit('serverError', {message: errMsg});
+            this.socket.emit(IOEvent.serverError, {message: errMsg});
         }
     }
 }
@@ -144,12 +145,16 @@ export class MatchMaker extends ServerComponent {
         const matchIndex = this.matches.indexOf(match);
         if (matchIndex > -1) {
            this.matches.splice(matchIndex, 1);
-           this.server.broadcast('matchListUpdate', this.matches.map((m) => m.getSerializable()));
+           this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getSerializable()));
         }
     }
 
     public getMatches(): Match[] {
         return this.matches;
+    }
+
+    public getLobby(): Room {
+        return this.lobby;
     }
 
     /**

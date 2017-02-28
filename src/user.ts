@@ -2,12 +2,14 @@
 /**
  * Created by Greg on 2/17/2017.
  */
-import {IOEvent, SyncServer} from './sync-server';
+
+import {Component, Composite, IComponent} from './component';
+import {IOEvent} from './event-types';
+import {INetworkEntity} from './network-entity';
+import {Room} from './room';
+import {SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
 import Timer = NodeJS.Timer;
-import {Room} from './room';
-import {Component, Composite, IComponent} from './component';
-import {INetworkEntity} from './network-entity';
 import * as uuid from 'uuid/v4';
 
 export interface IUser {
@@ -78,7 +80,7 @@ export class User extends Composite implements IUser, INetworkEntity {
         this.socket.join(room.getName());
         room.add(this);
         this.room = room;
-        this.socket.emit('joinedRoom', room.getSerializable());
+        this.socket.emit(IOEvent.joinedRoom, room.getSerializable());
         this.invokeComponentEvents('onJoin', room);
     }
 
@@ -86,7 +88,7 @@ export class User extends Composite implements IUser, INetworkEntity {
         this.socket.leave(room.getName());
         room.remove(this);
         this.room = null;
-        this.socket.emit('leftRoom', room.getSerializable());
+        this.socket.emit(IOEvent.leftRoom, room.getSerializable());
         this.invokeComponentEvents('onLeave', room);
     }
 
