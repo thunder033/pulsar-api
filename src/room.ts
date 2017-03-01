@@ -3,12 +3,12 @@
  */
 
 import {User} from './user';
-import {INetworkEntity} from './network-entity';
+import {NetworkEntity} from './network-entity';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms
  */
-export class Room implements INetworkEntity {
+export class Room extends NetworkEntity {
     public name: string;
 
     protected users: User[];
@@ -16,6 +16,7 @@ export class Room implements INetworkEntity {
     private capacity: number = NaN;
 
     constructor(name: string) {
+        super();
         this.name = name;
         this.users = [];
     }
@@ -46,10 +47,10 @@ export class Room implements INetworkEntity {
     }
 
     public getSerializable(): Object {
-        return {
+        return Object.assign(super.getSerializable(), {
             capacity: this.capacity,
             name: this.name,
             users: this.users.map((user) => user.getId()),
-        };
+        });
     }
 }

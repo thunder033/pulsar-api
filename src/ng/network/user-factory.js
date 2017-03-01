@@ -5,30 +5,29 @@
 'use strict';
 
 const MatchEvents = require('event-types').MatchEvent;
-const IOEvents = require('event-types').IOEvent;
+const IOEvent = require('event-types').IOEvent;
 
-function userFactory(ClientRoom) {
-    class User {
+function userFactory(ClientRoom, $q, NetworkEntity) {
 
-        constructor(name, socket) {
-            this.name = name;
-            this.socket = socket;
+    const users = {};
+    let localUser = null;
 
-            this.match = null;
-            this.rooms = [];
+    class User extends NetworkEntity {
 
-            socket.on(IOEvents.joinedRoom, data => this.onJoin(data));
+        constructor(params) {
 
-            socket.on(IOEvents.userDetailsUpdate, (data) => {
-                Object.assign(this, data);
-            });
+            super(params.id);
+
+            this.name = params.name;
+
+//            socket.on(IOEvent.joinedRoom, data => this.onJoin(data));
         }
 
-        onJoin(data) {
-            const room = ClientRoom.getByName(data.name);
-            this.rooms.push(room);
-            room.add(this);
-        }
+        // onJoin(data) {
+        //     const room = ClientRoom.getByName(data.name);
+        //     this.rooms.push(room);
+        //     room.add(this);
+        // }
 
         getName() {
             return this.name;

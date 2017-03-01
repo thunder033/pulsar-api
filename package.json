@@ -31,6 +31,7 @@
     "@types/q": "0.0.32",
     "@types/socket.io": "^1.4.28",
     "@types/uuid": "^2.0.29",
+    "eventtarget": "^0.1.0",
     "express": "^4.14.1",
     "q": "^1.4.1",
     "socket.io": "^1.7.2",

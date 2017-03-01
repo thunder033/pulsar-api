@@ -5,16 +5,11 @@
 
 import {Component, Composite, IComponent} from './component';
 import {IOEvent} from './event-types';
-import {INetworkEntity} from './network-entity';
+import {INetworkEntity, Networkable} from './network-entity';
 import {Room} from './room';
 import {SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
 import Timer = NodeJS.Timer;
-import * as uuid from 'uuid/v4';
-
-export interface IUser {
-    getName(): string;
-}
 
 export interface IUserComponent extends Component {
     init(socket: Socket, server: SyncServer, user: User): void;
@@ -23,7 +18,7 @@ export interface IUserComponent extends Component {
     onDisconnect(): void;
 }
 
-export class UserComponent implements IUserComponent {
+export abstract class UserComponent extends Component implements IUserComponent {
     protected server: SyncServer;
     protected socket: Socket;
     protected user: User;
@@ -53,7 +48,7 @@ export class UserComponent implements IUserComponent {
     }
 }
 
-export class User extends Composite implements IUser, INetworkEntity {
+export class User extends Composite implements INetworkEntity {
 
     // We need more server functionality to support re-connection
     public static DISCONNECT_TIMEOUT_DURATION: number = 0;
@@ -65,13 +60,11 @@ export class User extends Composite implements IUser, INetworkEntity {
 
     private terminated: boolean;
     private name: string;
-    private id: string;
 
     constructor(socket: Socket, server: SyncServer, componentTypes: IComponent[] = []) {
         super();
         this.server = server;
         this.socket = socket;
-        this.id = uuid();
         this.rooms = [];
 
         this.terminated = false;
@@ -82,7 +75,7 @@ export class User extends Composite implements IUser, INetworkEntity {
 
         componentTypes.forEach((type: IComponent) => this.addComponent(type));
 
-        socket.emit(IOEvent.userDetailsUpdate, this.getSerializable());
+        this.getComponent(Networkable).sync(this.socket);
     }
 
     public addComponent(component: IComponent): Component {
@@ -115,15 +108,18 @@ export class User extends Composite implements IUser, INetworkEntity {
         return this.name;
     }
 
-    public getId(): string {
-        return this.id;
-    }
-
     public getSerializable(): Object {
         return {
-            id: this.id,
             name: this.name,
         };
+    }
+
+    public getId(): string {
+        return this.getComponent(Networkable).getId();
+    }
+
+    public sync(socket?: SocketIO.Socket, reqId?: string): void {
+        this.getComponent(Networkable).sync(socket, reqId);
     }
 
     private terminateSession() {

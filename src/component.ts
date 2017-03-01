@@ -5,17 +5,18 @@
 export abstract class Composite {
     private components: Map<string, Component>;
 
-    constructor() {
+    constructor(componentTypes: IComponent[] = []) {
         this.components = new Map<string, Component>();
+        componentTypes.forEach((type: IComponent) => this.addComponent(type));
     }
 
-    public getComponent<T extends Component>(type: {new(): T}): T {
+    public getComponent<T extends Component>(type: {new(parent: Composite): T}): T {
         return this.components.get(type.name) as T;
     }
 
-    public addComponent(type: IComponent): Component {
-        const component = new type();
-        this.components.set(type.name, component);
+    public addComponent(componentType: IComponent): Component {
+        const component = new componentType(this);
+        this.components.set(componentType.name, component);
         return component;
     }
 
@@ -52,9 +53,13 @@ export abstract class Composite {
 }
 
 export interface IComponent {
-    new(): Component;
+    new(parent: Composite): Component;
 }
 
 export abstract class Component {
+    protected parent: Composite;
 
+    constructor(parent: Composite) {
+        this.parent = parent;
+    }
 }

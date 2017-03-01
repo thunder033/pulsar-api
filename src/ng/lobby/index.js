@@ -9,9 +9,9 @@ const lobby = require('angular')
 lobby.controller('lobby.LobbyCtrl', [
     'network.Socket',
     '$scope',
-    'game.Player',
     'game.ClientMatch',
     'network.ClientRoom',
+    'network.Connection',
     require('./lobby-ctrl')]);
 
 lobby.directive('stagingMatch', [

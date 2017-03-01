@@ -6,7 +6,7 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-function LobbyCtrl(Socket, $scope, Player, ClientMatch, ClientRoom) {
+function LobbyCtrl(Socket, $scope, ClientMatch, ClientRoom, Connection) {
 
     const status = {
         LOADING: 0,
@@ -34,7 +34,7 @@ function LobbyCtrl(Socket, $scope, Player, ClientMatch, ClientRoom) {
         }
     }
 
-    Socket.on(IOEvent.connect, () => $scope.curStatus = status.CONNECTED);
+    Connection.ready().then(() => $scope.curStatus = status.CONNECTED);
 
     Socket.on(IOEvent.joinedRoom, (room) => {
         $scope.room = ClientRoom.getByName(room.name);
@@ -49,8 +49,8 @@ function LobbyCtrl(Socket, $scope, Player, ClientMatch, ClientRoom) {
 
     $scope.joinLobby = function(username) {
         if(username.length > 0) {
-            $scope.user = new Player(username, Socket);
-            Socket.emit(IOEvent.join, {name: username});
+            Connection.authenticate( {name: username})
+                .then(assignScope('user'));
             $scope.curStatus = status.LOADING;
         }
     };

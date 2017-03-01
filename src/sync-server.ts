@@ -9,6 +9,7 @@ import {Room} from './room';
 import Socket = SocketIO.Socket;
 import {User} from './user';
 import {IOEvent} from './event-types';
+import {Networkable} from './network-entity';
 
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
@@ -29,10 +30,11 @@ export abstract class ServerComponent extends Component implements IServerCompon
     private name: string;
 
     /**
+     * @param syncServer:
      * @param userComponents: Components that should be initialized on each user created on the server
      */
-    constructor(userComponents: IComponent[] = []) {
-        super();
+    constructor(syncServer: SyncServer, userComponents: IComponent[] = []) {
+        super(syncServer);
         this.name = this.constructor.name;
         this.userComponents = userComponents;
     }
@@ -164,6 +166,6 @@ export class SyncServer extends Composite {
      */
     private getUserComponents(): IComponent[] {
         const userComponents: any = (this.getComponents() as ServerComponent[]).map((c) => c.getUserComponents());
-        return [].concat.apply([], userComponents);
+        return [].concat.apply([Networkable], userComponents);
     }
 }

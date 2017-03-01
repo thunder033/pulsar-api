@@ -2,7 +2,7 @@
  * Created by gjr8050 on 2/23/2017.
  */
 import {Match} from './match';
-import {ServerComponent} from './sync-server';
+import {ServerComponent, SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
 import {User, UserComponent} from './user';
 import {Room} from './room';
@@ -82,8 +82,8 @@ export class MatchMaker extends ServerComponent {
     private lobby: Room;
     private matches: Match[];
 
-    constructor() {
-        super([MatchMember]);
+    constructor(syncServer: SyncServer) {
+        super(syncServer, [MatchMember]);
         this.matches = [];
     }
 

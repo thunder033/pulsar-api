@@ -13,6 +13,8 @@ import {Enum} from './enum';
  * @property joinedRoom
  * @property leftRoom
  * @property userDetailsUpdate
+ * @property requestUserDetails
+ * @property syncNetworkEntity
  */
 export const IOEvent = Enum([
     'connect',
@@ -23,6 +25,8 @@ export const IOEvent = Enum([
     'joinedRoom',
     'leftRoom',
     'userDetailsUpdate',
+    'requestUserDetails',
+    'syncNetworkEntity',
 ]);
 
 /**
