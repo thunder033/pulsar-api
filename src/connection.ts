@@ -12,6 +12,6 @@ export class Connection extends UserComponent {
     }
 
     private syncNetworkEntity(data): void {
-
+        console.log('this doesnt work yet');
     }
 }
