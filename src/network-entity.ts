@@ -43,6 +43,31 @@ export class SyncResponse {
     }
 }
 
+function putNetworkEntity(type: INetworkEntityCtor, entity: INetworkEntity): void {
+    const keyType: any = resolveNetworkEntityType(type);
+
+    if (keyType === null) {
+        throw new TypeError(`Could not resolve ${type} to a valid key type`);
+    }
+
+    Network.entities.get(keyType.name).set(entity.getId(), entity);
+}
+
+function resolveNetworkEntityType(type: INetworkEntityCtor): INetworkEntityCtor {
+    if (Network.entities.has(type.name)) {
+        return type;
+    } else {
+        let resolvedType: any = null;
+        Network.types.forEach((candidateType) => {
+            if (type.prototype instanceof candidateType) {
+                resolvedType = candidateType;
+            }
+        });
+
+        return resolvedType;
+    }
+}
+
 export abstract class NetworkEntity implements INetworkEntity {
 
     protected id: string;
@@ -56,32 +81,27 @@ export abstract class NetworkEntity implements INetworkEntity {
     }
 
     public static getById<T extends INetworkEntity>(type: INetworkEntityCtor, id: string): T {
-        if (Network.entities.has(type.name)) {
-            return Network.entities.get(type.name).get(id) as T;
-        } else {
-            let keyType: any = null;
-            Network.types.forEach((candidateType) => {
-                if (type.prototype instanceof candidateType) {
-                    keyType = candidateType;
-                }
-            });
+        const keyType: any = resolveNetworkEntityType(type);
 
-            if (keyType !== null) {
-                return Network.entities.get(keyType.name).get(id) as T;
-            } else {
-                throw new TypeError(`Could not resolve ${type} to a valid key type`);
-            }
+        if (keyType === null) {
+            throw new TypeError(`Could not resolve ${type} to a valid key type`);
         }
 
+        return Network.entities.get(keyType.name).get(id) as T;
+    }
+
+    public static registerType(type: INetworkEntityCtor) {
+        if (!Network.types.has(type.name)) {
+            console.log(`Register type ${type.name}`);
+            Network.types.set(type.name, type);
+            Network.entities.set(type.name, new Map());
+        }
     }
 
     constructor(type: INetworkEntityCtor) {
         this.id = uuid();
-
-        if (!Network.types.has(type.name)) {
-            Network.types.set(type.name, type);
-            Network.entities.set(type.name, new Map());
-        }
+        NetworkEntity.registerType(type);
+        putNetworkEntity(type, this);
     }
 
     public getId(): string {
@@ -105,10 +125,15 @@ export class Networkable extends Component {
 
     protected id: string;
     protected parent: Composite & INetworkEntity;
+    protected type: any;
 
     constructor(parent: Composite & INetworkEntity) {
         super(parent);
         this.id = uuid();
+
+        // The network db needs to any entry of each type of entitye
+        this.type = Object.getPrototypeOf(parent).constructor;
+        NetworkEntity.registerType(this.type);
     }
 
     public getId(): string {
@@ -116,7 +141,7 @@ export class Networkable extends Component {
     }
 
     public init() {
-        console.log(this.id);
+        putNetworkEntity(this.type, this.parent);
     }
 
     public sync(socket?: Socket) {

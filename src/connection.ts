@@ -33,7 +33,9 @@ export class Connection extends UserComponent {
     }
 
     private syncNetworkEntity(data): void {
-        const entity: INetworkEntity = NetworkEntity.getById(NetworkEntity.getType(data.name), data.id);
+        const req = data.body;
+        const type = NetworkEntity.getType(req.type);
+        const entity: INetworkEntity = NetworkEntity.getById(type, req.id);
         this.socket.emit(`${IOEvent.syncNetworkEntity}-${data.reqId}`, new SyncResponse(entity));
     }
 
