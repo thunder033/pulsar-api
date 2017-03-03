@@ -19,11 +19,6 @@ export class Connection extends UserComponent {
         this.socket.on(IOEvent.syncNetworkEntity, this.syncNetworkEntity.bind(this));
     }
 
-    public onJoin(data) {
-        // this.user.setName(data.name);
-
-    }
-
     public onDisconnect() {
         if (!this.terminated) {
             this.disconnectTimer = setTimeout(() => this.terminate(), Connection.DISCONNECT_TIMEOUT_DURATION);
@@ -34,9 +29,16 @@ export class Connection extends UserComponent {
 
     private syncNetworkEntity(data): void {
         const req = data.body;
-        const type = NetworkEntity.getType(req.type);
-        const entity: INetworkEntity = NetworkEntity.getById(type, req.id);
-        this.socket.emit(`${IOEvent.syncNetworkEntity}-${data.reqId}`, new SyncResponse(entity));
+        console.log(`${data.reqId}: ${req.type} ${req.id}`);
+
+        if (req.type && req.id) {
+            const type = NetworkEntity.getType(req.type);
+            const entity: INetworkEntity = NetworkEntity.getById(type, req.id);
+            this.socket.emit(`${IOEvent.syncNetworkEntity}-${data.reqId}`, new SyncResponse(entity));
+        } else {
+            this.socket.emit(IOEvent.serverError, `Invalid ${IOEvent.syncNetworkEntity} request`);
+        }
+
     }
 
     private terminate() {
