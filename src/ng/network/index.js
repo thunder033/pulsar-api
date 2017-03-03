@@ -16,7 +16,7 @@ const network = angular.module('network', [
 network.factory('network.Socket', [
     'socketFactory',
     '$q',
-    'simple-request.SimpleSocket',
+    'simple-request.HttpConfig',
     require('./socket-factory')]);
 
 network.factory('network.NetworkEntity', [
@@ -31,6 +31,7 @@ network.factory('network.Connection', [
 
 network.factory('network.User', [
     'network.NetworkEntity',
+    'network.Connection',
     require('./user-factory')]);
 
 network.factory('network.ClientRoom', [

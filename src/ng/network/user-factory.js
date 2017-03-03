@@ -4,7 +4,9 @@
  */
 'use strict';
 
-function userFactory(NetworkEntity) {
+const IOEvent = require('event-types').IOEvent;
+
+function userFactory(NetworkEntity, Connection) {
 
     class User extends NetworkEntity {
 
@@ -17,6 +19,14 @@ function userFactory(NetworkEntity) {
             return this.name;
         }
     }
+
+    NetworkEntity.registerType(User);
+    Connection.addEventListener(IOEvent.join, (e) => {
+        // Assign a local user entity to the client connection on join
+        Connection.deferReady(NetworkEntity.getById(User, e.userId).then((user) => {
+            Connection.user = user;
+        }));
+    });
 
     return User;
 }

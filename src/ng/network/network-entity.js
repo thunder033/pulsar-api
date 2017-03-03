@@ -13,6 +13,10 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
             this.id = id;
         }
 
+        getId() {
+            return this.id;
+        }
+
         reconstruct(params) {
 
         }
@@ -70,7 +74,7 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
                 entity = NetworkEntity.entities.get(type.name).get(data.id);
                 entity.sync(data.params);
             } else {
-                entity = new type(params);
+                entity = new type(data.params);
                 NetworkEntity.entities.get(type.name).set(data.id, entity);
             }
 

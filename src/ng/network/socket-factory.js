@@ -3,13 +3,13 @@
  * Created by gjr8050 on 2/24/2017.
  */
 
-function socketFactory($socket, $q) {
+function socketFactory($socket, $q, HttpConfig) {
 
     class Socket {
 
         constructor(credentials) {
-            const io = require('socket.io-client')();
-            const ioSocket = io.connect(`http://${location.host}`, {query: encodeURIComponent(credentials)});
+            const io = require('socket.io-client')(`http://${location.host}`, {query: HttpConfig.getQueryString(credentials)});
+            const ioSocket = io.connect();
 
             this.socket = $socket({ioSocket: ioSocket});
         }
@@ -17,14 +17,14 @@ function socketFactory($socket, $q) {
         /**
          *
          * @param event {string}: event to trigger
-         * @param message {any}: data to send
+         * @param body {any}: data to send
          * @param timeoutDuration=3000 {number}: milliseconds before request fails
          * @returns {Promise}
          */
-        request(event, message, timeoutDuration = 3000) {
+        request(event, body, timeoutDuration = 3000) {
             return $q((resolve, reject) => {
-                const id = (Math.random() * 100000) % 100000;
-                socket.emit(event, {_reqId: id, data: {message}});
+                const id = ~~(Math.random() * 100000);
+                this.socket.emit(event, {reqId: id, body});
 
                 let timer = null;
                 if(typeof timeoutDuration === 'number') {
@@ -32,9 +32,9 @@ function socketFactory($socket, $q) {
                 }
 
                 const responseKey = `${event}-${id}`;
-                this.socket.on(responseKey, (data)=>{
+                this.socket.on(responseKey, (data) => {
+                    this.socket.removeAllListeners(responseKey);
                     clearTimeout(timer);
-                    this.socket.off(responseKey);
                     resolve(data);
                 });
             });
