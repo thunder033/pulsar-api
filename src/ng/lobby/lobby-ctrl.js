@@ -34,18 +34,20 @@ function LobbyCtrl(Connection, $scope, ClientMatch, ClientRoom) {
         }
     }
 
-    Connection.ready().then(() => $scope.curStatus = status.READY);
+    Connection.ready().then(() => {
+        $scope.curStatus = status.READY;
 
-    // Socket.on(IOEvent.joinedRoom, (room) => {
-    //     $scope.room = ClientRoom.getByName(room.name);
-    //     if($scope.room.getName() === 'lobby') {
-    //         $scope.curStatus = status.READY;
-    //     } else {
-    //         $scope.curStatus = status.STAGING;
-    //     }
-    // });
+        Connection.getSocket().get().on(IOEvent.joinedRoom, (data) => {
+            $scope.room = ClientRoom.getByName(data.name);
+            if($scope.room.getName() === 'lobby') {
+                $scope.curStatus = status.READY;
+            } else {
+                $scope.curStatus = status.STAGING;
+            }
+        });
 
-    //Socket.on(IOEvent.serverError, (err) => $scope.errorMessage = 'Error: ' + (err.message || err));
+        Connection.getSocket().get().on(IOEvent.serverError, (err) => $scope.errorMessage = 'Error: ' + (err.message || err));
+    });
 
     $scope.authenticate = function(username) {
         if(username.length > 0) {
@@ -57,14 +59,14 @@ function LobbyCtrl(Connection, $scope, ClientMatch, ClientRoom) {
 
     $scope.joinMatch = function(name) {
         if(name && name.length > 0) {
-            Socket.emit(MatchEvent.requestJoin, {name: name});
+            Connection.getSocket().get().emit(MatchEvent.requestJoin, {name: name});
             $scope.curStatus = status.LOADING;
         }
     };
 
     $scope.createMatch = function(matchName){
         if(matchName && matchName.length > 0) {
-            Socket.emit(MatchEvent.requestMatch, {label: matchName});
+            Connection.getSocket().get().emit(MatchEvent.requestMatch, {label: matchName});
         }
     }
 }

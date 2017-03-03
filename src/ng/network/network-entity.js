@@ -4,12 +4,14 @@
  */
 'use strict';
 const IOEvent = require('event-types').IOEvent;
+const EventTarget = require('eventtarget');
 
 function networkEntityFactory(Connection, $q, SimpleSocket) {
 
-    class NetworkEntity {
+    class NetworkEntity extends EventTarget {
 
         constructor(id) {
+            super();
             this.id = id;
         }
 
@@ -50,6 +52,10 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
          * @returns {Promise<NetworkEntity>}
          */
         static getById(type, id) {
+            if(!type || typeof id !== 'string') {
+                throw new Error(`Network entities must be identified by both type and name`);
+            }
+
             if(NetworkEntity.localEntityExists(type, id) === true) {
                 return $q.when(NetworkEntity.entities.get(type.name).get(id));
             } else {

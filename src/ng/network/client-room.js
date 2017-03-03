@@ -18,6 +18,10 @@ function roomFactory(Connection, NetworkEntity, User) {
         add(user) {
             if (isNaN(this.capacity) || this.users.length < this.capacity) {
                 this.users.push(user);
+
+                const evt = new Event(IOEvent.joinedRoom);
+                evt.user = user;
+                this.dispatchEvent(evt);
             } else {
                 throw new Error(`Room is full and cannot accept any more users`);
             }
@@ -25,7 +29,14 @@ function roomFactory(Connection, NetworkEntity, User) {
 
         remove(user) {
             const userIndex = this.users.indexOf(user);
-            this.users.splice(userIndex, 1);
+
+            if(userIndex > -1) {
+                this.users.splice(userIndex, 1);
+
+                const evt = new Event(IOEvent.leftRoom);
+                evt.user = user;
+                this.dispatchEvent(evt);
+            }
         }
 
         getName() {
@@ -63,11 +74,11 @@ function roomFactory(Connection, NetworkEntity, User) {
 
     Connection.ready().then(socket => {
         socket.get().on(IOEvent.joinedRoom, (data) => {
-            NetworkEntity.getById(User, data.id).then(user => ClientRoom.getByName(data.name).add(user));
+            NetworkEntity.getById(User, data.user).then(user => ClientRoom.getByName(data.room).add(user));
         });
 
         socket.get().on(IOEvent.leftRoom, (data) => {
-            NetworkEntity.getById(User, data.id).then(user => ClientRoom.getByName(data.name).remove(user));
+            NetworkEntity.getById(User, data.user).then(user => ClientRoom.getByName(data.room).remove(user));
         });
     });
 
