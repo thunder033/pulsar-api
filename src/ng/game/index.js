@@ -18,7 +18,7 @@ game.factory('game.Player', [
 ]);
 
 game.factory('game.ClientMatch', [
-    'network.Socket',
+    'network.Connection',
     'network.ClientRoom',
     'network.User',
     require('./client-match')]);

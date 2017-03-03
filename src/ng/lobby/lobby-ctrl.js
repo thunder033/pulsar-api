@@ -6,16 +6,16 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-function LobbyCtrl(Socket, $scope, ClientMatch, ClientRoom, Connection) {
+function LobbyCtrl(Connection, $scope, ClientMatch, ClientRoom) {
 
     const status = {
-        LOADING: 0,
-        CONNECTED: 1,
-        READY: 2,
-        STAGING: 4,
+        LOADING        : 0,
+        UNAUTHENTICATED: 1,
+        READY          : 2,
+        STAGING        : 4,
     };
 
-    $scope.curStatus = status.LOADING;
+    $scope.curStatus = status.UNAUTHENTICATED;
 
     // reference to match list that is updated by factory
     $scope.matches = ClientMatch.getMatchSet();
@@ -34,22 +34,22 @@ function LobbyCtrl(Socket, $scope, ClientMatch, ClientRoom, Connection) {
         }
     }
 
-    Connection.ready().then(() => $scope.curStatus = status.CONNECTED);
+    Connection.ready().then(() => $scope.curStatus = status.READY);
 
-    Socket.on(IOEvent.joinedRoom, (room) => {
-        $scope.room = ClientRoom.getByName(room.name);
-        if($scope.room.getName() === 'lobby') {
-            $scope.curStatus = status.READY;
-        } else {
-            $scope.curStatus = status.STAGING;
-        }
-    });
+    // Socket.on(IOEvent.joinedRoom, (room) => {
+    //     $scope.room = ClientRoom.getByName(room.name);
+    //     if($scope.room.getName() === 'lobby') {
+    //         $scope.curStatus = status.READY;
+    //     } else {
+    //         $scope.curStatus = status.STAGING;
+    //     }
+    // });
 
-    Socket.on(IOEvent.serverError, (err) => $scope.errorMessage = 'Error: ' + (err.message || err));
+    //Socket.on(IOEvent.serverError, (err) => $scope.errorMessage = 'Error: ' + (err.message || err));
 
-    $scope.joinLobby = function(username) {
+    $scope.authenticate = function(username) {
         if(username.length > 0) {
-            Connection.authenticate( {name: username})
+            Connection.authenticate({name: username})
                 .then(assignScope('user'));
             $scope.curStatus = status.LOADING;
         }

@@ -3,8 +3,9 @@
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
 'use strict';
+const IOEvent = require('event-types').IOEvent;
 
-function roomFactory(Socket, NetworkEntity) {
+function roomFactory(Connection, NetworkEntity, User) {
     const rooms = {};
 
     class ClientRoom extends NetworkEntity {
@@ -32,8 +33,8 @@ function roomFactory(Socket, NetworkEntity) {
         }
 
         setCapacity(capacity) {
-        this.capacity = capacity;
-    }
+            this.capacity = capacity;
+        }
 
         getCapacity() {
             return this.capacity;
@@ -60,15 +61,16 @@ function roomFactory(Socket, NetworkEntity) {
         }
     }
 
-    function fromNetworkEntity(data) {
-        console.log(`create room ${data.name}`);
-        const room = new ClientRoom(data.name);
-        data.capacity = typeof data.capacity === 'number' ? data.capacity : NaN;
-        Object.assign(room, data);
-        return room;
-    }
+    Connection.ready().then(socket => {
+        socket.get().on(IOEvent.joinedRoom, (data) => {
+            NetworkEntity.getById(User, data.id).then(user => ClientRoom.getByName(data.name).add(user));
+        });
 
-    Socket.on('roomCreated', fromNetworkEntity);
+        socket.get().on(IOEvent.leftRoom, (data) => {
+            NetworkEntity.getById(User, data.id).then(user => ClientRoom.getByName(data.name).remove(user));
+        });
+    });
+
 
     return ClientRoom
 }

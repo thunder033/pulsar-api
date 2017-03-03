@@ -4,6 +4,7 @@
 
 import {User} from './user';
 import {NetworkEntity} from './network-entity';
+import {IOEvent} from './event-types';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms
@@ -16,7 +17,7 @@ export class Room extends NetworkEntity {
     private capacity: number = NaN;
 
     constructor(name: string) {
-        super();
+        super(Room);
         this.name = name;
         this.users = [];
     }
@@ -24,6 +25,10 @@ export class Room extends NetworkEntity {
     public add(user: User): void {
         if (isNaN(this.capacity) || this.users.length < this.capacity) {
             this.users.push(user);
+
+            user.getSocket().join(this.name);
+            user.getSocket().emit(IOEvent.joinedRoom, {user: user.getId(), room: this.name});
+            user.getSocket().broadcast.in(this.name).emit(IOEvent.joinedRoom, {user: user.getId(), room: this.name});
         } else {
             throw new Error(`Room is full and cannot accept any more users`);
         }
@@ -31,7 +36,13 @@ export class Room extends NetworkEntity {
 
     public remove(user: User): void {
         const userIndex = this.users.indexOf(user);
-        this.users.splice(userIndex, 1);
+        if (userIndex > -1) {
+            this.users.splice(userIndex, 1);
+
+            user.getSocket().leave(this.name);
+            user.getSocket().emit(IOEvent.leftRoom, {user: user.getId(), room: this.name});
+            user.getSocket().broadcast.in(this.name).emit(IOEvent.leftRoom, {user: user.getId(), room: this.name});
+        }
     }
 
     public getName(): string {

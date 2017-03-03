@@ -10,30 +10,25 @@ const EventTarget = require('eventtarget');
 /**
  * Provides a connection entity
  * @param $q
- * @param SimpleSocket
- * @param NetworkEntity
- * @returns {Connection}
+ * @param Socket
+ * @returns {ClientConnection}
  */
-function connectionFactory($q, SimpleSocket, NetworkEntity) {
+function connectionFactory($q, Socket) {
 
+    const ready = $q.defer();
     /**
      * Maintains a connection to the server
      */
-    class Connection extends EventTarget {
+    class ClientConnection extends EventTarget {
 
-        constructor(socket) {
+        constructor() {
             super();
-
-            this.socket = socket;
             this.user = null;
-
-            this.connected = $q((resolve, reject) => {
-                socket.on(IOEvent.connect, resolve);
-            });
+            this.connected = ready.promise;
         }
 
         ready() {
-            return this.connected;
+            return this.connected.then(() => this.socket);
         }
 
         /**
@@ -41,24 +36,27 @@ function connectionFactory($q, SimpleSocket, NetworkEntity) {
          * @param credentials
          */
         authenticate(credentials) {
-            return SimpleSocket.request(this.socket, IOEvent.join, credentials)
-                .then(NetworkEntity.reconstruct)
-                .then(user => {
-                    this.user = user;
-                    return user;
-                });
+            this.socket = new Socket(credentials);
+            this.socket.get().on(IOEvent.connect, ready.resolve);
+            return this.connected.then(() => {
+
+            });
+        }
+
+        getSocket() {
+            if (this.socket === null) {
+                throw new Error('Cannot access connection before authentication');
+            }
+
+            return this.socket;
         }
 
         getUser() {
             return this.user;
         }
-
-        getSocket() {
-            return this.socket;
-        }
     }
 
-    return new Connection();
+    return new ClientConnection();
 }
 
 module.exports = connectionFactory;

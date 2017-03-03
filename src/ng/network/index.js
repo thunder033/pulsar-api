@@ -20,12 +20,13 @@ network.factory('network.Socket', [
     require('./socket-factory')]);
 
 network.factory('network.NetworkEntity', [
+    'network.Connection',
+    '$q',
     require('./network-entity')]);
 
 network.factory('network.Connection', [
     '$q',
-    'simple-request.SimpleSocket',
-    'network.NetworkEntity',
+    'network.Socket',
     require('./connection')]);
 
 network.factory('network.User', [
@@ -33,7 +34,9 @@ network.factory('network.User', [
     require('./user-factory')]);
 
 network.factory('network.ClientRoom', [
-   'network.Socket',
+    'network.Connection',
+    'network.NetworkEntity',
+    'network.User',
     require('./client-room')]);
 
 module.exports = network;

@@ -47,7 +47,7 @@ export class Match extends Room implements INetworkEntity {
 
         // Return users to the lobby at the end of the match
         this.users.forEach((user) => {
-            user.join(this.matchMaker.getLobby());
+            this.matchMaker.getLobby().add(user);
         });
     }
 

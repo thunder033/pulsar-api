@@ -3,13 +3,14 @@
     <span ng-bind="errorMessage"></span>
     Status: <span ng-bind="curStatus"></span><br>
 
-    <div ng-if="curStatus === status.CONNECTED">
+    <div ng-if="curStatus === status.UNAUTHENTICATED">
         <input type="text" placeholder="Name" ng-model="fields.username">
-        <button ng-click="joinLobby(fields.username)">Join Lobby</button>
+        <button ng-click="authenticate(fields.username)">Join Lobby</button>
     </div>
 
     <div ng-if="curStatus === status.READY">
         In Room: <span ng-bind="room.getName()"></span><br>
+        User: <span ng-bind="user.getName()"></span><br>
 
         <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
         <button ng-click="createMatch(fields.matchLabel)">Create Match</button>

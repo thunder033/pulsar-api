@@ -5,7 +5,7 @@
 
 const MatchEvents = require('event-types').MatchEvent;
 
-function matchFactory(Socket, ClientRoom, User) {
+function matchFactory(Connection, ClientRoom, User) {
 
     let createMatch = false;
     const matches = {};
@@ -82,8 +82,11 @@ function matchFactory(Socket, ClientRoom, User) {
         });
     }
 
-    Socket.on(MatchEvents.matchCreated, parseNetworkEntity);
-    Socket.on(MatchEvents.matchListUpdate, updateMatchList);
+    Connection.ready().then(socket => {
+        socket.get().on(MatchEvents.matchCreated, parseNetworkEntity);
+        socket.get().on(MatchEvents.matchListUpdate, updateMatchList);
+    });
+
 
     return ClientMatch;
 }

@@ -33,7 +33,7 @@ export class MatchMember extends UserComponent {
             if (match instanceof Match) {
                 this.match = match;
                 this.server.broadcast(MatchEvent.matchCreated, match.getSerializable());
-                this.user.join(match);
+                match.add(this.user);
             } else {
                 const errMsg =  'A new match could not be created because the server has reached it\'s capacity';
                 this.socket.emit(IOEvent.serverError, {message: errMsg});
@@ -61,7 +61,6 @@ export class MatchMember extends UserComponent {
         if (!(this.match instanceof Match)) {
             try {
                 const match: Match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
-                this.server.broadcast(MatchEvent.joinedMatch, {user: this.user.getName(), match: match.getName()});
             } catch (e) {
                 this.socket.emit(IOEvent.serverError, e.message || e);
             }
@@ -126,7 +125,7 @@ export class MatchMaker extends ServerComponent {
         }
 
         if (match.isOpen()) {
-            user.join(match);
+            match.add(user);
             match.start();
             return match;
         } else {

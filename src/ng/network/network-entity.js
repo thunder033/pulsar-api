@@ -5,7 +5,7 @@
 'use strict';
 const IOEvent = require('event-types').IOEvent;
 
-function networkEntityFactory(Socket, $q, SimpleSocket) {
+function networkEntityFactory(Connection, $q, SimpleSocket) {
 
     class NetworkEntity {
 
@@ -49,7 +49,7 @@ function networkEntityFactory(Socket, $q, SimpleSocket) {
             if(NetworkEntity.localEntityExists(type, id) === true) {
                 return $q.when(NetworkEntity.entities.get(type.name).get(id));
             } else {
-                return SimpleSocket.request(Socket, IOEvent.syncNetworkEntity, {type: type.name, id: id})
+                return Connection.getSocket().request(IOEvent.syncNetworkEntity, {type: type.name, id: id})
                     .then(NetworkEntity.reconstruct);
             }
         }
@@ -81,7 +81,9 @@ function networkEntityFactory(Socket, $q, SimpleSocket) {
     NetworkEntity.types = new Map();
     NetworkEntity.entities = new Map();
 
-    Socket.on(IOEvent.syncNetworkEntity, NetworkEntity.reconstruct);
+    Connection.ready().then(socket => {
+        socket.get().on(IOEvent.syncNetworkEntity, NetworkEntity.reconstruct);
+    });
 
     return NetworkEntity;
 }

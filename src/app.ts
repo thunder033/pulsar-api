@@ -7,6 +7,7 @@
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
 import {MatchMaker} from './match-maker';
+import {NetworkEntity} from './network-entity';
 
 const HTTP_ROUTES = {
     '/': 'public/index.html',
@@ -22,3 +23,4 @@ const syncServer = new SyncServer(httpServer.getServer());
 
 // Add Components that define server functionality
 syncServer.addComponent(MatchMaker);
+NetworkEntity.init(syncServer);

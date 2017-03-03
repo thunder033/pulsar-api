@@ -18,16 +18,32 @@ export interface INetworkEntity {
 
     getId(): string;
 
-    sync(socket?: Socket, reqId?: string): void;
+    sync(socket?: Socket): void;
+}
+
+interface INetworkEntityCtor {
+    new(...args: any[]): INetworkEntity;
 }
 
 class Network {
     public static syncServer: SyncServer;
-
-    public static entities: Map<string, Map<string, INetworkEntity>>;
+    public static types: Map<string, INetworkEntityCtor> = new Map();
+    public static entities: Map<string, Map<string, INetworkEntity>> = new Map();
 }
 
-export class NetworkEntity implements INetworkEntity {
+export class SyncResponse {
+    public id: string;
+    public params: Object;
+    public type: string;
+
+    constructor(entity: INetworkEntity) {
+        this.id = entity.getId();
+        this.params = entity.getSerializable();
+        this.type = entity.constructor.name;
+    }
+}
+
+export abstract class NetworkEntity implements INetworkEntity {
 
     protected id: string;
 
@@ -35,8 +51,37 @@ export class NetworkEntity implements INetworkEntity {
         Network.syncServer = syncServer;
     }
 
-    constructor() {
+    public static getType(name: string): INetworkEntityCtor {
+        return Network.types.get(name);
+    }
+
+    public static getById<T extends INetworkEntity>(type: INetworkEntityCtor, id: string): T {
+        if (Network.entities.has(type.name)) {
+            return Network.entities.get(type.name).get(id) as T;
+        } else {
+            let keyType: any = null;
+            Network.types.forEach((candidateType) => {
+                if (type.prototype instanceof candidateType) {
+                    keyType = candidateType;
+                }
+            });
+
+            if (keyType !== null) {
+                return Network.entities.get(keyType.name).get(id) as T;
+            } else {
+                throw new TypeError(`Could not resolve ${type} to a valid key type`);
+            }
+        }
+
+    }
+
+    constructor(type: INetworkEntityCtor) {
         this.id = uuid();
+
+        if (!Network.types.has(type.name)) {
+            Network.types.set(type.name, type);
+            Network.entities.set(type.name, new Map());
+        }
     }
 
     public getId(): string {
@@ -44,17 +89,10 @@ export class NetworkEntity implements INetworkEntity {
     }
 
     public sync(socket?: Socket, reqId?: string) {
-        const syncResponse = {
-            id: this.id,
-            params: this.getSerializable(),
-            type: this.constructor.name,
-        };
-
         if (!isNullOrUndefined(socket)) {
-            const eventName: string = typeof reqId === 'string' ? `${IOEvent.syncNetworkEntity}-${reqId}` : IOEvent.syncNetworkEntity;
-            socket.emit(eventName, syncResponse);
+            socket.emit(IOEvent.syncNetworkEntity, new SyncResponse(this));
         } else {
-            Network.syncServer.broadcast(IOEvent.syncNetworkEntity, syncResponse);
+            Network.syncServer.broadcast(IOEvent.syncNetworkEntity, new SyncResponse(this));
         }
     }
 
@@ -77,7 +115,11 @@ export class Networkable extends Component {
         return this.id;
     }
 
-    public sync(socket?: Socket, reqId?: string) {
+    public init() {
+        console.log(this.id);
+    }
+
+    public sync(socket?: Socket) {
         const params = Object.assign(this.parent.getSerializable(), {id: this.id});
         const syncResponse = {
             id: this.id,
@@ -86,8 +128,7 @@ export class Networkable extends Component {
         };
 
         if (!isNullOrUndefined(socket)) {
-            const eventName: string = typeof reqId === 'string' ? `${IOEvent.syncNetworkEntity}-${reqId}` : IOEvent.syncNetworkEntity;
-            socket.emit(eventName, syncResponse);
+            socket.emit(IOEvent.syncNetworkEntity, syncResponse);
         } else {
             Network.syncServer.broadcast(IOEvent.syncNetworkEntity, syncResponse);
         }

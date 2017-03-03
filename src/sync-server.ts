@@ -2,14 +2,16 @@
 /**
  * Created by Greg on 2/17/2017.
  */
+import Socket = SocketIO.Socket;
+
 import * as http from 'http';
 import * as socketio from 'socket.io';
+import {Connection} from './connection';
 import {Component, Composite, IComponent} from './component';
-import {Room} from './room';
-import Socket = SocketIO.Socket;
-import {User} from './user';
 import {IOEvent} from './event-types';
 import {Networkable} from './network-entity';
+import {Room} from './room';
+import {User} from './user';
 
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
@@ -115,7 +117,11 @@ export class SyncServer extends Composite {
     }
 
     public registerConnection(socket: Socket) {
-        this.users.push(new User(socket, this, this.getUserComponents()));
+        const user = new User(socket, this, this.getUserComponents());
+        user.setName(socket.handshake.query.name);
+        this.users.push(user);
+        this.getDefaultRoom().add(user);
+        this.syncClient(socket);
     };
 
     public syncClient(socket: Socket): void {
@@ -166,6 +172,6 @@ export class SyncServer extends Composite {
      */
     private getUserComponents(): IComponent[] {
         const userComponents: any = (this.getComponents() as ServerComponent[]).map((c) => c.getUserComponents());
-        return [].concat.apply([Networkable], userComponents);
+        return [].concat.apply([Networkable, Connection], userComponents);
     }
 }
