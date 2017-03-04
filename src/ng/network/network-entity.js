@@ -28,8 +28,31 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
         }
 
         static registerType(type) {
-            NetworkEntity.types.set(type.name, type);
-            NetworkEntity.entities.set(type.name, new Map());
+            let baseType = type;
+            NetworkEntity.lookupTypes.forEach(candidateType => {
+                if(type.prototype instanceof candidateType) {
+                    baseType = candidateType;
+                }
+            });
+
+            NetworkEntity.constructorTypes.set(type.name, type);
+            NetworkEntity.lookupTypes.set(type.name, baseType);
+            if(baseType === type) {
+                NetworkEntity.entities.set(type.name, new Map());
+            }
+        }
+
+        static getConstructorType(typeName) {
+            let resolvedType = typeName;
+            if(NetworkEntity.constructorTypes.has(typeName) === false) {
+                if (NetworkEntity.constructorTypes.has('Client' + typeName)) {
+                    resolvedType = 'Client' + typeName;
+                } else {
+                    throw new ReferenceError(`Type ${typeName} is not a valid network entity constructor type`);
+                }
+            }
+
+            return NetworkEntity.constructorTypes.get(resolvedType);
         }
 
         /**
@@ -37,12 +60,17 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
          * @param typeName
          * @returns {undefined|V|V}
          */
-        static getType(typeName) {
-            if(NetworkEntity.types.has(typeName) === false) {
-                throw new ReferenceError(`Type ${typeName} is not a valid network entity`);
+        static getLookupType(typeName) {
+            let resolvedType = typeName;
+            if(NetworkEntity.lookupTypes.has(typeName) === false) {
+                if (NetworkEntity.lookupTypes.has('Client' + typeName)) {
+                    resolvedType = 'Client' + typeName;
+                } else {
+                    throw new ReferenceError(`Type ${typeName} is not a valid network entity lookup type`);
+                }
             }
 
-            return NetworkEntity.types.get(typeName);
+            return NetworkEntity.lookupTypes.get(resolvedType);
         }
 
         /**
@@ -59,7 +87,8 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
             if(NetworkEntity.localEntityExists(type, id) === true) {
                 return $q.when(NetworkEntity.entities.get(type.name).get(id));
             } else {
-                return Connection.getSocket().request(IOEvent.syncNetworkEntity, {type: type.name, id: id})
+                const serverType = type.name.replace('Client', '');
+                return Connection.getSocket().request(IOEvent.syncNetworkEntity, {type: serverType, id: id})
                     .then(NetworkEntity.reconstruct);
             }
         }
@@ -74,13 +103,15 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
          * @returns {NetworkEntity}
          */
         static reconstruct(data) {
-            const type = NetworkEntity.getType(data.type);
+            const type = NetworkEntity.getLookupType(data.type);
             let entity = null;
             if(NetworkEntity.localEntityExists(type, data.id) === true) {
                 entity = NetworkEntity.entities.get(type.name).get(data.id);
                 entity.sync(data.params);
             } else {
-                entity = new type(data.params);
+                const ctorType = NetworkEntity.getConstructorType(data.type);
+                entity = new ctorType(data.params);
+                entity.sync(data.params);
                 NetworkEntity.entities.get(type.name).set(data.id, entity);
             }
 
@@ -88,8 +119,9 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
         }
     }
 
-    NetworkEntity.types = new Map();
-    NetworkEntity.entities = new Map();
+    NetworkEntity.lookupTypes      = new Map(); // Mapping of types to use for entity look ups
+    NetworkEntity.constructorTypes = new Map(); // Types to use when reconstructing entities
+    NetworkEntity.entities         = new Map(); // Collection of all synced entities
 
     Connection.ready().then(socket => {
         socket.get().on(IOEvent.syncNetworkEntity, NetworkEntity.reconstruct);
