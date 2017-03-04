@@ -6,7 +6,7 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-function LobbyCtrl(Connection, $scope, ClientMatch, ClientRoom) {
+function LobbyCtrl(Connection, $scope, ClientMatch, Client) {
 
     const status = {
         LOADING        : 0,
@@ -34,24 +34,26 @@ function LobbyCtrl(Connection, $scope, ClientMatch, ClientRoom) {
         }
     }
 
+    Client.addEventListener(IOEvent.joinedRoom, (e) => {
+        console.log('joined room ', e.room.getName());
+        $scope.room = e.room;
+        if($scope.room.getName() === 'lobby') {
+            $scope.curStatus = status.READY;
+        } else {
+            $scope.curStatus = status.STAGING;
+            console.log($scope.room.getUsers().map(u => u.getName()).join());
+        }
+    });
+
     Connection.ready().then(() => {
         $scope.curStatus = status.READY;
-
-        Connection.getSocket().get().on(IOEvent.joinedRoom, (data) => {
-            $scope.room = ClientRoom.getByName(data.name);
-            if($scope.room.getName() === 'lobby') {
-                $scope.curStatus = status.READY;
-            } else {
-                $scope.curStatus = status.STAGING;
-            }
-        });
 
         Connection.getSocket().get().on(IOEvent.serverError, (err) => $scope.errorMessage = 'Error: ' + (err.message || err));
     });
 
     $scope.authenticate = function(username) {
         if(username.length > 0) {
-            Connection.authenticate({name: username})
+            Client.authenticate({name: username})
                 .then(assignScope('user'));
             $scope.curStatus = status.LOADING;
         }
@@ -59,14 +61,15 @@ function LobbyCtrl(Connection, $scope, ClientMatch, ClientRoom) {
 
     $scope.joinMatch = function(name) {
         if(name && name.length > 0) {
-            Connection.getSocket().get().emit(MatchEvent.requestJoin, {name: name});
+            Client.emit(MatchEvent.requestJoin, {name: name});
             $scope.curStatus = status.LOADING;
         }
     };
 
     $scope.createMatch = function(matchName){
         if(matchName && matchName.length > 0) {
-            Connection.getSocket().get().emit(MatchEvent.requestMatch, {label: matchName});
+            Client.emit(MatchEvent.requestMatch, {label: matchName});
+            $scope.curStatus = status.LOADING;
         }
     }
 }

@@ -17,13 +17,13 @@
 
         <div>
             <h4>Matches</h4>
-            <select title="Matches" name="matchSelect" ng-model="fields.selectedMatch" ng-options="name as match.getLabel() for (name, match) in matches"></select>
-            <button ng-disabled="!fields.selectedMatch" ng-click="joinMatch(fields.selectedMatch)">Join</button>
+            <select title="Matches" name="matchSelect" ng-model="fields.selectedMatch" ng-options="match as match.getLabel() for match in matches track by match.getId()"></select>
+            <button ng-disabled="!fields.selectedMatch" ng-click="joinMatch(fields.selectedMatch.getName())">Join</button>
         </div>
     </div>
 
     <div ng-if="curStatus === status.STAGING">
-        <staging-match match="user.getMatch()"></staging-match>
+        <staging-match match="room"></staging-match>
     </div>
 
 </div>

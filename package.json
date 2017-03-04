@@ -42,6 +42,7 @@
     "@types/chai": "^3.4.35",
     "@types/mocha": "^2.2.39",
     "angular": "^1.6.2",
+    "angular-q-spread": "^1.1.0",
     "angular-socket-io": "^0.7.0",
     "angular-ui-router": "^0.4.2",
     "browserify": "^14.1.0",
