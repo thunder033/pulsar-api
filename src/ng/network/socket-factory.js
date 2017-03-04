@@ -3,6 +3,8 @@
  * Created by gjr8050 on 2/24/2017.
  */
 
+const IOEvent = require('event-types').IOEvent;
+
 function socketFactory($socket, $q, HttpConfig) {
 
     class Socket {
@@ -32,11 +34,23 @@ function socketFactory($socket, $q, HttpConfig) {
                 }
 
                 const responseKey = `${event}-${id}`;
-                this.socket.on(responseKey, (data) => {
-                    this.socket.removeAllListeners(responseKey);
+                const errorKey = `${IOEvent.serverError}-${id}`;
+
+                function endRequest(socket) {
+                    socket.removeAllListeners(responseKey);
+                    socket.removeAllListeners(errorKey);
                     clearTimeout(timer);
+                }
+
+                this.socket.on(responseKey, (data) => {
+                    endRequest(this.socket);
                     resolve(data);
                 });
+
+                this.socket.on(errorKey, (err) => {
+                    endRequest(this.socket);
+                    reject(err);
+                })
             });
         }
 
