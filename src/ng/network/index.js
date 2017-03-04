@@ -19,6 +19,10 @@ network.factory('network.Socket', [
     'simple-request.HttpConfig',
     require('./socket-factory')]);
 
+network.factory('network.AsyncInitializer', [
+    '$q',
+    require('./aysnc-initializer')]);
+
 network.factory('network.NetworkEntity', [
     'network.Connection',
     '$q',
@@ -27,6 +31,7 @@ network.factory('network.NetworkEntity', [
 network.factory('network.Connection', [
     '$q',
     'network.Socket',
+    'network.AsyncInitializer',
     require('./connection')]);
 
 network.factory('network.User', [
@@ -39,5 +44,11 @@ network.factory('network.ClientRoom', [
     'network.NetworkEntity',
     'network.User',
     require('./client-room')]);
+
+network.factory('network.Client', [
+    'network.Connection',
+    '$rootScope',
+    'network.AsyncInitializer',
+    require('./client')]);
 
 module.exports = network;

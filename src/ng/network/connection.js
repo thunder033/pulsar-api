@@ -5,15 +5,16 @@
 'use strict';
 
 const IOEvent = require('event-types').IOEvent;
-const EventTarget = require('eventtarget');
+
 
 /**
  * Provides a connection entity
  * @param $q
  * @param Socket
+ * @param AsyncInitializer
  * @returns {ClientConnection}
  */
-function connectionFactory($q, Socket) {
+function connectionFactory($q, Socket, AsyncInitializer) {
 
     const deferConnected = $q.defer();
     const deferJoined = $q.defer();
@@ -21,25 +22,17 @@ function connectionFactory($q, Socket) {
     /**
      * Maintains a connection to the server
      */
-    class ClientConnection extends EventTarget {
+    class ClientConnection extends AsyncInitializer {
 
         constructor() {
-            super();
-            this.user = null;
-
-            this.connected = deferConnected.promise;
-
-            const joinEvt = new Event(IOEvent.join);
-            this.joined = deferJoined.promise.then((userId) => {
+            const joinEvt = new Event(IOEvent.joinServer);
+            const joined = deferJoined.promise.then((userId) => {
                 joinEvt.userId = userId;
                 this.dispatchEvent(joinEvt);
             });
 
-            this.readyAwait = [this.connected, this.joined];
-
-            this.readyHandle = $q.defer();
-            this.readyChain = this.readyHandle.promise;
-            $q.all(this.readyAwait).then(this.readyHandle.resolve);
+            super([deferConnected.promise, joined]);
+            this.user = null;
         }
 
         /**
@@ -70,7 +63,7 @@ function connectionFactory($q, Socket) {
         authenticate(credentials) {
             this.socket = new Socket(credentials);
             this.socket.get().on(IOEvent.connect, deferConnected.resolve);
-            this.socket.get().on(IOEvent.join, deferJoined.resolve);
+            this.socket.get().on(IOEvent.joinServer, deferJoined.resolve);
             return this.ready().then(() => {
                 return this.user;
             });
