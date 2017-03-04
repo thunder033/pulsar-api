@@ -22,13 +22,21 @@ export class Room extends NetworkEntity {
         this.users = [];
     }
 
+    public contains(user: User): boolean {
+        return this.users.indexOf(user) > -1;
+    }
+
     public add(user: User): void {
         if (isNaN(this.capacity) || this.users.length < this.capacity) {
-            this.users.push(user);
+            if (!this.contains(user)) { // users can't be in the room twice
+                console.log(`${this.name} add user ${user.getName()}`);
+                this.users.push(user);
 
-            user.getSocket().join(this.name);
-            user.getSocket().emit(IOEvent.joinedRoom, {user: user.getId(), room: this.name});
-            user.getSocket().broadcast.in(this.name).emit(IOEvent.joinedRoom, {user: user.getId(), room: this.name});
+                const message = {userId: user.getId(), roomId: this.getId()};
+                user.getSocket().join(this.name);
+                user.getSocket().emit(IOEvent.joinedRoom, message);
+                user.getSocket().broadcast.in(this.name).emit(IOEvent.joinedRoom, message);
+            }
         } else {
             throw new Error(`Room is full and cannot accept any more users`);
         }
@@ -39,9 +47,10 @@ export class Room extends NetworkEntity {
         if (userIndex > -1) {
             this.users.splice(userIndex, 1);
 
+            const message = {userId: user.getId(), roomId: this.getId()};
             user.getSocket().leave(this.name);
-            user.getSocket().emit(IOEvent.leftRoom, {user: user.getId(), room: this.name});
-            user.getSocket().broadcast.in(this.name).emit(IOEvent.leftRoom, {user: user.getId(), room: this.name});
+            user.getSocket().emit(IOEvent.leftRoom, message);
+            user.getSocket().broadcast.in(this.name).emit(IOEvent.leftRoom, message);
         }
     }
 

@@ -67,7 +67,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
 
 export class SyncServer extends Composite {
 
-    private rooms = {};
+    private rooms: Map<string, Room>;
     private io: SocketIO.Server;
     private users: User[];
     private defaultRoom: Room;
@@ -76,6 +76,7 @@ export class SyncServer extends Composite {
         super();
         this.users = [];
         this.defaultRoom = null;
+        this.rooms = new Map<string, Room>();
 
         this.io = socketio(httpServer);
         this.io.use((socket: Socket, next) => {
@@ -89,11 +90,11 @@ export class SyncServer extends Composite {
     }
 
     public addRoom(room: Room): void {
-        if (this.rooms[room.name] instanceof Room) {
+        if (this.rooms.has(room.getId())) {
             throw new Error(`Room with name ${name} already exists on this server! Room names must unique`);
         }
 
-        this.rooms[room.name] = room;
+        this.rooms.set(room.getId(), room);
 
         if (this.defaultRoom === null) {
             this.defaultRoom = room;
@@ -101,13 +102,9 @@ export class SyncServer extends Composite {
     };
 
     public createRoom(name: string): Room {
-        if (this.rooms[name] instanceof Room) {
-            throw new Error(`Room with name ${name} already exists on this server! Room names must unique`);
-        }
-
         const room = new Room(name);
         this.addRoom(room);
-        this.broadcast(IOEvent.roomCreated, room.getSerializable());
+        this.broadcast(IOEvent.roomCreated, room.getId());
         return room;
     }
 
@@ -120,16 +117,12 @@ export class SyncServer extends Composite {
         const user = new User(socket, this, this.getUserComponents());
         user.setName(socket.handshake.query.name);
         this.users.push(user);
-        this.getDefaultRoom().add(user);
-        this.syncClient(socket);
     };
 
     public syncClient(socket: Socket): void {
-        Object.keys(this.rooms).forEach((name) => {
-            const room: Room = this.rooms[name];
-
+        this.rooms.forEach((room) => {
             if (room.constructor === Room) {
-                socket.emit(IOEvent.roomCreated, room.getSerializable());
+                socket.emit(IOEvent.roomCreated, room.getId());
             }
         });
 
@@ -158,6 +151,9 @@ export class SyncServer extends Composite {
     public removeUser(targetUser: User): boolean {
         return this.users.some((user: User, i: number) => {
             if (targetUser === user) {
+                this.rooms.forEach((room) => {
+                    room.remove(user);
+                });
                 this.users.splice(i, 1);
                 return true;
             }

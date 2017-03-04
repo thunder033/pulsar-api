@@ -64,8 +64,7 @@ export class User extends Composite implements INetworkEntity {
         socket.on(IOEvent.disconnect, this.onDisconnect.bind(this));
 
         componentTypes.forEach((type: IComponent) => this.addComponent(type));
-        this.sync(this.socket);
-        socket.emit(IOEvent.join, this.getComponent(Networkable).getId());
+        socket.emit(IOEvent.joinServer, this.getComponent(Networkable).getId());
     }
 
     public getSocket(): Socket {
@@ -79,22 +78,16 @@ export class User extends Composite implements INetworkEntity {
 
     public join(room: Room): void {
         console.log(`${this.name} join ${room.getName()}`);
-        this.socket.join(room.getName());
         room.add(this);
         this.rooms.push(room);
-        this.socket.emit(IOEvent.joinedRoom, room.getSerializable());
         this.invokeComponentEvents('onJoin', room);
     }
 
     public leave(room: Room): void {
         console.log(`${this.name} leave ${room.getName()}`);
-        this.socket.leave(room.getName());
         room.remove(this);
-
         const roomIndex = this.rooms.indexOf(room);
         this.rooms.splice(roomIndex, 1);
-
-        this.socket.emit(IOEvent.leftRoom, room.getSerializable());
         this.invokeComponentEvents('onLeave', room);
     }
 

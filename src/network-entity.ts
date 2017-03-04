@@ -131,7 +131,7 @@ export class Networkable extends Component {
         super(parent);
         this.id = uuid();
 
-        // The network db needs to any entry of each type of entitye
+        // The network db needs to any entry of each type of entity
         this.type = Object.getPrototypeOf(parent).constructor;
         NetworkEntity.registerType(this.type);
     }
@@ -149,7 +149,7 @@ export class Networkable extends Component {
         const syncResponse = {
             id: this.id,
             params,
-            type: this.constructor.name,
+            type: this.type.name,
         };
 
         if (!isNullOrUndefined(socket)) {
