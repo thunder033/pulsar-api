@@ -43,6 +43,8 @@ network.factory('network.ClientRoom', [
     'network.Connection',
     'network.NetworkEntity',
     'network.User',
+    '$rootScope',
+    '$q',
     require('./client-room')]);
 
 network.factory('network.Client', [

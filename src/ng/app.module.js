@@ -7,12 +7,15 @@ const lobby = require('./lobby');
 const network = require('./network');
 const game = require('./game');
 
-require('angular').module('warp-test-client', [
+const angular = require('angular');
+require('angular-q-spread');
+
+angular.module('warp-test-client', [
     network.name,
     lobby.name,
     game.name,
     require('angular-ui-router'),
-    'btford.socket-io'
+    '$q-spread',
 ]).config(['$stateProvider','$urlRouterProvider', ($stateProvider, $urlRouterProvider) => {
     $urlRouterProvider.otherwise('/lobby');
 

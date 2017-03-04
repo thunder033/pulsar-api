@@ -10,7 +10,7 @@ lobby.controller('lobby.LobbyCtrl', [
     'network.Connection',
     '$scope',
     'game.ClientMatch',
-    'network.ClientRoom',
+    'network.Client',
     require('./lobby-ctrl')]);
 
 lobby.directive('stagingMatch', [

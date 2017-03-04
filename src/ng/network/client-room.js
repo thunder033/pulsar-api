@@ -5,17 +5,24 @@
 'use strict';
 const IOEvent = require('event-types').IOEvent;
 
-function roomFactory(Connection, NetworkEntity, User) {
+function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
     const rooms = {};
 
     class ClientRoom extends NetworkEntity {
 
-        constructor(name) {
+        constructor(params) {
             super(name);
-            rooms[name] = this;
+            rooms[params.name] = this;
+
+            this.users = [];
+            this.capacity = NaN;
         }
 
         add(user) {
+            if(this.users.indexOf(user) > -1){
+                return;
+            }
+
             if (isNaN(this.capacity) || this.users.length < this.capacity) {
                 this.users.push(user);
 
@@ -72,16 +79,28 @@ function roomFactory(Connection, NetworkEntity, User) {
         }
     }
 
+    NetworkEntity.registerType(ClientRoom);
     Connection.ready().then(socket => {
         socket.get().on(IOEvent.joinedRoom, (data) => {
-            NetworkEntity.getById(User, data.user).then(user => ClientRoom.getByName(data.room).add(user));
+            $q.all([
+                NetworkEntity.getById(User, data.userId),
+                NetworkEntity.getById(ClientRoom, data.roomId),
+            ]).spread((user, room) => {
+                room.add(user);
+                $rootScope.$broadcast(IOEvent.joinedRoom, {user: user, room: room});
+            });
         });
 
         socket.get().on(IOEvent.leftRoom, (data) => {
-            NetworkEntity.getById(User, data.user).then(user => ClientRoom.getByName(data.room).remove(user));
+            $q.all([
+                NetworkEntity.getById(User, data.userId),
+                NetworkEntity.getById(ClientRoom, data.roomId),
+            ]).spread((user, room) => {
+                room.remove(user);
+                $rootScope.$broadcast(IOEvent.leftRoom, {user: user, room: room});
+            });
         });
     });
-
 
     return ClientRoom
 }

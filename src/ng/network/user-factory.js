@@ -21,7 +21,7 @@ function userFactory(NetworkEntity, Connection) {
     }
 
     NetworkEntity.registerType(User);
-    Connection.addEventListener(IOEvent.join, (e) => {
+    Connection.addEventListener(IOEvent.joinServer, (e) => {
         // Assign a local user entity to the client connection on join
         Connection.deferReady(NetworkEntity.getById(User, e.userId).then((user) => {
             Connection.user = user;
