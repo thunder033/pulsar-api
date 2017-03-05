@@ -18,6 +18,10 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
             $rootScope.$on(IOEvent.leftRoom, forward);
         }
 
+        getUser() {
+            return this.user;
+        }
+
         emit(name, data) {
             Connection.getSocket().get().emit(name, data);
         }
