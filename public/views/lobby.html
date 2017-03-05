@@ -1,6 +1,6 @@
 <div id="lobby">
     <h2>Lobby</h2>
-    <span ng-bind="errorMessage"></span>
+    <span class="error" ng-bind="errorMessage"></span>
     Status: <span ng-bind="curStatus"></span><br>
 
     <div ng-if="curStatus === status.UNAUTHENTICATED">
@@ -9,7 +9,7 @@
     </div>
 
     <div ng-if="curStatus === status.READY">
-        In Room: <span ng-bind="room.getName()"></span><br>
+        Active Room: <span ng-bind="activeRoom.getName()"></span><br>
         User: <span ng-bind="user.getName()"></span><br>
 
         <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
@@ -23,7 +23,7 @@
     </div>
 
     <div ng-if="curStatus === status.STAGING">
-        <staging-match match="room"></staging-match>
+        <staging-match match="activeRoom"></staging-match>
     </div>
 
 </div>

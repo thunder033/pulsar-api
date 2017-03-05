@@ -3,8 +3,10 @@
     <ul class="staging-match-user-list">
         <li ng-repeat="i in getMaxSize() track by $index">
             <span ng-bind="match.getUsers()[$index].getName()"></span>
+            <span ng-if="isHost(match.getUsers()[$index])">(Host)</span>
         </li>
     </ul>
 
-    <button ng-disabled="!match.canStart()">Start Match</button>
+    <button ng-click="startMatch()" ng-disabled="!match.canStart() && isHost()">Start Match</button>
+    <button ng-click="leaveMatch()">Leave Match</button>
 </div>

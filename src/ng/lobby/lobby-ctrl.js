@@ -21,6 +21,8 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client) {
     $scope.matches = ClientMatch.getMatchSet();
     $scope.user = null;
     $scope.status = status;
+    $scope.activeRoom = null;
+    $scope.rooms = [];
     $scope.fields = {
         username: '',
         matchLabel: '',
@@ -36,12 +38,25 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client) {
 
     Client.addEventListener(IOEvent.joinedRoom, (e) => {
         console.log('joined room ', e.room.getName());
-        $scope.room = e.room;
-        if($scope.room.getName() === 'lobby') {
+        $scope.activeRoom = e.room;
+        $scope.rooms.push(e.room);
+        if($scope.activeRoom.getName() === 'lobby') {
             $scope.curStatus = status.READY;
         } else {
             $scope.curStatus = status.STAGING;
-            console.log($scope.room.getUsers().map(u => u.getName()).join());
+        }
+    });
+
+    Client.addEventListener(IOEvent.leftRoom, (e) => {
+        console.log('left room ', e.room.getName());
+        const roomIndex = $scope.rooms.indexOf(e.room);
+        if(roomIndex > -1) {
+            $scope.rooms.splice(roomIndex, 0);
+        }
+
+        if(e.room.getName() !== 'lobby') {
+            $scope.activeRoom = $scope.rooms[0];
+            $scope.curStatus = status.READY;
         }
     });
 
