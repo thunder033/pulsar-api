@@ -56,7 +56,7 @@ export class Room extends NetworkEntity {
      * Remove a user from the room and notify clients
      * @param user {User}: the user to remove
      */
-    public remove(user: User): void {
+    public remove(user: User): boolean {
         const userIndex = this.users.indexOf(user);
         if (userIndex > -1) {
             this.users.splice(userIndex, 1);
@@ -65,7 +65,10 @@ export class Room extends NetworkEntity {
             user.getSocket().leave(this.name);
             user.getSocket().emit(IOEvent.leftRoom, message);
             user.getSocket().broadcast.in(this.name).emit(IOEvent.leftRoom, message);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -90,5 +93,11 @@ export class Room extends NetworkEntity {
             name: this.name,
             users: this.users.map((user) => user.getId()),
         });
+    }
+
+    protected broadcast(evt: string, data?: any): void {
+        if (this.users.length > 0) {
+            this.users[0].getSocket().broadcast.in(this.getName()).emit(evt, data);
+        }
     }
 }

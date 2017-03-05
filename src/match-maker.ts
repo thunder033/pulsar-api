@@ -13,12 +13,42 @@ import {IOEvent, MatchEvent} from './event-types';
  */
 export class MatchMember extends UserComponent {
 
-    private match: Match;
+    private match: Match = null;
 
     public onInit() {
         // Register event handlers
         this.socket.on(MatchEvent.requestMatch, (data) => this.requestMatch(data));
         this.socket.on(MatchEvent.requestJoin, (data) => this.requestJoin(data));
+        this.socket.on(MatchEvent.requestLeave, (data) => this.leaveMatch(data));
+        this.socket.on(MatchEvent.requestStart, (data) => this.startMatch(data));
+    }
+
+    public startMatch(data) {
+        if (this.match instanceof Match) {
+            if (!this.isHost()) {
+                const errMsg = `${this.user.getName()} is not host of ${this.match.getLabel()}.` +
+                    `Client cannot start a match they are not the host of.`;
+
+                this.socket.emit(IOEvent.serverError, errMsg);
+                return;
+            }
+
+            this.match.start();
+        } else {
+            this.socket.emit(IOEvent.serverError, `Client is not a member of match to start`);
+        }
+    }
+
+    public leaveMatch(data) {
+        if (this.match instanceof Match) {
+            const matchId = this.match.getId();
+            this.match.remove(this.user);
+
+            this.server.broadcast(IOEvent.leftRoom, {roomId: matchId, userId: this.user.getId()});
+            this.match = null;
+        } else {
+            this.socket.emit(IOEvent.serverError, `Client is not member of match to leave`);
+        }
     }
 
     /**
@@ -64,7 +94,7 @@ export class MatchMember extends UserComponent {
     public requestJoin(data) {
         if (!(this.match instanceof Match)) {
             try {
-                const match: Match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
+                this.match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
             } catch (e) {
                 this.socket.emit(IOEvent.serverError, e.message || e);
             }
@@ -145,8 +175,9 @@ export class MatchMaker extends ServerComponent {
     public removeMatch(match: Match): void {
         const matchIndex = this.matches.indexOf(match);
         if (matchIndex > -1) {
-           this.matches.splice(matchIndex, 1);
-           this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getId()));
+            console.log(`removed match ${match.getName()}`);
+            this.matches.splice(matchIndex, 1);
+            this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getId()));
         }
     }
 
