@@ -30,6 +30,7 @@ export class Match extends Room implements INetworkEntity {
     public remove(user: User): void {
         super.remove(user);
 
+        // If there's no users left in the match, destroy it
         if (this.users.length === 0) {
             this.end();
             this.destroy();

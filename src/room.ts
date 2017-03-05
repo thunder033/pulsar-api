@@ -22,10 +22,19 @@ export class Room extends NetworkEntity {
         this.users = [];
     }
 
+    /**
+     * Indicates if a given user is in the room
+     * @param user {User}: user to locate
+     * @returns {boolean}
+     */
     public contains(user: User): boolean {
         return this.users.indexOf(user) > -1;
     }
 
+    /**
+     * Add a user to this room and notify clients
+     * @param user {User}: the user to add
+     */
     public add(user: User): void {
         if (isNaN(this.capacity) || this.users.length < this.capacity) {
             if (!this.contains(user)) { // users can't be in the room twice
@@ -33,6 +42,7 @@ export class Room extends NetworkEntity {
                 this.users.push(user);
 
                 const message = {userId: user.getId(), roomId: this.getId()};
+                // notify clients a user was added to this room
                 user.getSocket().join(this.name);
                 user.getSocket().emit(IOEvent.joinedRoom, message);
                 user.getSocket().broadcast.in(this.name).emit(IOEvent.joinedRoom, message);
@@ -42,6 +52,10 @@ export class Room extends NetworkEntity {
         }
     }
 
+    /**
+     * Remove a user from the room and notify clients
+     * @param user {User}: the user to remove
+     */
     public remove(user: User): void {
         const userIndex = this.users.indexOf(user);
         if (userIndex > -1) {
@@ -54,6 +68,10 @@ export class Room extends NetworkEntity {
         }
     }
 
+    /**
+     * Gets the unique name of this room
+     * @returns {string}
+     */
     public getName(): string {
         return this.name;
     }
