@@ -24,7 +24,7 @@
                         name="matchSelect"
                         ng-model="fields.selectedMatch"
                         ng-options="match as match.getLabel() for match in matches track by match.getId()">
-                    <option value="" disabled selected ng-if="matches.length === 0">No Matches</option>
+                    <option value="" disabled ng-show="matches.length === 0">No Matches</option>
                 </select>
                 <button ng-disabled="!fields.selectedMatch" ng-click="joinMatch(fields.selectedMatch.getName())">Join</button>
             </div>
