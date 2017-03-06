@@ -6,6 +6,7 @@ import {UserComponent} from './user';
 import {IOEvent} from './event-types';
 import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
+import {Building} from './building';
 
 /**
  * Maintains the connect for a single client
@@ -25,7 +26,7 @@ export class Connection extends UserComponent {
         this.socket.on(IOEvent.syncNetworkEntity, this.syncNetworkEntity.bind(this));
         // Setup the connection when the client request to join
         this.socket.on(IOEvent.joinServer, () => {
-            this.server.getDefaultRoom().add(this.user);
+            this.server.getComponent(Building).getDefaultRoom().add(this.user);
             this.server.syncClient(this.socket);
             this.user.sync(this.socket);
         });

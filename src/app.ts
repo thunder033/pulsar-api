@@ -9,6 +9,7 @@ import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
 import {MatchMaker} from './match-maker';
 import {NetworkIndex} from './network-index';
+import {Building} from './building';
 
 const HTTP_ROUTES = {
     '/': 'public/index.html',
@@ -29,5 +30,6 @@ const syncServer = new SyncServer(httpServer.getServer());
 
 console.log('got here 2');
 // Add Components that define server functionality
+syncServer.addComponent(Building);
 syncServer.addComponent(NetworkIndex);
 syncServer.addComponent(MatchMaker);

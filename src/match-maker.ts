@@ -7,6 +7,7 @@ import Socket = SocketIO.Socket;
 import {User, UserComponent} from './user';
 import {Room} from './room';
 import {IOEvent, MatchEvent} from './event-types';
+import {Building} from './building';
 
 /**
  * Providers users the ability to join and leave matches
@@ -121,7 +122,7 @@ export class MatchMaker extends ServerComponent {
     }
 
     public onInit(): void {
-        this.lobby = this.server.createRoom('lobby');
+        this.lobby = this.server.getComponent(Building).createRoom('lobby');
     }
 
     public syncClient(socket: Socket): void {
@@ -137,7 +138,7 @@ export class MatchMaker extends ServerComponent {
     public createMatch(params): Match {
         if (this.matches.length < MatchMaker.MAX_MATCHES) {
             const match: Match = new Match(params.host, this);
-            this.server.addRoom(match);
+            this.server.getComponent(Building).addRoom(match);
             match.setLabel(params.label);
             this.matches.push(match);
             return match;
