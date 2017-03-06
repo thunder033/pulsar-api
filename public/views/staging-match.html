@@ -1,5 +1,8 @@
 <div class="staging-match">
-    <h3 ng-bind="match.getLabel()"></h3>
+    <h3>
+        <span ng-bind="match.getLabel()"></span>
+        <span ng-if="match.hasStarted()">(In Progress)</span>
+    </h3>
     <ul class="staging-match-user-list">
         <li ng-repeat="i in getMaxSize() track by $index">
             <span ng-bind="match.getUsers()[$index].getName()"></span>
@@ -7,6 +10,6 @@
         </li>
     </ul>
 
-    <button ng-click="startMatch()" ng-disabled="!match.canStart() && isHost()">Start Match</button>
+    <button ng-click="startMatch()" ng-disabled="!match.canStart() || !isHost()">Start Match</button>
     <button ng-click="leaveMatch()">Leave Match</button>
 </div>
