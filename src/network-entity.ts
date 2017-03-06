@@ -9,6 +9,7 @@ import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {SyncServer} from './sync-server';
 import {Component, Composite} from './component';
+import {Room} from './room';
 
 export interface INetworkEntity {
     /**
@@ -146,13 +147,14 @@ export abstract class NetworkEntity implements INetworkEntity {
 
     /**
      * Sync this entity with all clients or the client associated with the provided socket
-     * @param socket {Socket}: a specific socket to sync with
+     * @param [socket {Socket}]: a specific socket to sync with
+     * @param [roomName {Room}]: the room to sync in
      */
-    public sync(socket?: Socket) {
+    public sync(socket?: Socket, roomName?: string) {
         if (!isNullOrUndefined(socket)) {
             socket.emit(IOEvent.syncNetworkEntity, new SyncResponse(this));
         } else {
-            NetworkIndex.syncServer.broadcast(IOEvent.syncNetworkEntity, new SyncResponse(this));
+            NetworkIndex.syncServer.broadcast(IOEvent.syncNetworkEntity, new SyncResponse(this), roomName);
         }
     }
 
@@ -198,9 +200,10 @@ export class Networkable extends Component {
 
     /**
      * Pushes data to all clients or the client associated with the provided socket
-     * @param socket {Socket}: an individual socket to sync this entity with
+     * [@param socket {Socket}]: an individual socket to sync this entity with
+     * [@param roomName {string}]: the room to broadcast the sync to
      */
-    public sync(socket?: Socket) {
+    public sync(socket?: Socket, roomName?: string) {
         // Merge the id into the data object
         const params = Object.assign(this.parent.getSerializable(), {id: this.id});
         const syncResponse = {
@@ -212,7 +215,7 @@ export class Networkable extends Component {
         if (!isNullOrUndefined(socket)) {
             socket.emit(IOEvent.syncNetworkEntity, syncResponse);
         } else {
-            NetworkIndex.syncServer.broadcast(IOEvent.syncNetworkEntity, syncResponse);
+            NetworkIndex.syncServer.broadcast(IOEvent.syncNetworkEntity, syncResponse, roomName);
         }
     }
 }

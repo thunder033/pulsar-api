@@ -169,8 +169,8 @@ export class SyncServer extends Composite {
      * @param data {any}: data to send to handlers
      * @param [room=Server Default] {Room}: the room to broadcast to
      */
-    public broadcast(evt: string, data: any, room: Room = this.defaultRoom) {
-        this.io.sockets.in(room.getName()).emit(evt, data);
+    public broadcast(evt: string, data: any, room: string = this.defaultRoom.getName()) {
+        this.io.sockets.in(room).emit(evt, data);
     }
 
     /**
