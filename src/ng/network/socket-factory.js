@@ -10,7 +10,7 @@ function socketFactory($socket, $q, HttpConfig) {
     class Socket {
 
         constructor(credentials) {
-            const io = require('socket.io-client')(`http://${location.host}`, {query: HttpConfig.getQueryString(credentials)});
+            const io = require('socket.io-client')(`${location.protocol}//${location.host}`, {query: HttpConfig.getQueryString(credentials)});
             const ioSocket = io.connect();
 
             this.socket = $socket({ioSocket: ioSocket});
