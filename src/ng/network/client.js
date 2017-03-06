@@ -4,6 +4,7 @@
  */
 
 const IOEvent = require('event-types').IOEvent;
+const MatchEvent = require('event-types').MatchEvent;
 
 function clientFactory(Connection, $rootScope, AsyncInitializer) {
 
@@ -13,9 +14,10 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
             super();
 
             this.user = null;
-            const forward = this.forwardLocalUserEvent.bind(this);
+            const forward = this.forwardClientEvent.bind(this);
             $rootScope.$on(IOEvent.joinedRoom, forward);
             $rootScope.$on(IOEvent.leftRoom, forward);
+            $rootScope.$on(MatchEvent.matchStarted, forward);
         }
 
         getUser() {
@@ -26,10 +28,10 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
             Connection.getSocket().get().emit(name, data);
         }
 
-        forwardLocalUserEvent(evt, args) {
+        forwardClientEvent(evt, args) {
             console.log('client recieved evt ', evt.name);
             console.log(args);
-            if(args.user && args.user === this.user) {
+            if(args.user && args.user === this.user || args.clientEvent === true) {
                 const e = new Event(evt.name);
                 Object.assign(e, args);
                 this.dispatchEvent(e);

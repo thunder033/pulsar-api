@@ -22,6 +22,7 @@ game.factory('game.ClientMatch', [
     'network.ClientRoom',
     'network.User',
     'network.NetworkEntity',
+    '$rootScope',
     require('./client-match')]);
 
 module.exports = game;

@@ -3,9 +3,9 @@
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
 
-const MatchEvents = require('event-types').MatchEvent;
+const MatchEvent = require('event-types').MatchEvent;
 
-function matchFactory(Connection, ClientRoom, User, NetworkEntity) {
+function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
 
     const matches = new Map();
     const matchList = [];
@@ -16,6 +16,7 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity) {
             super(params);
             this.host = null;
             this.started = false;
+            this.startTime = NaN;
         }
 
         sync(data) {
@@ -40,9 +41,15 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity) {
             return this.users.size >= ClientMatch.MIN_START_USERS && this.started === false;
         }
 
-        onStart() {
+        onStart(startTime) {
             this.started = true;
+            this.startTime = startTime;
             updateMatchList();
+            $rootScope.$broadcast(MatchEvent.matchStarted, {match: this, clientEvent: true});
+        }
+
+        getStartTime() {
+            return this.startTime;
         }
 
         getLabel() {
@@ -88,14 +95,14 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity) {
     }
 
     function triggerMatchStart(data) {
-        matches.get(data.matchId).onStart();
+        matches.get(data.matchId).onStart(data.startTime);
     }
 
     NetworkEntity.registerType(ClientMatch);
     Connection.ready().then(socket => {
-        socket.get().on(MatchEvents.matchCreated, (data) => addMatch(data.matchId));
-        socket.get().on(MatchEvents.matchListUpdate, parseMatchIds);
-        socket.get().on(MatchEvents.matchStarted, triggerMatchStart)
+        socket.get().on(MatchEvent.matchCreated, (data) => addMatch(data.matchId));
+        socket.get().on(MatchEvent.matchListUpdate, parseMatchIds);
+        socket.get().on(MatchEvent.matchStarted, triggerMatchStart)
     });
 
 
