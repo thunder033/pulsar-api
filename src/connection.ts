@@ -31,6 +31,10 @@ export class Connection extends UserComponent {
         });
     }
 
+    public isTerminated(): boolean {
+        return this.terminated;
+    }
+
     public onDisconnect() {
         if (!this.terminated) {
             this.disconnectTimer = setTimeout(() => this.terminate(), Connection.DISCONNECT_TIMEOUT_DURATION);

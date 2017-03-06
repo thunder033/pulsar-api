@@ -25,19 +25,24 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity) {
         }
 
         isOpen() {
-            return this.users.length < this.capacity && this.started === false;
+            return this.users.size < this.capacity && this.started === false;
         }
 
         getHost() {
             return this.host;
         }
 
-        getUsers() {
-            return this.users;
+        hasStarted() {
+            return this.started;
         }
 
         canStart() {
-            return this.users.filter(user => user instanceof User).length >= ClientMatch.MIN_START_USERS;
+            return this.users.size >= ClientMatch.MIN_START_USERS && this.started === false;
+        }
+
+        onStart() {
+            this.started = true;
+            updateMatchList();
         }
 
         getLabel() {
@@ -82,11 +87,17 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity) {
         updateMatchList();
     }
 
+    function triggerMatchStart(data) {
+        matches.get(data.matchId).onStart();
+    }
+
     NetworkEntity.registerType(ClientMatch);
     Connection.ready().then(socket => {
         socket.get().on(MatchEvents.matchCreated, (data) => addMatch(data.matchId));
         socket.get().on(MatchEvents.matchListUpdate, parseMatchIds);
+        socket.get().on(MatchEvents.matchStarted, triggerMatchStart)
     });
+
 
 
     return ClientMatch;

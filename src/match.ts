@@ -8,6 +8,7 @@ import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
 import {User} from './user';
 import {MatchEvent} from './event-types';
+import {Connection} from './connection';
 
 /**
  * Specialized Room for staging new play sessions between users
@@ -32,7 +33,7 @@ export class Match extends Room implements INetworkEntity {
 
     public remove(user: User): boolean {
         const removed = super.remove(user);
-        if (removed && this.started === true) {
+        if (removed && this.started === true && !user.getComponent(Connection).isTerminated()) {
             this.matchMaker.getLobby().add(user);
         }
 
@@ -90,7 +91,10 @@ export class Match extends Room implements INetworkEntity {
     }
 
     public start(): void {
-        console.log('started match', this.name);
+        if (this.started === true) {
+            throw new Error(`Attempted to start match ${this.name} that has already been started!`);
+        }
+
         this.started = true;
 
         // Players leave the lobby when the match begins

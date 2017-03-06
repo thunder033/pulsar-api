@@ -62,7 +62,7 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
         sync(params) {
             params.capacity = typeof params.capacity === 'number' ? params.capacity : NaN;
 
-            this.users.length = 0;
+            this.users.clear();
             params.users.forEach(userId => NetworkEntity
                 .getById(User, userId)
                 .then(user => this.add(user)));

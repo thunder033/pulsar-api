@@ -37,6 +37,7 @@ export const IOEvent = Enum([
  * @property joinedMatch
  * @property requestStart
  * @property requestLeave
+ * @property matchStarted
  */
 export const MatchEvent = Enum([
     'requestMatch',

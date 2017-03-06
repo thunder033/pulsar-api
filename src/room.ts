@@ -45,6 +45,7 @@ export class Room extends NetworkEntity {
                 // notify clients a user was added to this room
                 user.getSocket().join(this.name);
                 this.broadcast(IOEvent.joinedRoom, message);
+                this.sync(user.getSocket());
             }
         } else {
             throw new Error(`Room is full and cannot accept any more users`);
