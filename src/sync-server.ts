@@ -4,14 +4,17 @@
  */
 import Socket = SocketIO.Socket;
 
+console.log('got here 1.1');
+
 import * as http from 'http';
 import * as socketio from 'socket.io';
 import {Connection} from './connection';
 import {Component, Composite, IComponent} from './component';
 import {IOEvent} from './event-types';
-import {Networkable} from './network-index';
 import {Room} from './room';
 import {User} from './user';
+
+console.log('got here 1.2');
 
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
@@ -198,6 +201,6 @@ export class SyncServer extends Composite {
      */
     private getUserComponents(): IComponent[] {
         const userComponents: any = (this.getComponents() as ServerComponent[]).map((c) => c.getUserComponents());
-        return [].concat.apply([Networkable, Connection], userComponents);
+        return [].concat.apply([Connection], userComponents);
     }
 }

@@ -4,7 +4,7 @@
 
 import {UserComponent} from './user';
 import {IOEvent} from './event-types';
-import {INetworkEntity, NetworkEntity, SyncResponse} from './network-index';
+import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
 
 /**
@@ -50,16 +50,17 @@ export class Connection extends UserComponent {
     private syncNetworkEntity(data): void {
         const req = data.body;
         const errorKey = `${IOEvent.serverError}-${data.reqId}`;
+        const networkIndex = this.server.getComponent(NetworkIndex);
         console.log(`${data.reqId}: ${req.type} ${req.id}`);
 
         if (req.type && req.id) {
-            const type = NetworkEntity.getType(req.type);
+            const type = networkIndex.getType(req.type);
             if (!type) {
                 this.socket.emit(errorKey, `Invalid ${IOEvent.syncNetworkEntity} request type: ${req.type}`);
                 return;
             }
 
-            const entity: INetworkEntity = NetworkEntity.getById(type, req.id);
+            const entity: INetworkEntity = networkIndex.getById(type, req.id);
             if (!entity) {
                 this.socket.emit(errorKey, `No ${type.name} was found with id ${req.id}`);
                 return;
