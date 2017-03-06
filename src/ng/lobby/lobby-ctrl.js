@@ -6,7 +6,7 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-function LobbyCtrl(Connection, $scope, ClientMatch, Client) {
+function LobbyCtrl(Connection, $scope, ClientMatch, Client, MScheduler, MCamera, Geometry, MM, MEasel) {
 
     const status = {
         LOADING        : 0,
@@ -29,6 +29,20 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client) {
         selectedMatch: null,
         activeDiagram: 'api',
     };
+
+    const tCube = new Geometry.Transform();
+    MScheduler.schedule(() => {
+
+        tCube.rotation.x =
+        tCube.rotation.y =
+        tCube.rotation.z = (~~performance.now()) / 200;
+
+        MScheduler.draw(() => {
+            MEasel.context.canvas.style.background = '#fff';
+            MCamera.render(Geometry.meshes.Cube, [tCube], MM.vec3(255, 0, 0));
+            MCamera.present();
+        });
+    });
 
     $scope.getStatusName = function(index) {
         return Object.keys(status).reduce((name, curName) => {

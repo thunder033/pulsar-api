@@ -11,6 +11,11 @@ lobby.controller('lobby.LobbyCtrl', [
     '$scope',
     'game.ClientMatch',
     'network.Client',
+    'MScheduler',
+    'MCamera',
+    'Geometry',
+    'MalletMath',
+    'MEasel',
     require('./lobby-ctrl')]);
 
 lobby.directive('stagingMatch', [
