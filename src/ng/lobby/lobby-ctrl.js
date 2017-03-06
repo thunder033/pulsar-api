@@ -6,7 +6,7 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-function LobbyCtrl(Connection, $scope, ClientMatch, Client, MScheduler, MCamera, Geometry, MM, MEasel) {
+function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
 
     const status = {
         LOADING        : 0,
@@ -30,19 +30,7 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client, MScheduler, MCamera,
         activeDiagram: 'api',
     };
 
-    const tCube = new Geometry.Transform();
-    MScheduler.schedule(() => {
 
-        tCube.rotation.x =
-        tCube.rotation.y =
-        tCube.rotation.z = (~~performance.now()) / 200;
-
-        MScheduler.draw(() => {
-            MEasel.context.canvas.style.background = '#fff';
-            MCamera.render(Geometry.meshes.Cube, [tCube], MM.vec3(255, 0, 0));
-            MCamera.present();
-        });
-    });
 
     $scope.getStatusName = function(index) {
         return Object.keys(status).reduce((name, curName) => {
@@ -79,6 +67,11 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client, MScheduler, MCamera,
             $scope.activeRoom = $scope.rooms[0];
             $scope.curStatus = status.READY;
         }
+    });
+
+    Client.addEventListener(MatchEvent.matchStarted, (e) => {
+        console.log('start game');
+        $state.go('play', {matchId: e.match.getId()});
     });
 
     Connection.ready().then(() => {

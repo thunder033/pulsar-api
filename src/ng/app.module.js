@@ -27,6 +27,10 @@ angular.module('warp-test-client', [
         url: '/lobby',
         templateUrl: 'views/lobby.html',
         controller: 'lobby.LobbyCtrl'
+    }).state('play', {
+        url: '/play/:matchId',
+        templateUrl: 'views/play.html',
+        controller: 'game.PlayCtrl'
     });
 }]).run(['MScheduler', function(MScheduler){
     MScheduler.startMainLoop();

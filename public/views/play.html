@@ -1,0 +1,10 @@
+<div id="game-wrapper">
+    <span>State: {{state}}</span>
+    <div ng-if="state === states.LOADING">Loading...</div>
+    <div ng-if="state === states.SYNCING">
+        <span>{{match.getUsers()[0].getName()}} vs. {{match.getUsers()[1].getName()}}</span><br>
+        Start Game in <span ng-bind="secondsToStart"></span>
+    </div>
+
+    <m-easel ng-show="state === states.PLAYING" id="game"></m-easel>
+</div>

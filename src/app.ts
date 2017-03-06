@@ -16,6 +16,7 @@ const HTTP_ROUTES = {
     '/assets/uiStructure.png': 'public/assets/uiStructure.png',
     '/dist/bundle.js': 'public/dist/bundle.js',
     '/views/lobby.html': 'public/views/lobby.html',
+    '/views/play.html': 'public/views/play.html',
     '/views/staging-match.html': 'public/views/staging-match.html',
 };
 

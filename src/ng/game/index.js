@@ -14,8 +14,7 @@ game.factory('game.Player', [
     'network.User',
     'network.ClientRoom',
     'game.ClientMatch',
-    require('./player')
-]);
+    require('./player')]);
 
 game.factory('game.ClientMatch', [
     'network.Connection',
@@ -24,5 +23,18 @@ game.factory('game.ClientMatch', [
     'network.NetworkEntity',
     '$rootScope',
     require('./client-match')]);
+
+game.controller('game.PlayCtrl', [
+    'MScheduler',
+    'MCamera',
+    'Geometry',
+    'MalletMath',
+    'MEasel',
+    '$stateParams',
+    'network.NetworkEntity',
+    '$scope',
+    '$timeout',
+    'network.ClientRoom',
+    require('./play-ctrl')]);
 
 module.exports = game;
