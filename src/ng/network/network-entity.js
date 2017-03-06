@@ -98,6 +98,21 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
         }
 
         /**
+         * Syncs the values of a map to the given array
+         * @param map {Map}
+         * @param arr {Array}
+         */
+        static syncValueList(map, arr) {
+            arr.length = 0;
+            const it = map.values();
+            let item = it.next();
+            while (item.done === false) {
+                arr.push(item.value);
+                item = it.next();
+            }
+        }
+
+        /**
          * Parses a response to rebuild a network entity
          * @param data
          * @returns {NetworkEntity}

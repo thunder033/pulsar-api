@@ -44,8 +44,7 @@ export class Room extends NetworkEntity {
                 const message = {userId: user.getId(), roomId: this.getId()};
                 // notify clients a user was added to this room
                 user.getSocket().join(this.name);
-                user.getSocket().emit(IOEvent.joinedRoom, message);
-                user.getSocket().broadcast.in(this.name).emit(IOEvent.joinedRoom, message);
+                this.broadcast(IOEvent.joinedRoom, message);
             }
         } else {
             throw new Error(`Room is full and cannot accept any more users`);
@@ -59,12 +58,13 @@ export class Room extends NetworkEntity {
     public remove(user: User): boolean {
         const userIndex = this.users.indexOf(user);
         if (userIndex > -1) {
+            console.log(`${this.name} remove user ${user.getName()}`);
             this.users.splice(userIndex, 1);
 
             const message = {userId: user.getId(), roomId: this.getId()};
+            this.broadcast(IOEvent.leftRoom, message);
             user.getSocket().leave(this.name);
-            user.getSocket().emit(IOEvent.leftRoom, message);
-            user.getSocket().broadcast.in(this.name).emit(IOEvent.leftRoom, message);
+            this.sync();
             return true;
         }
 
@@ -98,6 +98,7 @@ export class Room extends NetworkEntity {
     protected broadcast(evt: string, data?: any): void {
         if (this.users.length > 0) {
             this.users[0].getSocket().broadcast.in(this.getName()).emit(evt, data);
+            this.users[0].getSocket().emit(evt, data);
         }
     }
 }

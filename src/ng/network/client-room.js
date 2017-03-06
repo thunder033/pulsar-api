@@ -14,17 +14,19 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
             super(name);
             rooms[params.name] = this;
 
-            this.users = [];
+            this.users = new Map();
+            this.userList = [];
             this.capacity = NaN;
         }
 
         add(user) {
-            if(this.users.indexOf(user) > -1){
+            if(this.users.has(user.getId()) === true){
                 return;
             }
 
-            if (isNaN(this.capacity) || this.users.length < this.capacity) {
-                this.users.push(user);
+            if (isNaN(this.capacity) || this.users.size < this.capacity) {
+                this.users.set(user.getId(), user);
+                NetworkEntity.syncValueList(this.users, this.userList);
 
                 const evt = new Event(IOEvent.joinedRoom);
                 evt.user = user;
@@ -35,10 +37,9 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
         }
 
         remove(user) {
-            const userIndex = this.users.indexOf(user);
-
-            if(userIndex > -1) {
-                this.users.splice(userIndex, 1);
+            if(this.users.has(user.getId())) {
+                this.users.delete(user.getId());
+                NetworkEntity.syncValueList(this.users, this.userList);
 
                 const evt = new Event(IOEvent.leftRoom);
                 evt.user = user;
@@ -64,7 +65,7 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
             this.users.length = 0;
             params.users.forEach(userId => NetworkEntity
                 .getById(User, userId)
-                .then(user => this.users.push(user)));
+                .then(user => this.add(user)));
 
             delete params.users;
             super.sync(params);
@@ -75,7 +76,7 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
         }
 
         getUsers() {
-            return this.users;
+            return this.userList;
         }
     }
 
