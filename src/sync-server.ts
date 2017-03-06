@@ -6,12 +6,7 @@ import Socket = SocketIO.Socket;
 
 import * as http from 'http';
 import * as socketio from 'socket.io';
-import {Connection} from './connection';
 import {Component, Composite, IComponent} from './component';
-import {IOEvent} from './event-types';
-import {Networkable} from './network-index';
-import {Room} from './room';
-import {User} from './user';
 
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
@@ -52,6 +47,10 @@ export abstract class ServerComponent extends Component implements IServerCompon
         return undefined;
     }
 
+    public onClientTerminated(args: any): void {
+        return undefined;
+    }
+
     public syncClient(socket: Socket): void {
         return undefined;
     }
@@ -65,21 +64,21 @@ export abstract class ServerComponent extends Component implements IServerCompon
     }
 }
 
+// This is hacky af, but we're not moving users to their own component yet
+import {Connection} from './connection';
+import {User} from './user';
+
 /**
  * Maintains client connections
  */
 export class SyncServer extends Composite {
 
-    private rooms: Map<string, Room>;
     private io: SocketIO.Server;
     private users: User[];
-    private defaultRoom: Room;
 
     constructor(httpServer: http.Server) {
         super();
         this.users = [];
-        this.defaultRoom = null;
-        this.rooms = new Map<string, Room>();
 
         this.io = socketio(httpServer);
         this.io.use((socket: Socket, next) => {
@@ -90,35 +89,6 @@ export class SyncServer extends Composite {
 
     public getUsers(): User[] {
         return this.users;
-    }
-
-    /**
-     * Add a room to this server. If there are no rooms the room becomes the default
-     * @param room {Room}: the room to add
-     */
-    public addRoom(room: Room): void {
-        if (this.rooms.has(room.getName())) {
-            throw new Error(`Room with name ${name} already exists on this server! Room names must unique`);
-        }
-
-        // Rooms are indexed here by name because socket-io emits messages by room name
-        this.rooms.set(room.getName(), room);
-
-        if (this.defaultRoom === null) {
-            this.defaultRoom = room;
-        }
-    };
-
-    /**
-     * Factory function to create and add a room
-     * @param name {string}: the name of the room
-     * @returns {Room}: the created room
-     */
-    public createRoom(name: string): Room {
-        const room = new Room(name);
-        this.addRoom(room);
-        this.broadcast(IOEvent.roomCreated, room.getName());
-        return room;
     }
 
     /**
@@ -146,22 +116,8 @@ export class SyncServer extends Composite {
      * @param socket {Socket}: the socket to emit message to
      */
     public syncClient(socket: Socket): void {
-        this.rooms.forEach((room) => {
-            if (room.constructor === Room) {
-                socket.emit(IOEvent.roomCreated, room.getId());
-            }
-        });
-
         this.invokeComponentEvents('syncClient', socket);
     };
-
-    /**
-     * Get the default room that new clients will be added to
-     * @returns {Room}
-     */
-    public getDefaultRoom(): Room {
-        return this.defaultRoom;
-    }
 
     /**
      * Broadcasts an event to users on the server, either in the specified room or the server default
@@ -169,8 +125,12 @@ export class SyncServer extends Composite {
      * @param data {any}: data to send to handlers
      * @param [room=Server Default] {Room}: the room to broadcast to
      */
-    public broadcast(evt: string, data: any, room: string = this.defaultRoom.getName()) {
-        this.io.sockets.in(room).emit(evt, data);
+    public broadcast(evt: string, data: any, room?: string) {
+        if (typeof !room !== 'string') {
+            this.io.sockets.emit(evt, data);
+        } else {
+            this.io.sockets.in(room).emit(evt, data);
+        }
     }
 
     /**
@@ -181,10 +141,8 @@ export class SyncServer extends Composite {
     public removeClient(targetUser: User): boolean {
         return this.users.some((user: User, i: number) => {
             if (targetUser === user) {
-                this.rooms.forEach((room) => {
-                    room.remove(user);
-                });
                 this.users.splice(i, 1);
+                this.invokeComponentEvents('clientTerminated', targetUser);
                 return true;
             }
 
@@ -198,6 +156,6 @@ export class SyncServer extends Composite {
      */
     private getUserComponents(): IComponent[] {
         const userComponents: any = (this.getComponents() as ServerComponent[]).map((c) => c.getUserComponents());
-        return [].concat.apply([Networkable, Connection], userComponents);
+        return [].concat.apply([Connection], userComponents);
     }
 }

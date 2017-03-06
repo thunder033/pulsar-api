@@ -110,6 +110,10 @@ export class User extends Composite implements INetworkEntity {
         return this.getComponent(Networkable).getId();
     }
 
+    public getType() {
+        return this.getComponent(Networkable).getType();
+    }
+
     public sync(socket?: SocketIO.Socket): void {
         this.getComponent(Networkable).sync(socket);
     }

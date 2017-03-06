@@ -4,8 +4,9 @@
 
 import {UserComponent} from './user';
 import {IOEvent} from './event-types';
-import {INetworkEntity, NetworkEntity, SyncResponse} from './network-index';
+import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
+import {Building} from './building';
 
 /**
  * Maintains the connect for a single client
@@ -25,7 +26,7 @@ export class Connection extends UserComponent {
         this.socket.on(IOEvent.syncNetworkEntity, this.syncNetworkEntity.bind(this));
         // Setup the connection when the client request to join
         this.socket.on(IOEvent.joinServer, () => {
-            this.server.getDefaultRoom().add(this.user);
+            this.server.getComponent(Building).getDefaultRoom().add(this.user);
             this.server.syncClient(this.socket);
             this.user.sync(this.socket);
         });
@@ -50,16 +51,17 @@ export class Connection extends UserComponent {
     private syncNetworkEntity(data): void {
         const req = data.body;
         const errorKey = `${IOEvent.serverError}-${data.reqId}`;
+        const networkIndex = this.server.getComponent(NetworkIndex);
         console.log(`${data.reqId}: ${req.type} ${req.id}`);
 
         if (req.type && req.id) {
-            const type = NetworkEntity.getType(req.type);
+            const type = networkIndex.getType(req.type);
             if (!type) {
                 this.socket.emit(errorKey, `Invalid ${IOEvent.syncNetworkEntity} request type: ${req.type}`);
                 return;
             }
 
-            const entity: INetworkEntity = NetworkEntity.getById(type, req.id);
+            const entity: INetworkEntity = networkIndex.getById(type, req.id);
             if (!entity) {
                 this.socket.emit(errorKey, `No ${type.name} was found with id ${req.id}`);
                 return;
