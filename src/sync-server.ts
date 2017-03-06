@@ -9,7 +9,7 @@ import * as socketio from 'socket.io';
 import {Connection} from './connection';
 import {Component, Composite, IComponent} from './component';
 import {IOEvent} from './event-types';
-import {Networkable} from './network-entity';
+import {Networkable} from './network-index';
 import {Room} from './room';
 import {User} from './user';
 

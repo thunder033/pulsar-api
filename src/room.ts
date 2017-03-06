@@ -3,7 +3,7 @@
  */
 
 import {User} from './user';
-import {NetworkEntity} from './network-entity';
+import {NetworkEntity} from './network-index';
 import {IOEvent} from './event-types';
 
 /**

@@ -3,7 +3,7 @@
  */
 
 import * as uuid from 'uuid/v4';
-import {INetworkEntity} from './network-entity';
+import {INetworkEntity} from './network-index';
 import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
 import {User} from './user';

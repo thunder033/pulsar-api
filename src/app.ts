@@ -7,7 +7,7 @@
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
 import {MatchMaker} from './match-maker';
-import {NetworkEntity} from './network-entity';
+import {NetworkEntity} from './network-index';
 
 const HTTP_ROUTES = {
     '/': 'public/index.html',

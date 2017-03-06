@@ -4,7 +4,7 @@
 
 import {UserComponent} from './user';
 import {IOEvent} from './event-types';
-import {INetworkEntity, NetworkEntity, SyncResponse} from './network-entity';
+import {INetworkEntity, NetworkEntity, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
 
 /**
