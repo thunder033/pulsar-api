@@ -43,8 +43,7 @@ export class Match extends Room implements INetworkEntity {
             this.destroy();
         } else if ((user as User).getComponent(MatchMember).isHost()) {
             this.host = this.users[0].getComponent(MatchMember);
-            // TODO: sync to only clients in the match
-            this.sync();
+            this.sync(null, this.getName());
         }
 
         return removed;

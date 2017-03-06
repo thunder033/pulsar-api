@@ -6,13 +6,14 @@
 const IOEvent = require('event-types').IOEvent;
 const EventTarget = require('eventtarget');
 
-function networkEntityFactory(Connection, $q, SimpleSocket) {
+function networkEntityFactory(Connection, $q, $rootScope) {
 
     class NetworkEntity extends EventTarget {
 
         constructor(id) {
             super();
             this.id = id;
+            this.syncTime = ~~performance.now();
         }
 
         getId() {
@@ -25,6 +26,10 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
 
         sync(params) {
             Object.assign(this, params);
+            this.syncTime = ~~performance.now();
+
+            console.log(`sync ${this.constructor.name} ${this.id} at ${this.syncTime}`);
+            $rootScope.$evalAsync();
         }
 
         static registerType(type) {
@@ -110,6 +115,8 @@ function networkEntityFactory(Connection, $q, SimpleSocket) {
                 arr.push(item.value);
                 item = it.next();
             }
+
+            $rootScope.$evalAsync();
         }
 
         /**

@@ -26,6 +26,7 @@ network.factory('network.AsyncInitializer', [
 network.factory('network.NetworkEntity', [
     'network.Connection',
     '$q',
+    '$rootScope',
     require('./network-entity')]);
 
 network.factory('network.Connection', [
