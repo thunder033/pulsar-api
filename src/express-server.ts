@@ -13,6 +13,8 @@ export class ExpressServer {
     private static readonly MIME_TYPES: {
         'html': 'text/html',
         'js': 'text/javascript',
+        'png': 'image/png',
+        'css': 'text/css',
     };
 
     private server: http.Server;

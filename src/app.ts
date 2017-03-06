@@ -11,6 +11,9 @@ import {NetworkEntity} from './network-entity';
 
 const HTTP_ROUTES = {
     '/': 'public/index.html',
+    '/assets/apiStructure.png': 'public/assets/apiStructure.png',
+    '/assets/theme.css': 'public/assets/theme.css',
+    '/assets/uiStructure.png': 'public/assets/uiStructure.png',
     '/dist/bundle.js': 'public/dist/bundle.js',
     '/views/lobby.html': 'public/views/lobby.html',
     '/views/staging-match.html': 'public/views/staging-match.html',

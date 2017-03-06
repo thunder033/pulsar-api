@@ -1,29 +1,48 @@
 <div id="lobby">
-    <h2>Lobby</h2>
-    <span class="error" ng-bind="errorMessage"></span>
-    Status: <span ng-bind="curStatus"></span><br>
+    <div class="staging-panel">
+        <h2>Lobby</h2>
+        <span class="error" ng-bind="errorMessage"></span>
+        Status: <span ng-bind="getStatusName(curStatus)"></span><br>
 
-    <div ng-if="curStatus === status.UNAUTHENTICATED">
-        <input type="text" placeholder="Name" ng-model="fields.username">
-        <button ng-click="authenticate(fields.username)">Join Lobby</button>
-    </div>
+        <div ng-if="curStatus === status.UNAUTHENTICATED">
+            <input type="text" placeholder="Name" ng-model="fields.username">
+            <button ng-click="authenticate(fields.username)">Join Lobby</button>
+        </div>
 
-    <div ng-if="curStatus === status.READY">
-        Active Room: <span ng-bind="activeRoom.getName()"></span><br>
-        User: <span ng-bind="user.getName()"></span><br>
+        <div ng-if="curStatus === status.READY">
+            Active Room: <span ng-bind="activeRoom.getName()"></span><br>
+            User: <span ng-bind="user.getName()"></span><br>
 
-        <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
-        <button ng-click="createMatch(fields.matchLabel)">Create Match</button>
+            <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
+            <button ng-click="createMatch(fields.matchLabel)">Create Match</button>
 
-        <div>
-            <h4>Matches</h4>
-            <select title="Matches" name="matchSelect" ng-model="fields.selectedMatch" ng-options="match as match.getLabel() for match in matches track by match.getId()"></select>
-            <button ng-disabled="!fields.selectedMatch" ng-click="joinMatch(fields.selectedMatch.getName())">Join</button>
+            <div class="match-list">
+                <h4>Open Matches</h4>
+                <select size="5"
+                        title="Matches"
+                        name="matchSelect"
+                        ng-model="fields.selectedMatch"
+                        ng-options="match as match.getLabel() for match in matches track by match.getId()">
+                    <option value="" disabled selected ng-if="matches.length === 0">No Matches</option>
+                </select>
+                <button ng-disabled="!fields.selectedMatch" ng-click="joinMatch(fields.selectedMatch.getName())">Join</button>
+            </div>
+        </div>
+
+        <div ng-if="curStatus === status.STAGING">
+            <staging-match match="activeRoom"></staging-match>
         </div>
     </div>
 
-    <div ng-if="curStatus === status.STAGING">
-        <staging-match match="activeRoom"></staging-match>
+    <div class="diagrams">
+        <div class="diagram-controls">
+            <label>View Diagram:</label>
+            <select size="2" ng-model="fields.activeDiagram">
+                <option value="ui">UI Structure</option>
+                <option value="api">API Structure</option>
+            </select>
+        </div>
+        <img ng-if="fields.activeDiagram === 'api'" src="assets/apiStructure.png" alt="API Class Diagram">
+        <img ng-if="fields.activeDiagram === 'ui'"  src="assets/uiStructure.png" alt="API Class Diagram">
     </div>
-
 </div>

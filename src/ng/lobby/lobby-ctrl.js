@@ -26,7 +26,14 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client) {
     $scope.fields = {
         username: '',
         matchLabel: '',
-        selectedMatch: null
+        selectedMatch: null,
+        activeDiagram: 'api',
+    };
+
+    $scope.getStatusName = function(index) {
+        return Object.keys(status).reduce((name, curName) => {
+            return status[curName] === index ? curName : name;
+        }, '');
     };
 
     // creates a callback to assign a value to the scope
