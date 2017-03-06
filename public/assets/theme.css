@@ -8,9 +8,30 @@ html, body {
     overflow: hidden;
 }
 
+h1 {
+    font-size: 2em;
+    background: #3b4;
+    color: #fff;
+    text-shadow: 1px 0 2px #000;
+    height: 1.5em;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: .075em .25em;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.wrapper {
+    padding-top: 3em;
+    box-sizing: border-box;
+}
+
 #lobby, .wrapper {
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
 .staging-match-user-list {
@@ -32,15 +53,28 @@ html, body {
 .staging-panel {
     width: 30em;
     padding: 1em;
-    border-right: 1px #ccc solid;
+    border-left: 1px #ccc solid;
     box-sizing: border-box;
     height: 100%;
-    float: left;
+    float: right;
+}
+
+.match-list {
+    width: 8em;
 }
 
 .diagrams {
-    margin-left: 30em;
+    margin-right: 30em;
     height: 100%;
+    position: relative;
+}
+
+.diagrams .description {
+    position: absolute;
+    width: 35em;
+    top: 1em;
+    right: 15em;
+    font-size: .9em;
 }
 
 .diagrams img {
@@ -68,8 +102,4 @@ select {
 
 select option {
     padding: .5em;
-}
-
-.match-list {
-    width: 8em;
 }

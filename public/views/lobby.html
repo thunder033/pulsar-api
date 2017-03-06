@@ -42,6 +42,13 @@
                 <option value="api">API Structure</option>
             </select>
         </div>
+        <p class="description">
+            The Pulsar API server is designed with the goal of using object-oriented design to achieve
+            data synchronization across clients. Key features include integration with Angular, extensibility,
+            and selective data syncing that allows clients to maintain object references. Each of these
+            features is important to integrating with the existing Pulsar apps to introduce network-based
+            behavior.
+        </p>
         <img ng-if="fields.activeDiagram === 'api'" src="assets/apiStructure.png" alt="API Class Diagram">
         <img ng-if="fields.activeDiagram === 'ui'"  src="assets/uiStructure.png" alt="API Class Diagram">
     </div>
