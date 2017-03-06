@@ -22,6 +22,7 @@ export class Match extends Room implements INetworkEntity {
     private matchMaker: MatchMaker;
     private host: MatchMember;
     private started: boolean;
+    private startTime: number;
 
     constructor(user: MatchMember, matchMaker: MatchMaker) {
         super(`match-${uuid()}`);
@@ -29,6 +30,7 @@ export class Match extends Room implements INetworkEntity {
         this.setCapacity(Match.MAX_MATCH_SIZE);
         this.matchMaker = matchMaker;
         this.started = false;
+        this.startTime = NaN;
     }
 
     public remove(user: User): boolean {
@@ -109,6 +111,7 @@ export class Match extends Room implements INetworkEntity {
         return Object.assign(super.getSerializable(), {
             host: this.host.getId(),
             label: this.getLabel(),
+            startTime: this.startTime,
             started: this.started,
         });
     }
