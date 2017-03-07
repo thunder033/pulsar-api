@@ -4,7 +4,6 @@
  * Created by gjrwcs on 2/16/2017.
  */
 
-console.log('got here');
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
 import {MatchMaker} from './match-maker';
@@ -22,13 +21,11 @@ const HTTP_ROUTES = {
     '/views/staging-match.html': 'public/views/staging-match.html',
 };
 
-console.log('got here 1');
 // init the application
 const httpServer = new ExpressServer(HTTP_ROUTES);
 // Create a new sync server
 const syncServer = new SyncServer(httpServer.getServer());
 
-console.log('got here 2');
 // Add Components that define server functionality
 syncServer.addComponent(Building);
 syncServer.addComponent(NetworkIndex);
