@@ -4,7 +4,8 @@
 const MDP = require('./mallet.dependency-tree').MDP;
 
 'use strict';
-require('angular').module('mallet').directive(MDP.mEasel, [
+
+require('angular').module('mallet').directive('mEasel', [
     MDP.Easel,
     MDP.Scheduler,
     MDP.State,
