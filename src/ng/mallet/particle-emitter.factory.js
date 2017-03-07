@@ -1,7 +1,16 @@
 /**
  * Created by gjr8050 on 11/9/2016.
  */
-require('angular').module('mallet').factory('MParticle', ['MalletMath', 'MCamera', 'Geometry', 'MScheduler', function(MM, MCamera, Geometry, MScheduler){
+const MDP = require('./mallet.dependency-tree').MDP;
+
+require('angular').module('mallet').factory(MDP.ParticleEmitter, [
+    MDP.Math,
+    MDP.Camera,
+    MDP.Geometry,
+    MDP.Scheduler,
+    ParticleEmitter]);
+
+function ParticleEmitter(MM, MCamera, Geometry, MScheduler){
     'use strict';
 
     //Adjust the speed of all particles so input values can be reasonable
@@ -199,4 +208,4 @@ require('angular').module('mallet').factory('MParticle', ['MalletMath', 'MCamera
     return {
         Emitter: Emitter
     };
-}]);
+}

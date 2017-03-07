@@ -2,7 +2,16 @@
  * Created by gjr8050 on 9/16/2016.
  */
 'use strict';
-require('angular').module('mallet').service('MScheduler', ['mallet.const.MaxFrameRate', 'mallet.state', '$rootScope', function(MaxFrameRate, MState, $rootScope){
+const MDP = require('./mallet.dependency-tree').MDP;
+
+require('angular').module('mallet').service(MDP.Scheduler, [
+    MDP.const.MaxFrameRate,
+    MDP.State,
+    MDP.ng.$rootScope,
+    Scheduler]);
+
+function Scheduler(MaxFrameRate, MState, $rootScope){
+
     var self = this,
         updateOperations = new PriorityQueue(),
         drawCommands = new PriorityQueue(),
@@ -181,4 +190,4 @@ require('angular').module('mallet').service('MScheduler', ['mallet.const.MaxFram
     this.suspendOnBlur = (flag) => {
         suspendOnBlur = typeof flag !== 'undefined' ? flag : true;
     };
-}]);
+}

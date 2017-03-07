@@ -2,6 +2,9 @@
  * Created by Greg on 10/29/2016.
  */
 'use strict';
+
+const MDP = require('./mallet.dependency-tree').MDP;
+
 /**
  * For now just handles maintain app state, might change in the future
  * @name MState
@@ -11,7 +14,11 @@
  * @property Suspended
  * @property Debug
  */
-require('angular').module('mallet').service('mallet.state', ['$location', function($location){
+require('angular').module('mallet').service(MDP.State, [
+    MDP.ng.$location,
+    State]);
+
+function State($location){
 
     var self = this,
         stateListeners = [],
@@ -101,4 +108,4 @@ require('angular').module('mallet').service('mallet.state', ['$location', functi
     };
 
     self.clearState();
-}]);
+}

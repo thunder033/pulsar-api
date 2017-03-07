@@ -1,8 +1,20 @@
 /**
  * Created by Greg on 11/2/2016.
  */
+
+const MDP = require('./mallet.dependency-tree').MDP;
+
 'use strict';
-require('angular').module('mallet').service('MCamera', ['MalletMath', 'MEasel', 'Geometry', 'MColor', 'MScheduler', 'mallet.state', function (MM, MEasel, Geometry, Color, MScheduler, MState) {
+require('angular').module('mallet').service(MDP.Camera, [
+    MDP.Math,
+    MDP.Easel,
+    MDP.Geometry,
+    MDP.Color,
+    MDP.Scheduler,
+    MDP.State,
+    Camera]);
+
+function Camera(MM, MEasel, Geometry, Color, MScheduler, MState) {
 
     var Mesh = Geometry.Mesh,
         drawCalls = new PriorityQueue(),
@@ -342,4 +354,4 @@ require('angular').module('mallet').service('MCamera', ['MalletMath', 'MEasel', 
         MScheduler.draw(self.present, 0);
     });
 
-}]);
+}

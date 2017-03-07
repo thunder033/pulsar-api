@@ -2,9 +2,11 @@
 /**
  * @author Greg Rozmarynowycz<greg@thunderlab.net>
  */
+const MDP = require('./mallet.dependency-tree').MDP;
+
 require('angular')
     .module('mallet')
-    .service('mallet.Log', ['StateMachine', Log]);
+    .service(MDP.Log, [MDP.StateMachine, Log]);
 
 function Log(StateMachine){
 

@@ -3,7 +3,11 @@
  * Provides utility functions for working with CSS colors
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-require('angular').module('mallet').service('MColor', [function(){
+const MDP = require('./mallet.dependency-tree').MDP;
+
+require('angular').module('mallet').service(MDP.Color, [Color]);
+
+function Color(){
     return {
         /**
          * Generate and RGBA color string from the provided values
@@ -34,4 +38,4 @@ require('angular').module('mallet').service('MColor', [function(){
             return 'rgba(' + ~~vec.x  + ',' + ~~vec.y + ',' + ~~vec.z + ',' + alpha + ')';
         }
     };
-}]);
+}

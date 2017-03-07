@@ -25,7 +25,7 @@ require('./thread.factory');
 require('./async-request.factory');
 
 //Input
-require('./keys.svc');
+require('./keyboard.svc.js');
 require('./mouse-utils.svc');
 
 //3D Rendering

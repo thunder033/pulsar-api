@@ -1,8 +1,12 @@
 /**
  * Created by gjrwcs on 10/27/2016.
  */
+const MDP = require('./mallet.dependency-tree').MDP;
+
 'use strict';
-var math = require('angular').module('mallet-math', []).service('MalletMath', [function(){
+const math = require('angular').module('mallet-math', []).service(MDP.Math, [MathService]);
+
+function MathService(){
 
     /**
      * A simple vector class
@@ -303,6 +307,6 @@ var math = require('angular').module('mallet-math', []).service('MalletMath', [f
     this.average = (values) => {
         return values.reduce((avg, value) => avg + value / values.length, 0);
     };
-}]);
+}
 
 module.exports = math;

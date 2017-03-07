@@ -2,9 +2,11 @@
 /**
  * Created by gjr8050 on 12/5/2016.
  */
+const MDP = require('./mallet.dependency-tree').MDP;
+
 require('angular')
     .module('mallet')
-    .service('mallet.MouseUtils', [MouseUtils]);
+    .service(MDP.MouseUtils, [MouseUtils]);
 
 function MouseUtils(){
 

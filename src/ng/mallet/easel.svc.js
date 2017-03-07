@@ -1,8 +1,12 @@
 /**
  * Created by gjrwcs on 9/15/2016.
  */
+const MDP = require('./mallet.dependency-tree').MDP;
+
 'use strict';
-require('angular').module('mallet').service('MEasel', [function () {
+require('angular').module('mallet').service(MDP.Easel, [Easel]);
+
+function Easel() {
 
     var contexts = {},
         defaultKey = 'default';
@@ -80,4 +84,4 @@ require('angular').module('mallet').service('MEasel', [function () {
             }
         }
     };
-}]);
+}

@@ -6,7 +6,11 @@
 const MatchEvent = require('event-types').MatchEvent;
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = function (ClientMatch) {
+module.exports = {matchDirective, resolve(ADP){return [
+    ADP.game.ClientMatch,
+    matchDirective]}};
+
+function matchDirective(ClientMatch) {
     return {
         restrict: 'E',
         scope: {
