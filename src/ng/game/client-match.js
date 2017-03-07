@@ -56,6 +56,10 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
             $rootScope.$broadcast(MatchEvent.matchStarted, {match: this, clientEvent: true});
         }
 
+        onEnd() {
+            $rootScope.$broadcast(MatchEvent.matchEnded, {match: this, clientEvent: true});
+        }
+
         getStartTime() {
             return this.startTime;
         }
@@ -106,11 +110,16 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
         matches.get(data.matchId).onStart(data.startTime);
     }
 
+    function triggerMatchEnd(data) {
+        matches.get(data.matchId).onEnd();
+    }
+
     NetworkEntity.registerType(ClientMatch);
     Connection.ready().then(socket => {
         socket.get().on(MatchEvent.matchCreated, (data) => addMatch(data.matchId));
         socket.get().on(MatchEvent.matchListUpdate, parseMatchIds);
-        socket.get().on(MatchEvent.matchStarted, triggerMatchStart)
+        socket.get().on(MatchEvent.matchStarted, triggerMatchStart);
+        socket.get().on(MatchEvent.matchEnded, triggerMatchEnd);
     });
 
 

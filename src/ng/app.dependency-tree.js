@@ -12,7 +12,8 @@ const ADP = {
         $q: '$q',
         $state: '$state',
         $socket: 'socketFactory',
-        $stateParams: '$stateParams'
+        $stateParams: '$stateParams',
+        $timeout: '$timeout'
     }
 };
 

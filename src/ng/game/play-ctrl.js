@@ -4,6 +4,8 @@
  */
 
 const GameEvent = require('event-types').GameEvent;
+const MatchEvent = require('event-types').MatchEvent;
+
 module.exports = {PlayCtrl, resolve(ADP){return [
     ADP.ng.$stateParams,
     ADP.network.NetworkEntity,
@@ -37,15 +39,20 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
         console.log(`start play at ${startTime}`);
     }
 
-    function endGame() {
+    $scope.endGame =  function() {
         $scope.state = gameState.ENDED;
+        Client.emit(MatchEvent.requestEnd);
+    };
 
-    }
+    Client.addEventListener(MatchEvent.matchEnded, () => {
+        $state.go('results', {matchId: $scope.match.getId()});
+    });
 
     NetworkEntity.getById(ClientRoom, $stateParams.matchId)
         .then(match => {
             if(!match) {
                 console.error(`No match was found match id: ${$stateParams.matchId}`);
+                $state.go('lobby');
                 return;
             }
 

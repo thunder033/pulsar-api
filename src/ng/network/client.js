@@ -24,6 +24,7 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
             $rootScope.$on(IOEvent.joinedRoom, forward);
             $rootScope.$on(IOEvent.leftRoom, forward);
             $rootScope.$on(MatchEvent.matchStarted, forward);
+            $rootScope.$on(MatchEvent.matchEnded, forward);
         }
 
         getUser() {

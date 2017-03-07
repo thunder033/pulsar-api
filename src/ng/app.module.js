@@ -32,8 +32,13 @@ angular.module('warp-test-client', [
     }).state('play', {
         url: '/play/:matchId',
         templateUrl: 'views/play.html',
-        controller: ADP.game.PlayCtrl
+        controller: ADP.game.PlayCtrl,
+    }).state('results', {
+        url: '/results/:matchId',
+        templateUrl: 'views/results.html',
+        controller: ADP.game.ResultsCtrl,
     });
+
 }]).run([MDP.Scheduler, function(MScheduler){
     MScheduler.startMainLoop();
 }]);

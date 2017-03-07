@@ -18,6 +18,7 @@ const HTTP_ROUTES = {
     '/dist/bundle.js': 'public/dist/bundle.js',
     '/views/lobby.html': 'public/views/lobby.html',
     '/views/play.html': 'public/views/play.html',
+    '/views/results.html': 'public/views/results.html',
     '/views/staging-match.html': 'public/views/staging-match.html',
 };
 

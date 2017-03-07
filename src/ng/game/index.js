@@ -9,7 +9,8 @@ const ADP = require('../app.dependency-tree.js').ADP;
 ADP.game = {
     Player: 'game.Player',
     ClientMatch: 'game.ClientMatch',
-    PlayCtrl: 'game.PlayCtrl'
+    PlayCtrl: 'game.PlayCtrl',
+    ResultsCtrl: 'game.ResultsCtrl',
     FluxCtrl: 'game.FluxCtrl',
 };
 
@@ -26,6 +27,7 @@ game.factory(ADP.game.Player, [
 
 game.factory(ADP.game.ClientMatch, require('./client-match').resolve(ADP));
 game.controller(ADP.game.PlayCtrl, require('./play-ctrl').resolve(ADP));
+game.controller(ADP.game.ResultsCtrl, require('./results-ctrl').resolve(ADP));
 game.controller(ADP.game.FluxCtrl, require('./flux-ctrl').resolve(ADP));
 
 module.exports = game;
