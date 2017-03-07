@@ -2,21 +2,20 @@
 /**
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-const MDP = require('../mallet/mallet.dependency-tree').MDP;
 
+const GameEvent = require('event-types').GameEvent;
 module.exports = {PlayCtrl, resolve(ADP){return [
-    MDP.Thread,
-    MDP.Camera,
-    MDP.Geometry,
-    MDP.Math,
-    MDP.Easel,
     ADP.ng.$stateParams,
     ADP.network.NetworkEntity,
     ADP.ng.$scope,
+    ADP.ng.$timeout,
     ADP.network.ClientRoom,
+    ADP.ng.$state,
+    ADP.network.Client,
     PlayCtrl]}};
 
-function PlayCtrl(MScheduler, MCamera, Geometry, MM, MEasel, $stateParams, NetworkEntity, $scope, $timeout, ClientRoom) {
+
+function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client) {
 
     const gameState = {
         LOADING: 0,
@@ -28,27 +27,11 @@ function PlayCtrl(MScheduler, MCamera, Geometry, MM, MEasel, $stateParams, Netwo
     $scope.states = gameState;
     $scope.state = gameState.LOADING;
     $scope.secondsToStart = NaN;
-
-    function initGame() {
-        const tCube = new Geometry.Transform();
-        MScheduler.schedule(() => {
-
-            tCube.rotation.x =
-            tCube.rotation.y =
-            tCube.rotation.z = (~~performance.now()) / 200;
-
-            MScheduler.draw(() => {
-                MEasel.context.canvas.style.background = '#fff';
-                MCamera.render(Geometry.meshes.Cube, [tCube], MM.vec3(255, 0, 0));
-                MCamera.present();
-            });
-        });
-    }
-
+    $scope.match = null;
 
     function startGame() {
         $scope.state = gameState.PLAYING;
-        $timeout(initGame);
+        $timeout(()=>$scope.$broadcast(GameEvent.playStarted));
 
         const startTime = (new Date()).getTime();
         console.log(`start play at ${startTime}`);
@@ -79,6 +62,9 @@ function PlayCtrl(MScheduler, MCamera, Geometry, MM, MEasel, $stateParams, Netwo
                 startGame();
                 clearInterval(countdownInterval);
             }, remainingStartTime);
-        });
+        }).catch((e) => {
+        console.error(e);
+        $state.go('lobby')
+    });
 
 }

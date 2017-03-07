@@ -6,5 +6,10 @@
         Start Game in <span ng-bind="secondsToStart"></span>
     </div>
 
-    <m-easel ng-show="state === states.PLAYING" id="game"></m-easel>
+    <div ng-controller="game.FluxCtrl" ng-show="state === states.PLAYING">
+        <m-easel id="game"></m-easel>
+    </div>
+
+    <button ng-disabled="state !== states.PLAYING" ng-click="endGame()">End Game</button>
+
 </div>
