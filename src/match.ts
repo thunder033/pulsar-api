@@ -58,6 +58,7 @@ export class Match extends Room implements INetworkEntity {
     public end(): void {
         console.log('ended match ', this.name);
 
+        this.broadcast(MatchEvent.matchEnded, {matchId: this.getId()});
         // Return users to the lobby at the end of the match
         this.users.forEach((user) => {
             this.matchMaker.getLobby().add(user);

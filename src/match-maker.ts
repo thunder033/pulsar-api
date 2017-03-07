@@ -22,6 +22,7 @@ export class MatchMember extends UserComponent {
         this.socket.on(MatchEvent.requestJoin, (data) => this.requestJoin(data));
         this.socket.on(MatchEvent.requestLeave, (data) => this.leaveMatch(data));
         this.socket.on(MatchEvent.requestStart, (data) => this.startMatch(data));
+        this.socket.on(MatchEvent.requestEnd, (data) => this.endMatch(data));
     }
 
     public startMatch(data) {
@@ -37,6 +38,14 @@ export class MatchMember extends UserComponent {
             this.match.start();
         } else {
             this.socket.emit(IOEvent.serverError, `Client is not a member of match to start`);
+        }
+    }
+
+    public endMatch(data) {
+        if (this.match instanceof Match) {
+            this.match.end();
+        } else {
+            this.socket.emit(IOEvent.serverError, `Client is not a member of match to end`);
         }
     }
 

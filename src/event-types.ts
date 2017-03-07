@@ -38,6 +38,8 @@ export const IOEvent = Enum([
  * @property requestStart
  * @property requestLeave
  * @property matchStarted
+ * @property requestEnd
+ * @property matchEnded
  */
 export const MatchEvent = Enum([
     'requestMatch',
@@ -48,4 +50,13 @@ export const MatchEvent = Enum([
     'requestStart',
     'requestLeave',
     'matchStarted',
+    'requestEnd',
+    'matchEnded',
+]);
+
+/**
+ * @property playStarted
+ */
+export const GameEvent = Enum([
+    'playStarted',
 ]);
