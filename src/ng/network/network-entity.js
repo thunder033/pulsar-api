@@ -6,6 +6,12 @@
 const IOEvent = require('event-types').IOEvent;
 const EventTarget = require('eventtarget');
 
+module.exports = {networkEntityFactory, resolve(ADP) {return [
+    ADP.network.Connection,
+    ADP.ng.$q,
+    ADP.ng.$rootScope,
+    networkEntityFactory];}};
+
 function networkEntityFactory(Connection, $q, $rootScope) {
 
     class NetworkEntity extends EventTarget {
@@ -151,5 +157,3 @@ function networkEntityFactory(Connection, $q, $rootScope) {
 
     return NetworkEntity;
 }
-
-module.exports = networkEntityFactory;

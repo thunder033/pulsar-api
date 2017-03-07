@@ -6,6 +6,12 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
+module.exports = {clientFactory, resolve(ADP){return [
+    ADP.network.Connection,
+    ADP.ng.$rootScope,
+    ADP.network.AsyncInitializer,
+    clientFactory]}};
+
 function clientFactory(Connection, $rootScope, AsyncInitializer) {
 
     class Client extends AsyncInitializer {
@@ -49,5 +55,3 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
 
     return new Client();
 }
-
-module.exports = clientFactory;

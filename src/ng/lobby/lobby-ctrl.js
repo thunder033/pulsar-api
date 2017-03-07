@@ -6,6 +6,14 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
+module.exports = {LobbyCtrl, resolve(ADP){return [
+    ADP.network.Connection,
+    ADP.ng.$scope,
+    ADP.game.ClientMatch,
+    ADP.network.Client,
+    ADP.ng.$state,
+    LobbyCtrl]}};
+
 function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
 
     const status = {
@@ -102,5 +110,3 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
         }
     }
 }
-
-module.exports = LobbyCtrl;

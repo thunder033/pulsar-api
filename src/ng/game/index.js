@@ -4,37 +4,26 @@
  */
 'use strict';
 
+const ADP = require('../app.dependency-tree.js').ADP;
+
+ADP.game = {
+    Player: 'game.Player',
+    ClientMatch: 'game.ClientMatch',
+    PlayCtrl: 'game.PlayCtrl'
+};
+
 const game = require('angular')
     .module('game', [
-        require('../network').name,
-        require('../lobby').name
+        require('../network').name
     ]);
 
-game.factory('game.Player', [
+game.factory(ADP.game.Player, [
     'network.User',
     'network.ClientRoom',
     'game.ClientMatch',
     require('./player')]);
 
-game.factory('game.ClientMatch', [
-    'network.Connection',
-    'network.ClientRoom',
-    'network.User',
-    'network.NetworkEntity',
-    '$rootScope',
-    require('./client-match')]);
-
-game.controller('game.PlayCtrl', [
-    'MScheduler',
-    'MCamera',
-    'Geometry',
-    'MalletMath',
-    'MEasel',
-    '$stateParams',
-    'network.NetworkEntity',
-    '$scope',
-    '$timeout',
-    'network.ClientRoom',
-    require('./play-ctrl')]);
+game.factory(ADP.game.ClientMatch, require('./client-match').resolve(ADP));
+game.controller(ADP.game.PlayCtrl, require('./play-ctrl').resolve(ADP));
 
 module.exports = game;

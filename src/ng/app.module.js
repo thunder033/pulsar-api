@@ -9,6 +9,8 @@ const network = require('./network');
 const game = require('./game');
 const mallet = require('./mallet');
 
+const MDP = require('./mallet/mallet.dependency-tree').MDP;
+const ADP = require('./app.dependency-tree').ADP;
 
 const angular = require('angular');
 require('angular-q-spread');
@@ -26,12 +28,12 @@ angular.module('warp-test-client', [
     $stateProvider.state('lobby', {
         url: '/lobby',
         templateUrl: 'views/lobby.html',
-        controller: 'lobby.LobbyCtrl'
+        controller: ADP.lobby.LobbyCtrl,
     }).state('play', {
         url: '/play/:matchId',
         templateUrl: 'views/play.html',
-        controller: 'game.PlayCtrl'
+        controller: ADP.game.PlayCtrl
     });
-}]).run(['MScheduler', function(MScheduler){
+}]).run([MDP.Scheduler, function(MScheduler){
     MScheduler.startMainLoop();
 }]);

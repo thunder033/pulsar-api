@@ -4,6 +4,10 @@
  */
 const EventTarget = require('eventtarget');
 
+module.exports = {asyncInitializerFactory, resolve(ADP) {return [
+    ADP.ng.$q,
+    asyncInitializerFactory];}};
+
 function asyncInitializerFactory($q) {
 
     class AsyncInitializer extends EventTarget {
@@ -39,5 +43,3 @@ function asyncInitializerFactory($q) {
 
     return AsyncInitializer;
 }
-
-module.exports = asyncInitializerFactory;

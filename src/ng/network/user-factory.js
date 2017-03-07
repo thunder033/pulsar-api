@@ -6,6 +6,11 @@
 
 const IOEvent = require('event-types').IOEvent;
 
+module.exports = {userFactory, resolve(ADP){return [
+    ADP.network.NetworkEntity,
+    ADP.network.Connection,
+    userFactory];}};
+
 function userFactory(NetworkEntity, Connection) {
 
     class User extends NetworkEntity {
@@ -30,5 +35,3 @@ function userFactory(NetworkEntity, Connection) {
 
     return User;
 }
-
-module.exports = userFactory;

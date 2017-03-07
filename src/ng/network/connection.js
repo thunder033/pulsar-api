@@ -6,6 +6,11 @@
 
 const IOEvent = require('event-types').IOEvent;
 
+module.exports = {connectionFactory, resolve(ADP){return [
+    ADP.ng.$q,
+    ADP.network.Socket,
+    ADP.network.AsyncInitializer,
+    connectionFactory];}};
 
 /**
  * Provides a connection entity
@@ -84,5 +89,3 @@ function connectionFactory($q, Socket, AsyncInitializer) {
 
     return new ClientConnection();
 }
-
-module.exports = connectionFactory;

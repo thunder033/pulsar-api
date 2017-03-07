@@ -2,6 +2,19 @@
 /**
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
+const MDP = require('../mallet/mallet.dependency-tree').MDP;
+
+module.exports = {PlayCtrl, resolve(ADP){return [
+    MDP.Thread,
+    MDP.Camera,
+    MDP.Geometry,
+    MDP.Math,
+    MDP.Easel,
+    ADP.ng.$stateParams,
+    ADP.network.NetworkEntity,
+    ADP.ng.$scope,
+    ADP.network.ClientRoom,
+    PlayCtrl]}};
 
 function PlayCtrl(MScheduler, MCamera, Geometry, MM, MEasel, $stateParams, NetworkEntity, $scope, $timeout, ClientRoom) {
 
@@ -41,6 +54,11 @@ function PlayCtrl(MScheduler, MCamera, Geometry, MM, MEasel, $stateParams, Netwo
         console.log(`start play at ${startTime}`);
     }
 
+    function endGame() {
+        $scope.state = gameState.ENDED;
+
+    }
+
     NetworkEntity.getById(ClientRoom, $stateParams.matchId)
         .then(match => {
             if(!match) {
@@ -64,5 +82,3 @@ function PlayCtrl(MScheduler, MCamera, Geometry, MM, MEasel, $stateParams, Netwo
         });
 
 }
-
-module.exports = PlayCtrl;

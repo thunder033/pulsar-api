@@ -5,6 +5,14 @@
 'use strict';
 const IOEvent = require('event-types').IOEvent;
 
+module.exports = {roomFactory, resolve(ADP){return [
+    ADP.network.Connection,
+    ADP.network.NetworkEntity,
+    ADP.network.User,
+    ADP.ng.$rootScope,
+    ADP.ng.$q,
+    roomFactory]}};
+
 function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
     const rooms = {};
 
@@ -105,5 +113,3 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
 
     return ClientRoom
 }
-
-module.exports = roomFactory;
