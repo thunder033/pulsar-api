@@ -13,7 +13,7 @@ export class ShipControl extends UserComponent {
     private ship: Ship;
 
     public onInit() {
-
+        // stuff
     }
 }
 
