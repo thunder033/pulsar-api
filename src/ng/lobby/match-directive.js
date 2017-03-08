@@ -6,8 +6,8 @@
 const MatchEvent = require('event-types').MatchEvent;
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {matchDirective, resolve(ADP){return [
-    ADP.game.ClientMatch,
+module.exports = {matchDirective, resolve(ADT){return [
+    ADT.game.ClientMatch,
     matchDirective]}};
 
 function matchDirective(ClientMatch) {

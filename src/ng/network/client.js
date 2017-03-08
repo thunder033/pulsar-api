@@ -6,10 +6,10 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-module.exports = {clientFactory, resolve(ADP){return [
-    ADP.network.Connection,
-    ADP.ng.$rootScope,
-    ADP.network.AsyncInitializer,
+module.exports = {clientFactory, resolve(ADT){return [
+    ADT.network.Connection,
+    ADT.ng.$rootScope,
+    ADT.network.AsyncInitializer,
     clientFactory]}};
 
 function clientFactory(Connection, $rootScope, AsyncInitializer) {

@@ -3,7 +3,7 @@
  */
 'use strict';
 
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 /**
  * For now just handles maintain app state, might change in the future
@@ -14,8 +14,8 @@ const MDP = require('./mallet.dependency-tree').MDP;
  * @property Suspended
  * @property Debug
  */
-require('angular').module('mallet').service(MDP.State, [
-    MDP.ng.$location,
+require('angular').module('mallet').service(MDT.State, [
+    MDT.ng.$location,
     State]);
 
 function State($location){

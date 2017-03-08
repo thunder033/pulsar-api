@@ -1,13 +1,13 @@
 
 (()=>{
     'use strict';
-    const MDP = require('./mallet.dependency-tree').MDP;
+    const MDT = require('./mallet.dependency-tree').MDT;
 
     /**
      * Client for a web worker
      * @class Thread
      */
-    angular.module('mallet').factory(MDP.Thread, [MDP.ng.$q, threadFactory]);
+    angular.module('mallet').factory(MDT.Thread, [MDT.ng.$q, threadFactory]);
 
     function threadFactory($q){
 

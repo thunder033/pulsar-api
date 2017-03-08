@@ -5,7 +5,7 @@
  */
 'use strict';
 
-const ADP = {
+const ADT = {
     ng: {
         $scope: '$scope',
         $rootScope: '$rootScope',
@@ -17,7 +17,7 @@ const ADP = {
     }
 };
 
-/** @type MDP **/
-ADP.mallet = require('./mallet/mallet.dependency-tree').MDP;
+/** @type MDT **/
+ADT.mallet = require('./mallet/mallet.dependency-tree').MDT;
 
-module.exports = {ADP};
+module.exports = {ADT};

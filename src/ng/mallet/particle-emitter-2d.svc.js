@@ -5,13 +5,13 @@
  * on the screen. It provides an interface to change how particles are emitted and when.
  */
 'use strict';
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
-require('angular').module('mallet').service(MDP.ParticleEmitter2D, [
-    MDP.Scheduler,
-    MDP.Easel,
-    MDP.const.ScaleFactor,
-    MDP.Math,
+require('angular').module('mallet').service(MDT.ParticleEmitter2D, [
+    MDT.Scheduler,
+    MDT.Easel,
+    MDT.const.ScaleFactor,
+    MDT.Math,
     ParticleEmitter2D]);
 
 function ParticleEmitter2D(Scheduler, Easel, ScaleFactor, MM){

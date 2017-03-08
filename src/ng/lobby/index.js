@@ -5,9 +5,9 @@
 const network = require('../network');
 const game = require('../game');
 
-const ADP = require('../app.dependency-tree.js').ADP;
+const ADT = require('../app.dependency-tree.js').ADT;
 
-ADP.lobby = {
+ADT.lobby = {
     LobbyCtrl: 'lobby.LobbyCtrl',
     stagingMatch: 'stagingMatch'
 };
@@ -15,7 +15,7 @@ ADP.lobby = {
 const lobby = require('angular')
     .module('client.lobby', [network.name, game.name]);
 
-lobby.controller(ADP.lobby.LobbyCtrl, require('./lobby-ctrl').resolve(ADP));
-lobby.directive(ADP.lobby.stagingMatch, require('./match-directive').resolve(ADP));
+lobby.controller(ADT.lobby.LobbyCtrl, require('./lobby-ctrl').resolve(ADT));
+lobby.directive(ADT.lobby.stagingMatch, require('./match-directive').resolve(ADT));
 
 module.exports = lobby;

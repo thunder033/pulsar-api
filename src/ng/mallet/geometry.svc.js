@@ -1,11 +1,11 @@
 /**
  * Created by gjrwcs on 11/3/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 'use strict';
-require('angular').module('mallet') .factory(MDP.Geometry, [
-    MDP.Math,
+require('angular').module('mallet') .factory(MDT.Geometry, [
+    MDT.Math,
     Geometry]);
 
 function Geometry(MM){

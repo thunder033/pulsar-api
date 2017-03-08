@@ -4,9 +4,9 @@
  */
 'use strict';
 
-module.exports = {ResultsCtrl, resolve(ADP) {return [
-    ADP.ng.$scope,
-    ADP.game.ClientMatch,
+module.exports = {ResultsCtrl, resolve(ADT) {return [
+    ADT.ng.$scope,
+    ADT.game.ClientMatch,
     ResultsCtrl]}};
 
 function ResultsCtrl($scope, ClientMatch) {

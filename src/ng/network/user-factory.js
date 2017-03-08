@@ -6,9 +6,9 @@
 
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {userFactory, resolve(ADP){return [
-    ADP.network.NetworkEntity,
-    ADP.network.Connection,
+module.exports = {userFactory, resolve(ADT){return [
+    ADT.network.NetworkEntity,
+    ADT.network.Connection,
     userFactory];}};
 
 function userFactory(NetworkEntity, Connection) {

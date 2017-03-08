@@ -6,18 +6,30 @@
 const GameEvent = require('event-types').GameEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-module.exports = {PlayCtrl, resolve(ADP){return [
-    ADP.ng.$stateParams,
-    ADP.network.NetworkEntity,
-    ADP.ng.$scope,
-    ADP.ng.$timeout,
-    ADP.network.ClientRoom,
-    ADP.ng.$state,
-    ADP.network.Client,
+module.exports = {PlayCtrl, resolve(ADT){return [
+    ADT.ng.$stateParams,
+    ADT.network.NetworkEntity,
+    ADT.ng.$scope,
+    ADT.ng.$timeout,
+    ADT.network.ClientRoom,
+    ADT.ng.$state,
+    ADT.network.Client,
+    ADT.network.Clock,
     PlayCtrl]}};
 
-
-function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client) {
+/**
+ *
+ * @param $stateParams
+ * @param NetworkEntity {NetworkEntity}
+ * @param $scope
+ * @param $timeout
+ * @param ClientRoom {ClientRoom}
+ * @param $state
+ * @param Client {Client}
+ * @param Clock {Clock}
+ * @constructor
+ */
+function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client, Clock) {
 
     const gameState = {
         LOADING: 0,
@@ -35,7 +47,7 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
         $scope.state = gameState.PLAYING;
         $timeout(()=>$scope.$broadcast(GameEvent.playStarted));
 
-        const startTime = (new Date()).getTime();
+        const startTime = Clock.getNow();
         console.log(`start play at ${startTime}`);
     }
 
@@ -58,7 +70,7 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
 
             $scope.match = match;
             $scope.state = gameState.SYNCING;
-            const remainingStartTime = match.getStartTime() - (new Date()).getTime();
+            const remainingStartTime = match.getStartTime() - Clock.getNow();
 
             $scope.secondsToStart = ~~(remainingStartTime/1000);
             const countdownInterval = setInterval(() => {

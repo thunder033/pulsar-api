@@ -6,14 +6,17 @@
 const IOEvent = require('event-types').IOEvent;
 const EventTarget = require('eventtarget');
 
-module.exports = {networkEntityFactory, resolve(ADP) {return [
-    ADP.network.Connection,
-    ADP.ng.$q,
-    ADP.ng.$rootScope,
+module.exports = {networkEntityFactory, resolve(ADT) {return [
+    ADT.network.Connection,
+    ADT.ng.$q,
+    ADT.ng.$rootScope,
     networkEntityFactory];}};
 
 function networkEntityFactory(Connection, $q, $rootScope) {
 
+    /**
+     * Manages synchronization for a entity with the server instance
+     */
     class NetworkEntity extends EventTarget {
 
         constructor(id) {

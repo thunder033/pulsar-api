@@ -4,7 +4,7 @@
  */
 'use strict';
 
-const MDP = {
+const MDT = {
     ng: {
         $location: '$location',
         $scope: '$scope',
@@ -33,6 +33,6 @@ const MDP = {
     StateMachine:'mallet.StateMachine',
     Thread: 'mallet.Thread',
 };
-const mallet = MDP;
+const mallet = MDT;
 
-module.exports = {MDP};
+module.exports = {MDT};

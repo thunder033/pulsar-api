@@ -4,8 +4,8 @@
  */
 const EventTarget = require('eventtarget');
 
-module.exports = {asyncInitializerFactory, resolve(ADP) {return [
-    ADP.ng.$q,
+module.exports = {asyncInitializerFactory, resolve(ADT) {return [
+    ADT.ng.$q,
     asyncInitializerFactory];}};
 
 function asyncInitializerFactory($q) {

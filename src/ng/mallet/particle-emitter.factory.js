@@ -1,13 +1,13 @@
 /**
  * Created by gjr8050 on 11/9/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
-require('angular').module('mallet').factory(MDP.ParticleEmitter, [
-    MDP.Math,
-    MDP.Camera,
-    MDP.Geometry,
-    MDP.Scheduler,
+require('angular').module('mallet').factory(MDT.ParticleEmitter, [
+    MDT.Math,
+    MDT.Camera,
+    MDT.Geometry,
+    MDT.Scheduler,
     ParticleEmitter]);
 
 function ParticleEmitter(MM, MCamera, Geometry, MScheduler){

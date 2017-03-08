@@ -3,16 +3,16 @@
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
 'use strict';
-const MDP = require('../mallet/mallet.dependency-tree').MDP;
+const MDT = require('../mallet/mallet.dependency-tree').MDT;
 const GameEvent = require('event-types').GameEvent;
 
-module.exports = {FluxCtrl, resolve(ADP){return [
-    ADP.ng.$scope,
-    MDP.Scheduler,
-    MDP.Camera,
-    MDP.Geometry,
-    MDP.Math,
-    MDP.Easel,
+module.exports = {FluxCtrl, resolve(ADT){return [
+    ADT.ng.$scope,
+    MDT.Scheduler,
+    MDT.Camera,
+    MDT.Geometry,
+    MDT.Math,
+    MDT.Easel,
     FluxCtrl]}};
 
 function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel) {

@@ -3,11 +3,11 @@
 * @author Greg Rozmarynowycz <greg@thunderlab.net>
 */
 
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 require('angular')
     .module('mallet')
-    .factory(MDP.StateMachine, [
+    .factory(MDT.StateMachine, [
         stateMachineFactory
     ]);
 

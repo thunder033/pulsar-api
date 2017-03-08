@@ -1,11 +1,11 @@
 /**
  * Created by Greg on 10/28/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 'use strict';
-require('angular').module('mallet').service(MDP.Keys, [
-    MDP.const.Keys,
+require('angular').module('mallet').service(MDT.Keys, [
+    MDT.const.Keys,
     Keyboard]);
 
 function Keyboard(MKeys){

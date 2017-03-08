@@ -6,10 +6,10 @@
 
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {connectionFactory, resolve(ADP){return [
-    ADP.ng.$q,
-    ADP.network.Socket,
-    ADP.network.AsyncInitializer,
+module.exports = {connectionFactory, resolve(ADT){return [
+    ADT.ng.$q,
+    ADT.network.Socket,
+    ADT.network.AsyncInitializer,
     connectionFactory];}};
 
 /**

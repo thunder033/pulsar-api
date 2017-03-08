@@ -3,7 +3,7 @@
  * Created by gjr8050 on 2/24/2017.
  */
 
-const ADP = require('../app.dependency-tree.js').ADP;
+const ADT = require('../app.dependency-tree.js').ADT;
 // this module needs an angular reference
 const angular = require('angular');
 const simpleRequest = require('./simple-request');
@@ -15,11 +15,12 @@ const network = angular.module('network', [
 ]);
 
 
-ADP.simpleRequest = {
+ADT.simpleRequest = {
     HttpConfig: 'simple-request.HttpConfig'
 };
 
-ADP.network = {
+ADT.network = {
+    Clock: 'network.Clock',
     AsyncInitializer: 'network.AsyncInitializer',
     Socket: 'network.Socket',
     NetworkEntity: 'network.NetworkEntity',
@@ -29,12 +30,13 @@ ADP.network = {
     Client: 'network.Client',
 };
 
-network.factory(ADP.network.Socket, require('./socket-factory').resolve(ADP));
-network.factory(ADP.network.AsyncInitializer, require('./aysnc-initializer').resolve(ADP));
-network.factory(ADP.network.NetworkEntity, require('./network-entity').resolve(ADP));
-network.factory(ADP.network.Connection, require('./connection').resolve(ADP));
-network.factory(ADP.network.User, require('./user-factory').resolve(ADP));
-network.factory(ADP.network.ClientRoom, require('./client-room').resolve(ADP));
-network.factory(ADP.network.Client, require('./client').resolve(ADP));
+network.factory(ADT.network.Clock, require('./clock').resolve(ADT));
+network.factory(ADT.network.Socket, require('./socket-factory').resolve(ADT));
+network.factory(ADT.network.AsyncInitializer, require('./aysnc-initializer').resolve(ADT));
+network.factory(ADT.network.NetworkEntity, require('./network-entity').resolve(ADT));
+network.factory(ADT.network.Connection, require('./connection').resolve(ADT));
+network.factory(ADT.network.User, require('./user-factory').resolve(ADT));
+network.factory(ADT.network.ClientRoom, require('./client-room').resolve(ADT));
+network.factory(ADT.network.Client, require('./client').resolve(ADT));
 
 module.exports = network;

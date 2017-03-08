@@ -1,10 +1,10 @@
 /**
  * Created by gjrwcs on 9/15/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 'use strict';
-require('angular').module('mallet').service(MDP.Easel, [Easel]);
+require('angular').module('mallet').service(MDT.Easel, [Easel]);
 
 function Easel() {
 

@@ -1,7 +1,7 @@
 'use strict';
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
-MDP.const = {
+MDT.const = {
     ScaleFactor: 'mallet.const.ScaleFactor',
     SampleCount: 'mallet.const.SampleCount',
     MaxFrameRate: 'mallet.const.MaxFrameRate',
@@ -10,10 +10,10 @@ MDP.const = {
 
 const constants = require('angular').module('mallet-constants', [])
     //Rendering
-    .constant(MDP.const.ScaleFactor, (()=>window.devicePixelRatio || 1)())
-    .constant(MDP.const.SampleCount, 1024)
-    .constant(MDP.const.MaxFrameRate, 60)
-    .constant(MDP.const.Keys, Object.freeze({
+    .constant(MDT.const.ScaleFactor, (()=>window.devicePixelRatio || 1)())
+    .constant(MDT.const.SampleCount, 1024)
+    .constant(MDT.const.MaxFrameRate, 60)
+    .constant(MDT.const.Keys, Object.freeze({
         Down: 40,
         Up: 38,
         Right: 39,

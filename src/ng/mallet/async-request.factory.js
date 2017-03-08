@@ -1,15 +1,15 @@
 /**
  * Created by Greg on 11/20/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 (()=>{
     'use strict';
 
-    require('angular').module('mallet').service(MDP.AsyncRequest, [
-        MDP.Thread,
-        MDP.ng.$q,
-        MDP.config.Path,
+    require('angular').module('mallet').service(MDT.AsyncRequest, [
+        MDT.Thread,
+        MDT.ng.$q,
+        MDT.config.Path,
         asyncRequestFactory]);
 
     /**

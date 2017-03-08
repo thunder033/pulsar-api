@@ -1,14 +1,14 @@
 /**
  * Created by gjrwcs on 9/15/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 'use strict';
 
 require('angular').module('mallet').directive('mEasel', [
-    MDP.Easel,
-    MDP.Scheduler,
-    MDP.State,
+    MDT.Easel,
+    MDT.Scheduler,
+    MDT.State,
     easelDirective]);
 
 function easelDirective(MEasel, Scheduler, MState){

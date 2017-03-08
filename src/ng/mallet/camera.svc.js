@@ -2,16 +2,16 @@
  * Created by Greg on 11/2/2016.
  */
 
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 'use strict';
-require('angular').module('mallet').service(MDP.Camera, [
-    MDP.Math,
-    MDP.Easel,
-    MDP.Geometry,
-    MDP.Color,
-    MDP.Scheduler,
-    MDP.State,
+require('angular').module('mallet').service(MDT.Camera, [
+    MDT.Math,
+    MDT.Easel,
+    MDT.Geometry,
+    MDT.Color,
+    MDT.Scheduler,
+    MDT.State,
     Camera]);
 
 function Camera(MM, MEasel, Geometry, Color, MScheduler, MState) {

@@ -3,9 +3,9 @@
  * Provides utility functions for working with CSS colors
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
-require('angular').module('mallet').service(MDP.Color, [Color]);
+require('angular').module('mallet').service(MDT.Color, [Color]);
 
 function Color(){
     return {

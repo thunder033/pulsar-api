@@ -2,12 +2,12 @@
  * Created by gjr8050 on 9/16/2016.
  */
 'use strict';
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
-require('angular').module('mallet').service(MDP.Scheduler, [
-    MDP.const.MaxFrameRate,
-    MDP.State,
-    MDP.ng.$rootScope,
+require('angular').module('mallet').service(MDT.Scheduler, [
+    MDT.const.MaxFrameRate,
+    MDT.State,
+    MDT.ng.$rootScope,
     Scheduler]);
 
 function Scheduler(MaxFrameRate, MState, $rootScope){

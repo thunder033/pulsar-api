@@ -1,10 +1,10 @@
 /**
  * Created by gjrwcs on 10/27/2016.
  */
-const MDP = require('./mallet.dependency-tree').MDP;
+const MDT = require('./mallet.dependency-tree').MDT;
 
 'use strict';
-const math = require('angular').module('mallet-math', []).service(MDP.Math, [MathService]);
+const math = require('angular').module('mallet-math', []).service(MDT.Math, [MathService]);
 
 function MathService(){
 

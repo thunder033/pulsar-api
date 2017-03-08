@@ -4,9 +4,9 @@
  */
 'use strict';
 
-const ADP = require('../app.dependency-tree.js').ADP;
+const ADT = require('../app.dependency-tree.js').ADT;
 
-ADP.game = {
+ADT.game = {
     Player: 'game.Player',
     ClientMatch: 'game.ClientMatch',
     PlayCtrl: 'game.PlayCtrl',
@@ -19,15 +19,15 @@ const game = require('angular')
         require('../network').name
     ]);
 
-game.factory(ADP.game.Player, [
+game.factory(ADT.game.Player, [
     'network.User',
     'network.ClientRoom',
     'game.ClientMatch',
     require('./player')]);
 
-game.factory(ADP.game.ClientMatch, require('./client-match').resolve(ADP));
-game.controller(ADP.game.PlayCtrl, require('./play-ctrl').resolve(ADP));
-game.controller(ADP.game.ResultsCtrl, require('./results-ctrl').resolve(ADP));
-game.controller(ADP.game.FluxCtrl, require('./flux-ctrl').resolve(ADP));
+game.factory(ADT.game.ClientMatch, require('./client-match').resolve(ADT));
+game.controller(ADT.game.PlayCtrl, require('./play-ctrl').resolve(ADT));
+game.controller(ADT.game.ResultsCtrl, require('./results-ctrl').resolve(ADT));
+game.controller(ADT.game.FluxCtrl, require('./flux-ctrl').resolve(ADT));
 
 module.exports = game;
