@@ -10,7 +10,6 @@ import {Enum} from './enum';
 export class Ship extends NetworkEntity {
 
     constructor() {
-
         super(Ship);
     }
 
@@ -42,7 +41,13 @@ class Command {
 class AccelerateCommand extends Command {
     private units: number;
 
+    constructor(params: {units: number}) {
+        super();
+        this.units = params.units;
+    }
+
     protected execute(timestamp: number) {
+        super.execute(timestamp);
         this.ship.accelerate(this.units);
     }
 }
