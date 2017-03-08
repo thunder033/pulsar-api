@@ -10,6 +10,7 @@ module.exports = {connectionFactory, resolve(ADT){return [
     ADT.ng.$q,
     ADT.network.Socket,
     ADT.network.AsyncInitializer,
+    ADT.network.Clock,
     connectionFactory];}};
 
 /**
@@ -17,9 +18,10 @@ module.exports = {connectionFactory, resolve(ADT){return [
  * @param $q
  * @param Socket
  * @param AsyncInitializer
+ * @param Clock {Clock}
  * @returns {ClientConnection}
  */
-function connectionFactory($q, Socket, AsyncInitializer) {
+function connectionFactory($q, Socket, AsyncInitializer, Clock) {
 
     const deferConnected = $q.defer();
     const deferJoined = $q.defer();
@@ -38,6 +40,16 @@ function connectionFactory($q, Socket, AsyncInitializer) {
 
             super([deferConnected.promise, joined]);
             this.user = null;
+            this.pingSamples = new Int8Array(60);
+            this.pingInterval = null;
+        }
+
+        onPing(data) {
+            this.pingSamples.push(Clock.getNow() - data.sent);
+        }
+
+        ping() {
+            this.socket.get().emit(IOEvent.ping, {sent: Clock.getNow()});
         }
 
         /**
