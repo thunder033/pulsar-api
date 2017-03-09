@@ -37,7 +37,7 @@ class QueueIterator implements Iterator<QueueNode> {
      * Traverses the iterator to the next node and returns its item
      * @returns {*}
      */
-    public next(): IteratorResult<any> {
+    public next(): any {
         if (this.current) {
             const node = this.current;
             this.current = node.next;
