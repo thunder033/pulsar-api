@@ -18,11 +18,11 @@ export class Ship extends NetworkEntity {
     }
 
     public accelerate(units: number): void {
-
+        // do things to accelerate
     }
 
     public strafe(unit: number): void {
-
+        // do things to strafe
     }
 }
 
