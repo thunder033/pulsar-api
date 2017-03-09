@@ -99,11 +99,19 @@ function networkEntityFactory(Connection, $q, $rootScope) {
             }
 
             if(NetworkEntity.localEntityExists(type, id) === true) {
+                console.log('use local copy ' + id);
                 return $q.when(NetworkEntity.entities.get(type.name).get(id));
+            } else if(NetworkEntity.pendingRequests.has(id)) {
+                console.log('use pending ' + id);
+                return NetworkEntity.pendingRequests.get(id);
             } else {
+                console.log('request ' + id);
                 const serverType = type.name.replace('Client', '');
-                return Connection.getSocket().request(IOEvent.syncNetworkEntity, {type: serverType, id: id})
+                const request = Connection.getSocket()
+                    .request(IOEvent.syncNetworkEntity, {type: serverType, id: id})
                     .then(NetworkEntity.reconstruct);
+                NetworkEntity.pendingRequests.set(id, request);
+                return request;
             }
         }
 
@@ -140,10 +148,15 @@ function networkEntityFactory(Connection, $q, $rootScope) {
                 entity = NetworkEntity.entities.get(type.name).get(data.id);
                 entity.sync(data.params);
             } else {
+                console.log('construct ' + data.id);
                 const ctorType = NetworkEntity.getConstructorType(data.type);
                 entity = new ctorType(data.params);
                 entity.sync(data.params);
                 NetworkEntity.entities.get(type.name).set(data.id, entity);
+            }
+
+            if(NetworkEntity.pendingRequests.has(entity.id)) {
+                NetworkEntity.pendingRequests.delete(entity.id);
             }
 
             return entity;
@@ -153,6 +166,7 @@ function networkEntityFactory(Connection, $q, $rootScope) {
     NetworkEntity.lookupTypes      = new Map(); // Mapping of types to use for entity look ups
     NetworkEntity.constructorTypes = new Map(); // Types to use when reconstructing entities
     NetworkEntity.entities         = new Map(); // Collection of all synced entities
+    NetworkEntity.pendingRequests  = new Map(); // Map of pending sync requests
 
     Connection.ready().then(socket => {
         socket.get().on(IOEvent.syncNetworkEntity, NetworkEntity.reconstruct);
