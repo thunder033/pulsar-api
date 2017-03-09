@@ -142,7 +142,7 @@ export class SyncServer extends Composite {
         return this.users.some((user: User, i: number) => {
             if (targetUser === user) {
                 this.users.splice(i, 1);
-                this.invokeComponentEvents('clientTerminated', targetUser);
+                this.invokeComponentEvents('onClientTerminated', targetUser);
                 return true;
             }
 
