@@ -40,7 +40,6 @@ class Vector3 {
         return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
     }
 
-
     /**
      * Creates a new vector by scaling a by scalar
      * @param a {Vector3}
