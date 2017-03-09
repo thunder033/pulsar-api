@@ -39,17 +39,33 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
             });
 
             super([deferConnected.promise, joined]);
-            this.user = null;
-            this.pingSamples = new Int8Array(60);
+            this.user         = null;
+            this.ping         = NaN;
             this.pingInterval = null;
+            this.pingIntervalTime = 1000;
+
+            this.pingBuffer = new ArrayBuffer(64);
+            this.pingView = new DataView(this.pingBuffer);
         }
 
-        onPing(data) {
-            this.pingSamples.push(Clock.getNow() - data.sent);
+        pong(timestamp) {
+            this.socket.get().emit(IOEvent.pong, timestamp);
         }
 
-        ping() {
-            this.socket.get().emit(IOEvent.ping, {sent: Clock.getNow()});
+        sendPing() {
+            this.pingView.setFloat64(0, Clock.getNow());
+            this.socket.get().emit(IOEvent.ping, this.pingBuffer);
+        }
+
+        calculatePing(buffer) {
+            if(buffer instanceof ArrayBuffer) {
+                const timestamp = new DataView(buffer).getFloat64(0);
+                this.ping = Clock.getNow() - timestamp;
+            }
+        }
+
+        getPing() {
+            return this.ping;
         }
 
         /**
@@ -79,9 +95,16 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
          */
         authenticate(credentials) {
             this.socket = new Socket(credentials);
+
+            // Set up events
             this.socket.get().on(IOEvent.connect, deferConnected.resolve);
             this.socket.get().on(IOEvent.joinServer, deferJoined.resolve);
+
+            this.socket.get().on(IOEvent.ping, (timestamp) => this.pong(timestamp));
+            this.socket.get().on(IOEvent.pong, (timestamp) => this.calculatePing(timestamp));
+
             return this.ready().then(() => {
+                this.pingInterval = setInterval(() => this.sendPing(), this.pingIntervalTime);
                 return this.user;
             });
         }

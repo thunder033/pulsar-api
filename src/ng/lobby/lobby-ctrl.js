@@ -38,7 +38,9 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
         activeDiagram: 'api',
     };
 
-
+    $scope.getPing = function() {
+        return Connection.getPing();
+    };
 
     $scope.getStatusName = function(index) {
         return Object.keys(status).reduce((name, curName) => {

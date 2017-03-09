@@ -16,6 +16,7 @@ import {Enum} from './enum';
  * @property requestUserDetails
  * @property syncNetworkEntity
  * @property ping
+ * @property pong
  */
 export const IOEvent = Enum([
     'connect',
@@ -29,6 +30,7 @@ export const IOEvent = Enum([
     'requestUserDetails',
     'syncNetworkEntity',
     'ping',
+    'pong',
 ]);
 
 /**

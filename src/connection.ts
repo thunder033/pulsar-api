@@ -30,6 +30,8 @@ export class Connection extends UserComponent {
             this.server.syncClient(this.socket);
             this.user.sync(this.socket);
         });
+
+        this.socket.on(IOEvent.ping, (timestamp) => this.socket.emit(IOEvent.pong, timestamp));
     }
 
     public isTerminated(): boolean {

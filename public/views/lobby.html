@@ -13,7 +13,7 @@
         <div ng-if="curStatus === status.READY">
             <!--Users: <span ng-repeat="user in activeRoom.getUsers() track by $index" ng-bind="user.getName() + ', '"></span><br>-->
             Active Room: <span ng-bind="activeRoom.getName()"></span> (<span ng-bind="activeRoom.getUsers().length"></span> users, synced <span ng-bind="activeRoom.syncTime"></span>)<br>
-            User: <span ng-bind="user.getName()"></span><br>
+            User: <span ng-bind="user.getName()"></span> (<span ng-bind="getPing()"></span> ms) <br>
 
             <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
             <button ng-click="createMatch(fields.matchLabel)">Create Match</button>
