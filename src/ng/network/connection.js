@@ -49,12 +49,12 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
         }
 
         pong(timestamp) {
-            this.socket.get().emit(IOEvent.pong, timestamp);
+            this.socket.get().emit(IOEvent.serverPong, timestamp);
         }
 
         sendPing() {
             this.pingView.setFloat64(0, Clock.getNow());
-            this.socket.get().emit(IOEvent.ping, this.pingBuffer);
+            this.socket.get().emit(IOEvent.clientPing, this.pingBuffer);
         }
 
         calculatePing(buffer) {
@@ -100,8 +100,8 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
             this.socket.get().on(IOEvent.connect, deferConnected.resolve);
             this.socket.get().on(IOEvent.joinServer, deferJoined.resolve);
 
-            this.socket.get().on(IOEvent.ping, (timestamp) => this.pong(timestamp));
-            this.socket.get().on(IOEvent.pong, (timestamp) => this.calculatePing(timestamp));
+            this.socket.get().on(IOEvent.serverPing, (timestamp) => this.pong(timestamp));
+            this.socket.get().on(IOEvent.clientPong, (timestamp) => this.calculatePing(timestamp));
 
             return this.ready().then(() => {
                 this.pingInterval = setInterval(() => this.sendPing(), this.pingIntervalTime);
