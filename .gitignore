@@ -33,6 +33,8 @@ node_modules
 
 src/*.js
 src/*.js.map
+src/mallet-ts/*.js
+src/mallet-ts/*.js.map
 
 test/**/*.js
 test/**/*.js.map
