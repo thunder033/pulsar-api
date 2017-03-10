@@ -33,8 +33,9 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
 
         constructor() {
             const joinEvt = new Event(IOEvent.joinServer);
-            const joined = deferJoined.promise.then((userId) => {
-                joinEvt.userId = userId;
+            const joined = deferJoined.promise.then((data) => {
+                joinEvt.userId = data.userId;
+                this.timeDifference = Clock.getNow() - parseFloat(data.timestamp);
                 this.dispatchEvent(joinEvt);
             });
 
@@ -46,6 +47,8 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
 
             this.pingBuffer = new ArrayBuffer(64);
             this.pingView = new DataView(this.pingBuffer);
+
+            this.timeDifference = 0;
         }
 
         pong(timestamp) {
@@ -62,6 +65,10 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
                 const timestamp = new DataView(buffer).getFloat64(0);
                 this.ping = Clock.getNow() - timestamp;
             }
+        }
+
+        getTimeDifference() {
+            return this.timeDifference;
         }
 
         getPing() {

@@ -64,7 +64,7 @@ export class User extends Composite implements INetworkEntity {
         socket.on(IOEvent.disconnect, this.onDisconnect.bind(this));
 
         componentTypes.forEach((type: IComponent) => this.addComponent(type));
-        socket.emit(IOEvent.joinServer, this.getComponent(Networkable).getId());
+        socket.emit(IOEvent.joinServer, {userId: this.getComponent(Networkable).getId(), serverTime: Date.now()});
     }
 
     public getSocket(): Socket {

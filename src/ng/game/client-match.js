@@ -61,7 +61,7 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
         }
 
         getStartTime() {
-            return this.startTime;
+            return this.startTime + Connection.getTimeDifference();
         }
 
         getLabel() {
