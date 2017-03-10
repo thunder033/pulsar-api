@@ -39,6 +39,9 @@ export class Ship extends NetworkEntity {
     private positionBuffer: ArrayBuffer;
     private positionView: DataView;
 
+    private updateBuffer: Buffer;
+    private positionOffset: number;
+
     constructor() {
         super(Ship);
         this.activeCmd = Direction.NONE;
@@ -46,6 +49,10 @@ export class Ship extends NetworkEntity {
 
         this.positionBuffer = new ArrayBuffer(8);
         this.positionView = new DataView(this.positionBuffer);
+
+        this.positionOffset = this.getId().length;
+        this.updateBuffer = Buffer.alloc(this.positionOffset + 8);
+        this.updateBuffer.write(this.getId(), 0);
     }
 
     public update(dt: number): void {
@@ -107,6 +114,8 @@ export class Ship extends NetworkEntity {
 
         this.activeCmd = this.curFrameCmd;
         this.curFrameCmd = Direction.NONE;
+
+        this.updateBuffer.writeDoubleBE(this.positionX, this.positionOffset);
         this.positionView.setFloat64(0, this.positionX);
     }
 
@@ -251,6 +260,17 @@ export class ShipControl extends UserComponent {
     }
 }
 
+export class Player extends UserComponent {
+
+    private score: number;
+    private match: Match;
+
+    public attachMatch(match: Match): void {
+        this.match = match;
+        this.score = 0;
+    }
+}
+
 type SimulationOperation = (dt: number) => void;
 
 export class Simulator extends ServerComponent {
@@ -258,13 +278,19 @@ export class Simulator extends ServerComponent {
     private games: Map<string, Simulation>;
 
     constructor(syncServer: SyncServer) {
-        super(syncServer, [ShipControl]);
+        super(syncServer, [ShipControl, Player]);
         this.games = new Map();
     }
 
     public createSimulation(match: Match): Simulation {
         const game = new Simulation(match);
         this.games.set(match.getId(), game);
+
+        match.getUsers().forEach((user) => {
+            user.getComponent(ShipControl).attachMatch(match);
+            user.getComponent(Player).attachMatch(match);
+        });
+
         return game;
     }
 

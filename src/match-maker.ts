@@ -194,7 +194,6 @@ export class MatchMaker extends ServerComponent {
 
     public startMatch(match: Match): void {
         const game = this.server.getComponent(Simulator).createSimulation(match);
-        match.getUsers().forEach((user) => user.getComponent(ShipControl).attachMatch(match));
         match.start();
 
         const remainingStart =  match.getStartTime() - Date.now();

@@ -3,25 +3,22 @@
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
 'use strict';
+module.exports = {playerFactory, resolve(ADT){return[
+    ADT.network.User,
+    ADT.game.
+    playerFactory]}};
 
-function playerFactory(User, ClientRoom, ClientMatch){
+function playerFactory(User, Ship, ClientMatch) {
 
-    class Player extends User {
+    class Player {
 
-        constructor(name, socket) {
+        constructor(user) {
+            this.user = user;
+            this.ship = new Ship();
+
             super(name, socket);
 
             this.match = null;
-        }
-
-        onJoin(data) {
-            super.onJoin(data);
-
-            const room = ClientRoom.getByName(data.name);
-
-            if (room instanceof ClientMatch) {
-                this.match = room;
-            }
         }
 
         getMatch(){
@@ -31,5 +28,3 @@ function playerFactory(User, ClientRoom, ClientMatch){
 
     return Player;
 }
-
-module.exports = playerFactory;
