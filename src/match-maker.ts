@@ -172,7 +172,7 @@ export class MatchMaker extends ServerComponent {
 
         if (match.isOpen()) {
             match.add(user);
-           this.startMatch(match);
+            this.startMatch(match);
             return match;
         } else {
             throw new Error(`Cannot join match ${name}. The match is closed.`);
