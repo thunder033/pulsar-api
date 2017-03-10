@@ -104,8 +104,12 @@ export class Match extends Room implements INetworkEntity {
             this.matchMaker.getLobby().remove(user);
         });
 
-        const startTime = (new Date()).getTime() + Match.MATCH_START_SYNC_TIME;
+        const startTime = Date.now() + Match.MATCH_START_SYNC_TIME;
         this.broadcast(MatchEvent.matchStarted, {matchId: this.getId(), startTime});
+    }
+
+    public getStartTime(): number {
+        return this.startTime;
     }
 
     public getSerializable(): Object {

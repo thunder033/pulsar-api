@@ -9,6 +9,7 @@ import {GameEvent} from './event-types';
 import {PriorityQueue} from './priority-queue';
 import Timer = NodeJS.Timer;
 import {Connection} from './connection';
+import {Match} from './match';
 
 class Lane {
     public static readonly WIDTH: number = 1.15;
@@ -35,10 +36,16 @@ export class Ship extends NetworkEntity {
     private activeCmd: number; // the last command given to the ship
     private curFrameCmd: number; // a command sent since the last frame
 
+    private positionBuffer: ArrayBuffer;
+    private positionView: DataView;
+
     constructor() {
         super(Ship);
         this.activeCmd = Direction.NONE;
         this.curFrameCmd = Direction.NONE;
+
+        this.positionBuffer = new ArrayBuffer(8);
+        this.positionView = new DataView(this.positionBuffer);
     }
 
     public update(dt: number): void {
@@ -100,7 +107,12 @@ export class Ship extends NetworkEntity {
 
         this.activeCmd = this.curFrameCmd;
         this.curFrameCmd = Direction.NONE;
+        this.positionView.setFloat64(0, this.positionX);
     }
+
+    public getDataBuffer(): ArrayBuffer {
+        return this.positionBuffer;
+    };
 
     public switchLane(direction: Direction): void {
         this.curFrameCmd = direction;
@@ -196,7 +208,7 @@ class StrafeCommand extends Command {
 
     public execute(timestamp: number) {
         super.execute(timestamp);
-        this.ship.strafe(this.direction);
+        this.ship.switchLane(this.direction);
     }
 }
 
@@ -204,22 +216,31 @@ export class ShipControl extends UserComponent {
     private ship: Ship;
     private commandQueue: PriorityQueue;
     private connection: Connection;
+    private match: Match;
 
     public onInit() {
+        this.connection = this.user.getComponent(Connection);
+    }
+
+    public attachMatch(match: Match): void {
+        this.match = match;
         this.socket.on(GameEvent.command, (data) => this.queueCommand(data));
-        const simulation = this.server.getComponent(Simulation);
+        const simulation = this.server.getComponent(Simulator).getSimulation(this.match);
         simulation.schedule(this.update.bind(this));
 
         this.ship = new Ship();
         simulation.schedule(this.ship.update.bind(this.ship));
-
-        this.connection = this.user.getComponent(Connection);
+        simulation.schedule(this.syncClients.bind(this), 10);
     }
 
     private update(dt: number): void {
         while (this.commandQueue.peek() !== null) {
             (this.commandQueue.dequeue() as Command).execute(dt);
         }
+    }
+
+    private syncClients(dt: number): void {
+        this.match.broadcast(GameEvent.shipSync, this.ship.getDataBuffer());
     }
 
     private queueCommand(data) {
@@ -232,35 +253,55 @@ export class ShipControl extends UserComponent {
 
 type SimulationOperation = (dt: number) => void;
 
-export class Simulation extends ServerComponent {
+export class Simulator extends ServerComponent {
+
+    private games: Map<string, Simulation>;
+
+    constructor(syncServer: SyncServer) {
+        super(syncServer, [ShipControl]);
+        this.games = new Map();
+    }
+
+    public createSimulation(match: Match): Simulation {
+        const game = new Simulation(match);
+        this.games.set(match.getId(), game);
+        return game;
+    }
+
+    public getSimulation(match: Match): Simulation {
+        return this.games.get(match.getId());
+    }
+}
+
+export class Simulation {
 
     private targetFPS: number;
     private operations: PriorityQueue;
 
     private stepInterval: Timer;
     private lastStepTime: number;
+    private match: Match;
 
-    constructor(syncServer: SyncServer) {
-        super(syncServer, [ShipControl]);
-
+    constructor(match: Match) {
         this.operations = new PriorityQueue();
+        this.match = match;
     }
 
-    public schedule(operation: SimulationOperation) {
-        this.operations.enqueue(0, operation);
+    public schedule(operation: SimulationOperation, priority?: number) {
+        this.operations.enqueue(priority || 0, operation);
+    }
+
+    public start() {
+        this.lastStepTime = Date.now();
+        this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
     }
 
     protected step() {
-        const dt = performance.now() - this.lastStepTime;
+        const dt = Date.now() - this.lastStepTime;
         const it = this.operations.getIterator();
 
         while (!it.isEnd()) {
             (it.next() as SimulationOperation).call(null, ~~dt);
         }
-    }
-
-    protected start() {
-        this.lastStepTime = performance.now();
-        this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
     }
 }

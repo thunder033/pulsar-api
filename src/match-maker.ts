@@ -8,6 +8,7 @@ import {User, UserComponent} from './user';
 import {Room} from './room';
 import {IOEvent, MatchEvent} from './event-types';
 import {Building} from './building';
+import {ShipControl, Simulator} from './simulation';
 
 /**
  * Providers users the ability to join and leave matches
@@ -35,7 +36,7 @@ export class MatchMember extends UserComponent {
                 return;
             }
 
-            this.match.start();
+            this.server.getComponent(MatchMaker).startMatch(this.match);
         } else {
             this.socket.emit(IOEvent.serverError, `Client is not a member of match to start`);
         }
@@ -171,7 +172,7 @@ export class MatchMaker extends ServerComponent {
 
         if (match.isOpen()) {
             match.add(user);
-            match.start();
+           this.startMatch(match);
             return match;
         } else {
             throw new Error(`Cannot join match ${name}. The match is closed.`);
@@ -189,6 +190,15 @@ export class MatchMaker extends ServerComponent {
             this.matches.splice(matchIndex, 1);
             this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getId()));
         }
+    }
+
+    public startMatch(match: Match): void {
+        const game = this.server.getComponent(Simulator).createSimulation(match);
+        match.getUsers().forEach((user) => user.getComponent(ShipControl).attachMatch(match));
+        match.start();
+
+        const remainingStart =  match.getStartTime() - Date.now();
+        setTimeout(() => game.start(), remainingStart);
     }
 
     public getMatches(): Match[] {

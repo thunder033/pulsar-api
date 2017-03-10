@@ -23,6 +23,14 @@ export class Room extends NetworkEntity {
     }
 
     /**
+     * Return a collection of users in the room
+     * @returns {User[]}
+     */
+    public getUsers(): User[] {
+        return this.users;
+    }
+
+    /**
      * Indicates if a given user is in the room
      * @param user {User}: user to locate
      * @returns {boolean}
@@ -96,7 +104,7 @@ export class Room extends NetworkEntity {
         });
     }
 
-    protected broadcast(evt: string, data?: any): void {
+    public broadcast(evt: string, data?: any): void {
         if (this.users.length > 0) {
             this.users[0].getSocket().broadcast.in(this.getName()).emit(evt, data);
             this.users[0].getSocket().emit(evt, data);
