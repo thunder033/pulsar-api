@@ -25,7 +25,7 @@ function shipFactory(NetworkEntity, Connection, Geometry) {
     }
 
     function onShipSync(data) {
-        if(data.shipId)
+        
     }
 
     Connection.ready().then(socket => {
