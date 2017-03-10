@@ -63,7 +63,7 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
     NetworkEntity.getById(ClientRoom, $stateParams.matchId)
         .then(match => {
             if(!match) {
-                console.error(`No match was found match id: ${$stateParams.matchId}`);
+                console.error(`No match was found with match id: ${$stateParams.matchId}`);
                 $state.go('lobby');
                 return;
             }

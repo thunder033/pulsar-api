@@ -16,6 +16,12 @@ const MDT = {
     config: {
         Path: 'config.Path'
     },
+    const: {
+        ScaleFactor: 'mallet.const.ScaleFactor',
+        SampleCount: 'mallet.const.SampleCount',
+        MaxFrameRate: 'mallet.const.MaxFrameRate',
+        Keys: 'mallet.const.Keys',
+    },
     AsyncRequest: 'mallet.AsyncRequest',
     Camera: 'mallet.Camera',
     Color: 'mallet.Color',

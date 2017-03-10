@@ -13,12 +13,21 @@ module.exports = {FluxCtrl, resolve(ADT){return [
     MDT.Geometry,
     MDT.Math,
     MDT.Easel,
+    MDT.Keyboard,
+    MDT.const.Keys,
     FluxCtrl]}};
 
-function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel) {
+function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, Keys) {
+
     function init() {
         const tCube = new Geometry.Transform();
-        MScheduler.schedule(() => {
+        MScheduler.schedule((dt) => {
+
+            if(Keyboard.isKeyDown(Keys.Left)) {
+                tCube.position.x -= dt / 300;
+            } else if (Keyboard.isKeyDown(Keys.Right)) {
+                tCube.position.x += dt / 300;
+            }
 
             tCube.rotation.x =
                 tCube.rotation.y =
