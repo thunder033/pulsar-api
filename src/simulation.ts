@@ -40,7 +40,6 @@ export class Ship extends NetworkEntity {
     private positionView: DataView;
 
     private updateBuffer: Buffer;
-    private positionOffset: number;
 
     constructor() {
         super(Ship);
@@ -50,8 +49,7 @@ export class Ship extends NetworkEntity {
         this.positionBuffer = new ArrayBuffer(8);
         this.positionView = new DataView(this.positionBuffer);
 
-        this.positionOffset = this.getId().length;
-        this.updateBuffer = Buffer.alloc(this.positionOffset + 8);
+        this.updateBuffer = Buffer.alloc(NetworkEntity.ID_LENGTH + 8);
         this.updateBuffer.write(this.getId(), 0);
     }
 
@@ -115,12 +113,12 @@ export class Ship extends NetworkEntity {
         this.activeCmd = this.curFrameCmd;
         this.curFrameCmd = Direction.NONE;
 
-        this.updateBuffer.writeDoubleBE(this.positionX, this.positionOffset);
+        this.updateBuffer.writeDoubleBE(this.positionX, NetworkEntity.ID_LENGTH);
         this.positionView.setFloat64(0, this.positionX);
     }
 
-    public getDataBuffer(): ArrayBuffer {
-        return this.positionBuffer;
+    public getDataBuffer(): Buffer {
+        return this.updateBuffer;
     };
 
     public switchLane(direction: Direction): void {

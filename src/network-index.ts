@@ -142,6 +142,9 @@ export class SyncResponse {
 
 export abstract class NetworkEntity implements INetworkEntity {
 
+    // The number of characters in a Network Entity Id
+    public static readonly ID_LENGTH: number = 36;
+
     private static networkIndex: NetworkIndex;
 
     protected id: string;
