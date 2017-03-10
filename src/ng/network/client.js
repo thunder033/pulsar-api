@@ -1,4 +1,3 @@
-'use strict';
 /**
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
@@ -14,7 +13,6 @@ resolve: ADT => [
     clientFactory]};
 
 function clientFactory(Connection, $rootScope, AsyncInitializer) {
-
     class Client extends AsyncInitializer {
 
         constructor() {
@@ -39,7 +37,7 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
         forwardClientEvent(evt, args) {
             console.log('client recieved evt ', evt.name);
             console.log(args);
-            if((args.user && args.user === this.user) || args.clientEvent === true) {
+            if ((args.user && args.user === this.user) || args.clientEvent === true) {
                 const e = new Event(evt.name);
                 Object.assign(e, args);
                 this.dispatchEvent(e);

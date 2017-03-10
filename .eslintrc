@@ -15,6 +15,7 @@
     "no-trailing-spaces": "off",
     "no-param-reassign": "off",
     "global-require": "off",
-    "key-spacing": "off"
+    "key-spacing": "off",
+    "max-len": ["error", 120]
   }
 }
