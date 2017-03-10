@@ -6,7 +6,8 @@
 const GameEvent = require('event-types').GameEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-module.exports = {PlayCtrl, resolve(ADT){return [
+module.exports = {PlayCtrl,
+resolve: ADT => [
     ADT.ng.$stateParams,
     ADT.network.NetworkEntity,
     ADT.ng.$scope,
@@ -15,7 +16,7 @@ module.exports = {PlayCtrl, resolve(ADT){return [
     ADT.ng.$state,
     ADT.network.Client,
     ADT.network.Clock,
-    PlayCtrl]}};
+    PlayCtrl]};
 
 /**
  *
@@ -30,12 +31,11 @@ module.exports = {PlayCtrl, resolve(ADT){return [
  * @constructor
  */
 function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client, Clock) {
-
     const gameState = {
         LOADING: 0,
         SYNCING: 1,
         PLAYING: 2,
-        ENDED: 4
+        ENDED: 4,
     };
 
     $scope.states = gameState;
@@ -45,13 +45,13 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
 
     function startGame() {
         $scope.state = gameState.PLAYING;
-        $timeout(()=>$scope.$broadcast(GameEvent.playStarted));
+        $timeout(() => $scope.$broadcast(GameEvent.playStarted));
 
         const startTime = Clock.getNow();
         console.log(`start play at ${startTime}`);
     }
 
-    $scope.endGame =  function() {
+    $scope.endGame =  function endGame() {
         $scope.state = gameState.ENDED;
         Client.emit(MatchEvent.requestEnd);
     };
@@ -61,8 +61,8 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
     });
 
     NetworkEntity.getById(ClientRoom, $stateParams.matchId)
-        .then(match => {
-            if(!match) {
+        .then((match) => {
+            if (!match) {
                 console.error(`No match was found with match id: ${$stateParams.matchId}`);
                 $state.go('lobby');
                 return;
@@ -72,7 +72,7 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
             $scope.state = gameState.SYNCING;
             const remainingStartTime = match.getStartTime() - Clock.getNow();
 
-            $scope.secondsToStart = ~~(remainingStartTime/1000);
+            $scope.secondsToStart = ~~(remainingStartTime / 1000);
             const countdownInterval = setInterval(() => {
                 $scope.secondsToStart = Math.max($scope.secondsToStart - 1, 0);
             }, 1000);
@@ -83,7 +83,6 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
             }, remainingStartTime);
         }).catch((e) => {
         console.error(e);
-        $state.go('lobby')
+        $state.go('lobby');
     });
-
 }

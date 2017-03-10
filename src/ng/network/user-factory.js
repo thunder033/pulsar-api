@@ -6,10 +6,11 @@
 
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {userFactory, resolve(ADT){return [
+module.exports = {userFactory,
+resolve: ADT => [
     ADT.network.NetworkEntity,
     ADT.network.Connection,
-    userFactory];}};
+    userFactory]};
 
 function userFactory(NetworkEntity, Connection) {
 

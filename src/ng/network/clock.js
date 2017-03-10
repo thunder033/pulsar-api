@@ -2,15 +2,13 @@
  * TODO: [Description]
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-'use strict';
 
-module.exports = {clockFactory, resolve(ADT) {return [
-    clockFactory]}};
+module.exports = {clockFactory,
+resolve: () => [clockFactory]};
 
 function clockFactory() {
-
     class Clock {
-        constructor(){
+        constructor() {
             this.startTime = (new Date()).getTime() - (~~performance.now());
         }
 

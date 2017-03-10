@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Created by gjr8050 on 2/24/2017.
  */
@@ -9,7 +8,7 @@ const ADT = require('../app.dependency-tree.js').ADT;
 
 ADT.lobby = {
     LobbyCtrl: 'lobby.LobbyCtrl',
-    stagingMatch: 'stagingMatch'
+    stagingMatch: 'stagingMatch',
 };
 
 const lobby = require('angular')

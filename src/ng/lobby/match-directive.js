@@ -2,39 +2,38 @@
  * Display details about a match while waiting for enough users
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-'use strict';
 const MatchEvent = require('event-types').MatchEvent;
-const IOEvent = require('event-types').IOEvent;
 
-module.exports = {matchDirective, resolve(ADT){return [
+module.exports = {matchDirective,
+resolve: ADT => [
     ADT.game.ClientMatch,
-    matchDirective]}};
+    matchDirective]};
 
 function matchDirective(ClientMatch) {
     return {
         restrict: 'E',
         scope: {
-            match: '='
+            match: '=',
         },
         templateUrl: 'views/staging-match.html',
         controller: ['$scope', 'network.Client', function StagingMatchCtrl($scope, Client) {
 
-            $scope.isHost = function(user) {
+            $scope.isHost = function isHost(user) {
                 return $scope.match.getHost() === user;
             };
 
-            $scope.startMatch = function() {
+            $scope.startMatch = function startMatch() {
                 Client.emit(MatchEvent.requestStart, {matchId: $scope.match.getId()});
             };
 
-            $scope.leaveMatch = function() {
+            $scope.leaveMatch = function leaveMatch() {
                 Client.emit(MatchEvent.requestLeave);
             };
 
             const arrMaxSize = new Array(ClientMatch.MAX_MATCH_SIZE);
-            $scope.getMaxSize = function () {
+            $scope.getMaxSize = function getMaxSize() {
                 return arrMaxSize;
-            }
-        }]
+            };
+        }],
     };
-};
+}

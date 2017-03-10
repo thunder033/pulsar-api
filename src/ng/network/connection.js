@@ -2,16 +2,16 @@
  * TODO: [Description]
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-'use strict';
 
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {connectionFactory, resolve(ADT){return [
+module.exports = {connectionFactory,
+resolve: ADT => [
     ADT.ng.$q,
     ADT.network.Socket,
     ADT.network.AsyncInitializer,
     ADT.network.Clock,
-    connectionFactory];}};
+    connectionFactory]};
 
 /**
  * Provides a connection entity

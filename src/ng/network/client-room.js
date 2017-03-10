@@ -2,16 +2,16 @@
  * TODO: [Description]
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-'use strict';
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {roomFactory, resolve(ADT){return [
+module.exports = {roomFactory,
+resolve: ADT => [
     ADT.network.Connection,
     ADT.network.NetworkEntity,
     ADT.network.User,
     ADT.ng.$rootScope,
     ADT.ng.$q,
-    roomFactory]}};
+    roomFactory]};
 
 function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
     const rooms = {};

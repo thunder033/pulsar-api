@@ -5,13 +5,14 @@
 
 const MatchEvent = require('event-types').MatchEvent;
 
-module.exports = {matchFactory, resolve(ADT){return [
+module.exports = {matchFactory,
+resolve: ADT => [
     ADT.network.Connection,
     ADT.network.ClientRoom,
     ADT.network.User,
     ADT.network.NetworkEntity,
     ADT.ng.$rootScope,
-    matchFactory]}};
+    matchFactory]};
 
 function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
 

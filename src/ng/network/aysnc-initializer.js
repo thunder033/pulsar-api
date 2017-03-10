@@ -4,12 +4,12 @@
  */
 const EventTarget = require('eventtarget');
 
-module.exports = {asyncInitializerFactory, resolve(ADT) {return [
+module.exports = {asyncInitializerFactory,
+resolve: ADT => [
     ADT.ng.$q,
-    asyncInitializerFactory];}};
+    asyncInitializerFactory]};
 
 function asyncInitializerFactory($q) {
-
     class AsyncInitializer extends EventTarget {
         constructor(baseOps = []) {
             super();

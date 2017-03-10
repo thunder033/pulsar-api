@@ -6,11 +6,12 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-module.exports = {clientFactory, resolve(ADT){return [
+module.exports = {clientFactory,
+resolve: ADT => [
     ADT.network.Connection,
     ADT.ng.$rootScope,
     ADT.network.AsyncInitializer,
-    clientFactory]}};
+    clientFactory]};
 
 function clientFactory(Connection, $rootScope, AsyncInitializer) {
 
@@ -38,7 +39,7 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
         forwardClientEvent(evt, args) {
             console.log('client recieved evt ', evt.name);
             console.log(args);
-            if(args.user && args.user === this.user || args.clientEvent === true) {
+            if((args.user && args.user === this.user) || args.clientEvent === true) {
                 const e = new Event(evt.name);
                 Object.assign(e, args);
                 this.dispatchEvent(e);
@@ -46,7 +47,7 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
         }
 
         authenticate(credentials) {
-            return Connection.authenticate(credentials).then(user => {
+            return Connection.authenticate(credentials).then((user) => {
                 this.user = user;
                 this.emit(IOEvent.joinServer);
                 return user;

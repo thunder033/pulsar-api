@@ -6,13 +6,14 @@
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
-module.exports = {LobbyCtrl, resolve(ADT){return [
+module.exports = {LobbyCtrl,
+resolve: ADT => [
     ADT.network.Connection,
     ADT.ng.$scope,
     ADT.game.ClientMatch,
     ADT.network.Client,
     ADT.ng.$state,
-    LobbyCtrl]}};
+    LobbyCtrl]};
 
 function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
 

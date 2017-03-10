@@ -5,12 +5,12 @@
 
 const IOEvent = require('event-types').IOEvent;
 
-module.exports = {socketFactory, resolve(ADT){
-    return [
+module.exports = {socketFactory,
+resolve: ADT => [
     ADT.ng.$socket,
     ADT.ng.$q,
     ADT.simpleRequest.HttpConfig,
-    socketFactory];}};
+    socketFactory]};
 
 function socketFactory($socket, $q, HttpConfig) {
 
