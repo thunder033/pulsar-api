@@ -1,15 +1,16 @@
 /**
  * Created by gjr8050 on 3/9/2017.
  */
-'use strict';
+
 const GameEvent = require('event-types').GameEvent;
 const MDT = require('../mallet/mallet.dependency-tree').MDT;
 
-module.exports = {shipFactory, resolve(ADT){return [
+module.exports = {shipFactory,
+resolve: ADT => [
     ADT.network.NetworkEntity,
     ADT.network.Connection,
     MDT.Geometry,
-    shipFactory]}};
+    shipFactory]};
 
 function shipFactory(NetworkEntity, Connection, Geometry) {
 
@@ -25,11 +26,16 @@ function shipFactory(NetworkEntity, Connection, Geometry) {
     }
 
     function onShipSync(data) {
-        
+        if (data instanceof Buffer) {
+            const id = data.toString('utf8', 0, NetworkEntity.ID_LENGTH);
+            NetworkEntity.getById(ClientShip, id).then((ship) => {
+                ship.transform.position.x = data.readFloatLE(NetworkEntity.ID_LENGTH);
+            });
+        }
     }
 
-    Connection.ready().then(socket => {
-        socket.on(GameEvent.shipSync);
+    Connection.ready().then((socket) => {
+        socket.on(GameEvent.shipSync, onShipSync);
     });
 
     return ClientShip;

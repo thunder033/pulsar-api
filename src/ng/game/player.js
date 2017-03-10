@@ -2,27 +2,29 @@
  * TODO: [Description]
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-'use strict';
-module.exports = {playerFactory, resolve(ADT){return[
+module.exports = {playerFactory,
+resolve: ADT => [
     ADT.network.User,
-    ADT.game.
-    playerFactory]}};
+    ADT.game.ClientShip,
+    ADT.game.ClientMatch,
+    playerFactory]};
 
-function playerFactory(User, Ship, ClientMatch) {
-
+function playerFactory(User, ClientShip, ClientMatch) {
     class Player {
 
-        constructor(user) {
+        constructor(user, match) {
             this.user = user;
-            this.ship = new Ship();
-
-            super(name, socket);
+            this.ship = new ClientShip();
 
             this.match = null;
         }
 
-        getMatch(){
+        getMatch() {
             return this.match;
+        }
+
+        getShip() {
+            return this.ship;
         }
     }
 

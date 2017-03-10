@@ -16,6 +16,7 @@ resolve: ADT => [
     ADT.ng.$state,
     ADT.network.Client,
     ADT.network.Clock,
+    ADT.game.WarpGame,
     PlayCtrl]};
 
 /**
@@ -28,9 +29,10 @@ resolve: ADT => [
  * @param $state
  * @param Client {Client}
  * @param Clock {Clock}
+ * @param WarpGame {WarpGame}
  * @constructor
  */
-function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client, Clock) {
+function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client, Clock, WarpGame) {
     const gameState = {
         LOADING: 0,
         SYNCING: 1,
@@ -70,6 +72,7 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
 
             $scope.match = match;
             $scope.state = gameState.SYNCING;
+            $scope.warpGame = new WarpGame(match);
             const remainingStartTime = match.getStartTime() - Clock.getNow();
 
             $scope.secondsToStart = ~~(remainingStartTime / 1000);
