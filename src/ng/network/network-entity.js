@@ -56,8 +56,8 @@ function networkEntityFactory(Connection, $q, $rootScope) {
         static getConstructorType(typeName) {
             let resolvedType = typeName;
             if(NetworkEntity.constructorTypes.has(typeName) === false) {
-                if (NetworkEntity.constructorTypes.has(`Client$${typeName}`)) {
-                    resolvedType = `Client$${typeName}`;
+                if (NetworkEntity.constructorTypes.has(`Client${typeName}`)) {
+                    resolvedType = `Client${typeName}`;
                 } else {
                     throw new ReferenceError(`Type ${typeName} is not a valid network entity constructor type`);
                 }
@@ -74,8 +74,8 @@ function networkEntityFactory(Connection, $q, $rootScope) {
         static getLookupType(typeName) {
             let resolvedType = typeName;
             if (NetworkEntity.lookupTypes.has(typeName) === false) {
-                if (NetworkEntity.lookupTypes.has(`Client$${typeName}`)) {
-                    resolvedType = `Client$${typeName}`;
+                if (NetworkEntity.lookupTypes.has(`Client${typeName}`)) {
+                    resolvedType = `Client${typeName}`;
                 } else {
                     throw new ReferenceError(`Type ${typeName} is not a valid network entity lookup type`);
                 }
@@ -95,9 +95,11 @@ function networkEntityFactory(Connection, $q, $rootScope) {
                 throw new Error('Network entities must be identified by both type and name');
             }
 
-            if (NetworkEntity.localEntityExists(type, id) === true) {
-                console.log('use local copy ', id);
-                return $q.when(NetworkEntity.entities.get(type.name).get(id));
+            const lookupType = NetworkEntity.getLookupType(type.name);
+
+            if (NetworkEntity.localEntityExists(lookupType, id) === true) {
+                // console.log('use local copy ', id);
+                return $q.when(NetworkEntity.entities.get(lookupType.name).get(id));
             } else if (NetworkEntity.pendingRequests.has(id)) {
                 console.log('use pending ', id);
                 return NetworkEntity.pendingRequests.get(id);
@@ -112,8 +114,20 @@ function networkEntityFactory(Connection, $q, $rootScope) {
             return request;
         }
 
+        /**
+         * Indicates if the entity identified by the registered type and name exists locally
+         * @param type {any}
+         * @param id {string}
+         */
         static localEntityExists(type, id) {
-            return NetworkEntity.entities.get(type.name).has(id);
+            try {
+                return NetworkEntity.entities.get(type.name).has(id);
+            } catch (e) {
+                if(NetworkEntity.getLookupType(type.name)) {
+                    throw new Error(`Could not complete look up: ${e.message || e}`);
+                }
+            }
+
         }
 
         /**
@@ -137,20 +151,18 @@ function networkEntityFactory(Connection, $q, $rootScope) {
         /**
          * Parses a response to rebuild a network entity
          * @param data
-         * @returns {NetworkEntity}
+         * @returns {Promise<NetworkEntity>}
          */
         static reconstruct(data) {
             const type = NetworkEntity.getLookupType(data.type);
             let entity = null;
             if (NetworkEntity.localEntityExists(type, data.id) === true) {
                 entity = NetworkEntity.entities.get(type.name).get(data.id);
-                entity.sync(data.params);
             } else {
                 console.log('construct ', data.id);
                 const ctorType = NetworkEntity.getConstructorType(data.type);
                 /* eslint new-cap: off */
                 entity = new ctorType(data.params);
-                entity.sync(data.params);
                 NetworkEntity.entities.get(type.name).set(data.id, entity);
             }
 
@@ -158,7 +170,7 @@ function networkEntityFactory(Connection, $q, $rootScope) {
                 NetworkEntity.pendingRequests.delete(entity.id);
             }
 
-            return entity;
+            return $q.when(entity.sync(data.params)).then(() => entity);
         }
     }
 
