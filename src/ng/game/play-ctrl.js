@@ -44,6 +44,7 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
     $scope.state = gameState.LOADING;
     $scope.secondsToStart = NaN;
     $scope.match = null;
+    $scope.clientUser = null;
 
     function startGame() {
         $scope.state = gameState.PLAYING;
@@ -62,18 +63,20 @@ function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $st
         $state.go('results', {matchId: $scope.match.getId()});
     });
 
-    NetworkEntity.getById(ClientRoom, $stateParams.matchId)
-        .then((match) => {
-            if (!match) {
-                console.error(`No match was found with match id: ${$stateParams.matchId}`);
+    NetworkEntity.getById(WarpGame, $stateParams.gameId)
+        .then((game) => {
+            if (!game) {
+                console.error(`No game was found with game id: ${$stateParams.gameId}`);
                 $state.go('lobby');
                 return;
             }
 
-            $scope.match = match;
+            $scope.warpGame = game;
+            $scope.clientUser = Client.getUser();
+            $scope.match = game.getMatch();
             $scope.state = gameState.SYNCING;
-            $scope.warpGame = new WarpGame(match);
-            const remainingStartTime = match.getStartTime() - Clock.getNow();
+            const remainingStartTime = $scope.match.getStartTime() - Clock.getNow();
+            console.log(`start match in ${remainingStartTime}`);
 
             $scope.secondsToStart = ~~(remainingStartTime / 1000);
             const countdownInterval = setInterval(() => {

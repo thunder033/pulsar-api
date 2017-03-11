@@ -20,13 +20,26 @@ resolve: ADT => [
 function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, Keys) {
     function init() {
         const tCube = new Geometry.Transform();
-        const ships = $scope.warpGame.getPlayers().map(player => player.getShip());
+
+        const players = $scope.warpGame.getPlayers();
+        let clientShip = null;
+        console.log($scope.clientUser);
+        const ships = players.map((player) => {
+            console.log(`check user`, player.getUser());
+            if(player.getUser() === $scope.clientUser) {
+                clientShip = player.getShip();
+            }
+            return player.getShip();
+        });
+
+        console.log(ships);
+        console.log(clientShip);
 
         MScheduler.schedule((dt) => {
             if (Keyboard.isKeyDown(Keys.Left)) {
-                tCube.position.x -= dt / 300;
+                clientShip.strafe(-1);
             } else if (Keyboard.isKeyDown(Keys.Right)) {
-                tCube.position.x += dt / 300;
+                clientShip.strafe(1);
             }
 
             const rot = (~~performance.now()) / 200;
@@ -35,11 +48,9 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
             tCube.rotation.z = rot;
 
             MScheduler.draw(() => {
-                MEasel.context.canvas.style.background = '#fff';
-
                 MCamera.render(
                     Geometry.meshes.Ship,
-                    ships.map(s => s.getTransfrom()),
+                    ships.map(s => s.getTransform()),
                     MM.vec3(255));
 
                 MCamera.render(Geometry.meshes.Cube, [tCube], MM.vec3(255, 0, 0));

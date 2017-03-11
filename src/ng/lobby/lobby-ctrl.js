@@ -82,7 +82,7 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
 
     Client.addEventListener(MatchEvent.matchStarted, (e) => {
         console.log('start game');
-        $state.go('play', {matchId: e.match.getId()});
+        $state.go('play', {gameId: e.gameId});
     });
 
     Connection.ready().then(() => {

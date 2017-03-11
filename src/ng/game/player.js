@@ -12,11 +12,11 @@ resolve: ADT => [
 function playerFactory(User, ClientShip, ClientMatch) {
     class Player {
 
-        constructor(user, match) {
+        constructor(user, match, ship) {
+            console.log(`create player for ${user.getId()}`);
             this.user = user;
-            this.ship = new ClientShip();
-
-            this.match = null;
+            this.ship = ship;
+            this.match = match;
         }
 
         getMatch() {
@@ -25,6 +25,10 @@ function playerFactory(User, ClientShip, ClientMatch) {
 
         getShip() {
             return this.ship;
+        }
+
+        getUser() {
+            return this.user;
         }
     }
 

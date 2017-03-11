@@ -30,7 +30,7 @@ angular.module('warp-test-client', [
         templateUrl: 'views/lobby.html',
         controller: ADT.lobby.LobbyCtrl,
     }).state('play', {
-        url: '/play/:matchId',
+        url: '/play/:gameId',
         templateUrl: 'views/play.html',
         controller: ADT.game.PlayCtrl,
     }).state('results', {

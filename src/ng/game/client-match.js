@@ -50,11 +50,11 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
             return this.users.size >= ClientMatch.MIN_START_USERS && this.started === false;
         }
 
-        onStart(startTime) {
+        onStart(startTime, gameId) {
             this.started = true;
             this.startTime = startTime;
             updateMatchList();
-            $rootScope.$broadcast(MatchEvent.matchStarted, {match: this, clientEvent: true});
+            $rootScope.$broadcast(MatchEvent.matchStarted, {match: this, gameId, clientEvent: true});
         }
 
         onEnd() {
@@ -108,7 +108,7 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
     }
 
     function triggerMatchStart(data) {
-        matches.get(data.matchId).onStart(data.startTime);
+        matches.get(data.matchId).onStart(data.startTime, data.gameId);
     }
 
     function triggerMatchEnd(data) {
