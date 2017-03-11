@@ -194,7 +194,7 @@ export class MatchMaker extends ServerComponent {
 
     public startMatch(match: Match): void {
         const game = this.server.getComponent(Simulator).createSimulation(match);
-        match.start();
+        match.start(game.getId());
 
         const remainingStart =  match.getStartTime() - Date.now();
         setTimeout(() => game.start(), remainingStart);

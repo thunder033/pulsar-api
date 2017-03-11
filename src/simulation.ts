@@ -297,7 +297,7 @@ export class Simulator extends ServerComponent {
     }
 }
 
-export class Simulation {
+export class Simulation extends NetworkEntity {
 
     private targetFPS: number;
     private operations: PriorityQueue;
@@ -307,8 +307,16 @@ export class Simulation {
     private match: Match;
 
     constructor(match: Match) {
+        super(Simulation);
         this.operations = new PriorityQueue();
         this.match = match;
+    }
+
+    public getSerializable() {
+        const makeIdPair = (user: User) => Buffer.from(user.getId() + user.getComponent(ShipControl).getShip().getId());
+        const shipIds = Buffer.concat(this.match.getUsers().map(makeIdPair));
+        console.log(shipIds.toString('utf8'));
+        return Object.assign(super.getSerializable(), {matchId: this.match.getId(), shipIds});
     }
 
     public schedule(operation: SimulationOperation, priority?: number) {

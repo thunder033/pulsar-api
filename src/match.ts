@@ -92,7 +92,7 @@ export class Match extends Room implements INetworkEntity {
         return this.host;
     }
 
-    public start(): void {
+    public start(gameId: string): void {
         if (this.started === true) {
             throw new Error(`Attempted to start match ${this.name} that has already been started!`);
         }
@@ -105,7 +105,7 @@ export class Match extends Room implements INetworkEntity {
         });
 
         const startTime = Date.now() + Match.MATCH_START_SYNC_TIME;
-        this.broadcast(MatchEvent.matchStarted, {matchId: this.getId(), startTime});
+        this.broadcast(MatchEvent.matchStarted, {matchId: this.getId(), gameId, startTime});
     }
 
     public getStartTime(): number {
