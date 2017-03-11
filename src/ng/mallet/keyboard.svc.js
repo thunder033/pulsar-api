@@ -8,6 +8,13 @@ require('angular').module('mallet').service(MDT.Keyboard, [
     MDT.const.Keys,
     Keyboard]);
 
+/**
+ * @method onKeyDown
+ * @method isKeyDown
+ * @method onKeyUp
+ * @param MKeys
+ * @constructor
+ */
 function Keyboard(MKeys){
     var keyState = [],
         keyDownEvents = [],

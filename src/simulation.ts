@@ -33,8 +33,8 @@ export class Ship extends NetworkEntity {
     private destLane: number;
     private lane: number;
 
-    private activeCmd: number; // the last command given to the ship
-    private curFrameCmd: number; // a command sent since the last frame
+    private activeCmd: number; // the current command the ship is executing
+    private lastCmd: number; // the last command given to the ship
 
     private positionBuffer: ArrayBuffer;
     private positionView: DataView;
@@ -44,7 +44,7 @@ export class Ship extends NetworkEntity {
     constructor() {
         super(Ship);
         this.activeCmd = Direction.NONE;
-        this.curFrameCmd = Direction.NONE;
+        this.lastCmd = Direction.NONE;
 
         this.positionBuffer = new ArrayBuffer(8);
         this.positionView = new DataView(this.positionBuffer);
@@ -73,7 +73,7 @@ export class Ship extends NetworkEntity {
          *  - and the target position in lane bounds - FIXME: this might be coded wrong
          */
         if (this.activeCmd !== Direction.NONE &&
-            this.curFrameCmd !== Direction.NONE &&
+            this.lastCmd === this.activeCmd &&
             this.isInBounds(Ship.MOVE_SPEED * dt)) {
 
             this.strafe(this.activeCmd);
@@ -87,7 +87,7 @@ export class Ship extends NetworkEntity {
                 this.activeCmd = Direction.NONE;
             }
             // Finally if there was an active command but input has stopped
-        } else if (this.activeCmd !== 0) {
+        } else if (this.activeCmd !== Direction.NONE) {
             // "snaps" the ship to the middle of the lane when the user releases all controls
             // FIXME: this implementation is known to be glitchy
             let rightBound = 0; // figure out which lane the ship is to the left of
@@ -116,9 +116,6 @@ export class Ship extends NetworkEntity {
 
         this.positionX += this.velocityX * dt;
 
-        this.activeCmd = this.curFrameCmd;
-        this.curFrameCmd = Direction.NONE;
-
         this.updateBuffer.writeDoubleBE((this.positionX || 0), NetworkEntity.ID_LENGTH);
         this.positionView.setFloat64(0, this.positionX);
     }
@@ -128,8 +125,13 @@ export class Ship extends NetworkEntity {
     };
 
     public switchLane(direction: Direction): void {
-        this.curFrameCmd = direction;
-        this.setDestLane(this.destLane + direction);
+        if (direction !== Direction.NONE && direction !== this.lastCmd) {
+            this.activeCmd = direction;
+            this.lastCmd = direction;
+            this.setDestLane(this.destLane + direction);
+        }
+
+        this.lastCmd = direction;
     }
 
     /**
@@ -148,7 +150,7 @@ export class Ship extends NetworkEntity {
     private isInBounds(moveDistance: number): boolean {
         const minBound = -Lane.WIDTH - moveDistance;
         const maxBound = +Lane.WIDTH + moveDistance;
-        return this.positionX <= maxBound && this.positionX > minBound;
+        return this.positionX <= maxBound && this.positionX >= minBound;
     }
 
     /**
