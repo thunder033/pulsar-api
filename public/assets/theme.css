@@ -23,6 +23,14 @@ h1 {
     margin: 0;
 }
 
+input[type='text'] {
+    padding: .3em;
+}
+
+button {
+    padding: .3em;
+}
+
 .wrapper {
     padding-top: 3em;
     box-sizing: border-box;

@@ -33,8 +33,8 @@ function LobbyCtrl(Connection, $scope, ClientMatch, Client, $state) {
     $scope.activeRoom = null;
     $scope.rooms = [];
     $scope.fields = {
-        username: '',
-        matchLabel: '',
+        username: 'user1',
+        matchLabel: 'match1',
         selectedMatch: null,
         activeDiagram: 'api',
     };

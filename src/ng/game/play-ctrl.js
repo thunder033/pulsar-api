@@ -33,6 +33,10 @@ resolve: ADT => [
  * @constructor
  */
 function PlayCtrl($stateParams, NetworkEntity, $scope, $timeout, ClientRoom, $state, Client, Clock, WarpGame) {
+    if (Client.getUser() === null) {
+       return $state.go('lobby');
+    }
+
     const gameState = {
         LOADING: 0,
         SYNCING: 1,
