@@ -16,7 +16,7 @@
             User: <span ng-bind="user.getName()"></span> (<span ng-bind="getPing()"></span> ms) <br>
 
             <input type="text" ng-model="fields.matchLabel" placeholder="Match Name">
-            <button ng-click="createMatch(fields.matchLabel)">Create Match</button>
+            <button ng-disabled="matches.length === 5" ng-click="createMatch(fields.matchLabel)">Create Match</button>
 
             <div class="match-list">
                 <h4>Open Matches</h4>
