@@ -35,7 +35,7 @@ function connectionFactory($q, Socket, AsyncInitializer, Clock) {
             const joinEvt = new Event(IOEvent.joinServer);
             const joined = deferJoined.promise.then((data) => {
                 joinEvt.userId = data.userId;
-                this.timeDifference = Clock.getNow() - parseFloat(data.timestamp);
+                this.timeDifference = Clock.getNow() - parseFloat(data.serverTime) || 0;
                 this.dispatchEvent(joinEvt);
             });
 
