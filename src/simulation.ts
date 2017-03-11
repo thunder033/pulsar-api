@@ -3,7 +3,7 @@
  */
 
 import {ServerComponent, SyncServer} from './sync-server';
-import {UserComponent} from './user';
+import {User, UserComponent} from './user';
 import {NetworkEntity} from './network-index';
 import {GameEvent} from './event-types';
 import {PriorityQueue} from './priority-queue';
@@ -51,6 +51,10 @@ export class Ship extends NetworkEntity {
 
         this.updateBuffer = Buffer.alloc(NetworkEntity.ID_LENGTH + 8);
         this.updateBuffer.write(this.getId(), 0);
+
+        this.positionX = 0;
+        this.destLane = 0;
+        this.lane = 0;
     }
 
     public update(dt: number): void {
@@ -110,10 +114,12 @@ export class Ship extends NetworkEntity {
             this.activeCmd = Direction.NONE;
         }
 
+        this.positionX += this.velocityX * dt;
+
         this.activeCmd = this.curFrameCmd;
         this.curFrameCmd = Direction.NONE;
 
-        this.updateBuffer.writeDoubleBE(this.positionX, NetworkEntity.ID_LENGTH);
+        this.updateBuffer.writeDoubleBE((this.positionX || 0), NetworkEntity.ID_LENGTH);
         this.positionView.setFloat64(0, this.positionX);
     }
 
@@ -227,6 +233,7 @@ export class ShipControl extends UserComponent {
 
     public onInit() {
         this.connection = this.user.getComponent(Connection);
+        this.commandQueue = new PriorityQueue();
     }
 
     public attachMatch(match: Match): void {
@@ -238,6 +245,10 @@ export class ShipControl extends UserComponent {
         this.ship = new Ship();
         simulation.schedule(this.ship.update.bind(this.ship));
         simulation.schedule(this.syncClients.bind(this), 10);
+    }
+
+    public getShip(): Ship {
+        return this.ship;
     }
 
     private update(dt: number): void {
@@ -329,11 +340,14 @@ export class Simulation extends NetworkEntity {
     }
 
     protected step() {
-        const dt = Date.now() - this.lastStepTime;
+        const stepTime = Date.now();
+        const dt = stepTime - this.lastStepTime;
+        this.lastStepTime = stepTime;
+
         const it = this.operations.getIterator();
 
         while (!it.isEnd()) {
-            (it.next() as SimulationOperation).call(null, ~~dt);
+            (it.next() as SimulationOperation).call(null, dt);
         }
     }
 }
