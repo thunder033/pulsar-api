@@ -2,9 +2,9 @@
  * Created by gjr8050 on 2/23/2017.
  */
 
-import {User} from './user';
-import {NetworkEntity} from './network-index';
 import {IOEvent} from './event-types';
+import {NetworkEntity} from './network-index';
+import {User} from './user';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms

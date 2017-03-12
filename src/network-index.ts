@@ -9,7 +9,6 @@ import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {ServerComponent, SyncServer} from './sync-server';
 import {Component, Composite} from './component';
-import {Room} from './room';
 
 export interface INetworkEntity {
     /**
@@ -31,7 +30,6 @@ interface INetworkEntityCtor {
     new(...args: any[]): INetworkEntity;
 }
 
-console.log(Component);
 /**
  * Provides arbitrary access to entities that are needed by clients
  */
