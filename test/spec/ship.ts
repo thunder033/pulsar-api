@@ -4,7 +4,7 @@
 
 import { only, skip, slow, suite, test, timeout } from 'mocha-typescript';
 import { expect } from 'chai';
-import {Direction, Ship, Track} from '../../src/simulation';
+import {Direction, Ship, Track} from '../../src/ship';
 import {NetworkIndex} from '../../src/network-index';
 import {SyncServer} from '../../src/sync-server';
 import {ExpressServer} from '../../src/express-server';
