@@ -11,12 +11,14 @@ import Timer = NodeJS.Timer;
 import {Connection} from './connection';
 import {Match} from './match';
 
-class Lane {
-    public static readonly WIDTH: number = 1.15;
-    public static readonly MAX_LANE: number = 2;
+export class Track {
+    public static readonly LANE_WIDTH: number = 1.15;
+    public static readonly NUM_LANES: number  = 3;
+    public static readonly POSITION_X: number = (-Track.NUM_LANES / 2) * Track.LANE_WIDTH;
+    public static readonly WIDTH: number      = Track.LANE_WIDTH * Track.NUM_LANES;
 }
 
-enum Direction {
+export enum Direction {
     LEFT = -1,
     NONE = 0,
     RIGHT = 1,
@@ -25,10 +27,11 @@ enum Direction {
 export class Ship extends NetworkEntity {
 
     private static readonly MOVE_SPEED: number = 0.0045;
+    private static readonly SNAP_DELTA: number = 0.03; // 3% of lane width
 
     // only the x-coordinate is of consequence, so we only care about it
+    public positionX: number;
     private velocityX: number;
-    private positionX: number;
 
     private destLane: number;
     private lane: number;
@@ -36,18 +39,16 @@ export class Ship extends NetworkEntity {
     private activeCmd: number; // the current command the ship is executing
     private lastCmd: number; // the last command given to the ship
 
-    private positionBuffer: ArrayBuffer;
-    private positionView: DataView;
-
     private updateBuffer: Buffer;
+
+    public static isValidDestLane(lane: number): boolean {
+        return lane >= -1 && lane <= Track.NUM_LANES;
+    }
 
     constructor() {
         super(Ship);
         this.activeCmd = Direction.NONE;
         this.lastCmd = Direction.NONE;
-
-        this.positionBuffer = new ArrayBuffer(8);
-        this.positionView = new DataView(this.positionBuffer);
 
         this.updateBuffer = Buffer.alloc(NetworkEntity.ID_LENGTH + 8);
         this.updateBuffer.write(this.getId(), 0);
@@ -62,73 +63,97 @@ export class Ship extends NetworkEntity {
         this.velocityX = 0;
 
         // If the ship is out of bounds, move it back to the end of the field
-        if (this.isInBounds(0) === false) {
-            this.positionX -= this.positionX - Math.sign(this.positionX) * Lane.WIDTH;
+        if (this.isInBounds() === false) {
+            this.strafeToNearestLane();
+            this.activeCmd = Direction.NONE;
         }
 
         /**
          * Move the ship if
          *  - there's an active control
          *  - and the control is still pressed
-         *  - and the target position in lane bounds - FIXME: this might be coded wrong
+         *  - and the target position in lane bounds
          */
         if (this.activeCmd !== Direction.NONE &&
             this.lastCmd === this.activeCmd &&
-            this.isInBounds(Ship.MOVE_SPEED * dt)) {
+            this.isInBounds(this.activeCmd * Ship.MOVE_SPEED * dt)) {
 
             this.strafe(this.activeCmd);
+            if (this.hasReachedLane()) {
+                this.setDestLane(this.destLane + this.getSwitchDirection());
+            }
             // otherwise, if there's a lane switch in progress
         } else if (this.isSwitchingLanes() === true) {
             this.strafe(this.getSwitchDirection());
             if (this.hasReachedLane() === true) {
-                this.positionX = (this.destLane - 1) * Lane.WIDTH; // adjust position to center of lane
+                const laneCenter = Track.POSITION_X + this.destLane * Track.LANE_WIDTH + Track.LANE_WIDTH / 2;
+                // adjust position to center of lane
+                if (this.isAtLaneCenter() === true) {
+                    this.positionX = laneCenter;
+                } else {
+                    this.strafeToNearestLane();
+                }
+
+                console.log(`set ship to ${this.positionX.toFixed(2)}`);
                 this.lane = this.destLane;
                 this.velocityX = 0;
                 this.activeCmd = Direction.NONE;
             }
             // Finally if there was an active command but input has stopped
-        } else if (this.activeCmd !== Direction.NONE) {
-            // "snaps" the ship to the middle of the lane when the user releases all controls
-            // FIXME: this implementation is known to be glitchy
-            let rightBound = 0; // figure out which lane the ship is to the left of
-            while ((rightBound - 1) * Lane.WIDTH <= this.positionX) {
-                rightBound++;
-            }
-
-            // Determine if the ship is closer to the left or to the right
-            // Then set the destination and current lanes accordingly
-            const snapDirection = Math.round(this.getLaneCoord());
-            this.destLane = rightBound - (1 - snapDirection);
-            this.lane = rightBound - snapDirection;
-
-            // Conditionally clamp the destination and start lanes
-            // This might be the source of the weird "snapping" as some points?
-            if (this.destLane > Lane.MAX_LANE) {
-                this.destLane = Lane.MAX_LANE;
-                this.lane = Lane.MAX_LANE - 1;
-            } else if (this.destLane < 0) {
-                this.destLane = 0;
-                this.lane = 1;
-            }
-
+        } else if (this.activeCmd !== Direction.NONE || !this.isAtLaneCenter()) {
+            this.strafeToNearestLane();
             this.activeCmd = Direction.NONE;
         }
 
         this.positionX += this.velocityX * dt;
 
-        this.updateBuffer.writeDoubleBE((this.positionX || 0), NetworkEntity.ID_LENGTH);
-        this.positionView.setFloat64(0, this.positionX);
+        this.updateBuffer.writeFloatBE((this.positionX || 0), NetworkEntity.ID_LENGTH);
+    }
+
+    public isAtLaneCenter() {
+        const laneCoord = this.getLaneCoord();
+        const minBound = 0.5 - Ship.SNAP_DELTA;
+        const maxBound = 0.5 + Ship.SNAP_DELTA;
+        return laneCoord > minBound && laneCoord < maxBound;
+    }
+
+    public strafeToNearestLane() {
+        // "snaps" the ship to the middle of the lane when the user releases all controls
+        const lane = this.getLaneFromPos();
+
+        // Determine if the ship is closer to the left or to the right
+        // Then set the destination and current lanes accordingly
+        const snapDirection = this.getLaneCoord() >= 0.5 ? 1 : -1;
+        this.lane = lane - snapDirection;
+        this.destLane = lane;
+
+        // Conditionally clamp the destination and start lanes
+        // This might be the source of the weird "snapping" as some points?
+        if (this.destLane >= Track.NUM_LANES) {
+            this.destLane = Track.NUM_LANES - 1;
+            this.lane = Track.NUM_LANES;
+        } else if (this.destLane < 0) {
+            this.destLane = 0;
+            this.lane = -1;
+        }
+
+        this.strafe(this.getSwitchDirection());
     }
 
     public getDataBuffer(): Buffer {
         return this.updateBuffer;
     };
 
-    public switchLane(direction: Direction): void {
+    public switchLane(direction: Direction, pingDelay: number = 0): void {
         if (direction !== Direction.NONE && direction !== this.lastCmd) {
-            this.activeCmd = direction;
             this.lastCmd = direction;
-            this.setDestLane(this.destLane + direction);
+
+            if (Ship.isValidDestLane(this.destLane + direction)) {
+                this.activeCmd = direction;
+                this.positionX += pingDelay * Ship.MOVE_SPEED;
+                this.setDestLane(this.destLane + direction);
+            }
+
         }
 
         this.lastCmd = direction;
@@ -144,20 +169,22 @@ export class Ship extends NetworkEntity {
 
     /**
      * Determines if the destination position is in lane bounds
-     * @param {number} moveDistance
+     * @param {number} displacement
      * @returns {boolean}
      */
-    private isInBounds(moveDistance: number): boolean {
-        const minBound = -Lane.WIDTH - moveDistance;
-        const maxBound = +Lane.WIDTH + moveDistance;
-        return this.positionX <= maxBound && this.positionX >= minBound;
+    public isInBounds(displacement: number = 0): boolean {
+        const minBound = Track.POSITION_X;
+        const maxBound = Track.POSITION_X + Track.WIDTH;
+        const destPosition = this.positionX + displacement;
+        // console.log(`${minBound.toFixed(2)} < ${destPosition.toFixed(2)} < ${maxBound.toFixed(2)}`);
+        return destPosition <= maxBound && destPosition >= minBound;
     }
 
     /**
      * Determines if the ship is switching lanes
      * @returns {boolean}
      */
-    private isSwitchingLanes(): boolean {
+    public isSwitchingLanes(): boolean {
         return this.lane !== this.destLane;
     }
 
@@ -165,7 +192,7 @@ export class Ship extends NetworkEntity {
      * Gets the direction of lane switch
      * @returns {number}
      */
-    private getSwitchDirection(): number {
+    public getSwitchDirection(): number {
         return Math.sign(this.destLane - this.lane);
     }
 
@@ -173,22 +200,31 @@ export class Ship extends NetworkEntity {
      * Checks position of the ship to determine if it has reached the destination lane
      * @returns {boolean}
      */
-    private hasReachedLane(): boolean {
-        const lanePos = (this.destLane - 1) * Lane.WIDTH;
-        return this.getSwitchDirection() > 0 ? this.positionX >= lanePos : this.positionX <= lanePos;
+    public hasReachedLane(): boolean {
+        const destLaneCenter = Track.POSITION_X + (this.destLane * Track.LANE_WIDTH) + Track.LANE_WIDTH / 2;
+        return this.getSwitchDirection() > 0 ? this.positionX >= destLaneCenter : this.positionX <= destLaneCenter;
     }
 
     /**
      * Calculates how far between the start and dest lanes the ship is
      * @returns {number} 0 to 1
      */
-    private getLaneCoord(): number {
-        const relPos = (this.positionX + Lane.WIDTH) % Lane.WIDTH;
-        return relPos / Lane.WIDTH;
+    public getLaneCoord(): number {
+        const relPos = (this.positionX - Track.POSITION_X) % Track.LANE_WIDTH;
+        return relPos / Track.LANE_WIDTH;
     }
 
-    private setDestLane(lane: number): void {
-        this.destLane = Math.min(Math.max(lane, 0), Lane.MAX_LANE);
+    public setDestLane(lane: number): void {
+        this.destLane = Math.min(Math.max(lane, -1), Track.NUM_LANES);
+    }
+
+    public getLaneFromPos(): number {
+        if (this.positionX < Track.POSITION_X) {
+            return -1;
+        }
+
+        const trackPos = this.positionX - Track.POSITION_X;
+        return ~~(trackPos / Track.LANE_WIDTH);
     }
 }
 
@@ -207,8 +243,7 @@ class Command {
         this.ship = params.ship;
     }
 
-    public execute(timestamp: number) {
-        this.timestamp = timestamp;
+    public execute(dt: number) {
         return undefined;
     }
 }
@@ -221,9 +256,8 @@ class StrafeCommand extends Command {
         this.direction = params.direction;
     }
 
-    public execute(timestamp: number) {
-        super.execute(timestamp);
-        this.ship.switchLane(this.direction);
+    public execute(dt: number) {
+        this.ship.switchLane(this.direction, Date.now() - this.timestamp);
     }
 }
 

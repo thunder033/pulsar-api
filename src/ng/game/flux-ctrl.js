@@ -34,6 +34,7 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
 
         console.log(ships);
         console.log(clientShip);
+        $scope.posX = 0;
 
         Keyboard.onKeyDown(Keys.Left, ()=>clientShip.strafe(-1));
         Keyboard.onKeyDown(Keys.Right, ()=>clientShip.strafe(1));
@@ -46,6 +47,7 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
             tCube.rotation.x = rot;
             tCube.rotation.y = rot;
             tCube.rotation.z = rot;
+            $scope.posX = clientShip.getTransform().position.x;
 
             MScheduler.draw(() => {
                 MCamera.render(
