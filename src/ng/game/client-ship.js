@@ -33,7 +33,6 @@ function shipFactory(NetworkEntity, Connection, Geometry) {
         if (data instanceof ArrayBuffer) {
             const view = new DataView(data);
             const id = utf8Decoder.decode(view).substr(0, NetworkEntity.ID_LENGTH);
-            console.log(utf8Decoder.decode(view));
             NetworkEntity.getById(ClientShip, id).then((ship) => {
                 ship.transform.position.x = view.getFloat32(NetworkEntity.ID_LENGTH);
             });
