@@ -3,7 +3,7 @@
  */
 
 import {ServerComponent, SyncServer} from './sync-server';
-import {Client, ClientComponent} from './user';
+import {Client, ClientComponent} from './client';
 import {NetworkEntity} from './network-index';
 import {GameEvent} from './event-types';
 import {PriorityQueue} from './priority-queue';

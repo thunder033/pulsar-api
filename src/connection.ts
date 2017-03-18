@@ -2,7 +2,7 @@
  * Created by gjrwcs on 3/1/2017.
  */
 
-import {ClientComponent} from './user';
+import {ClientComponent} from './client';
 import {IOEvent} from './event-types';
 import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;

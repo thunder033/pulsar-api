@@ -4,7 +4,7 @@
 
 import {IOEvent} from './event-types';
 import {NetworkEntity} from './network-index';
-import {Client} from './user';
+import {Client} from './client';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms

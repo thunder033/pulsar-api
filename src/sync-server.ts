@@ -66,7 +66,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
 
 // This is hacky af, but we're not moving users to their own component yet
 import {Connection} from './connection';
-import {Client} from './user';
+import {Client} from './client';
 
 /**
  * Maintains client connections

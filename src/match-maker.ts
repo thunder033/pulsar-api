@@ -4,7 +4,7 @@
 import {Match} from './match';
 import {ServerComponent, SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
-import {Client, ClientComponent} from './user';
+import {Client, ClientComponent} from './client';
 import {Room} from './room';
 import {IOEvent, MatchEvent} from './event-types';
 import {Building} from './building';
