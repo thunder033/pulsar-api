@@ -7,6 +7,9 @@ module.exports = {clockFactory,
 resolve: () => [clockFactory]};
 
 function clockFactory() {
+    /**
+     * @method getNow
+     */
     class Clock {
         constructor() {
             this.startTime = (new Date()).getTime() - (~~performance.now());
