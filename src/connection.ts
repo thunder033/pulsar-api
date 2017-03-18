@@ -2,7 +2,7 @@
  * Created by gjrwcs on 3/1/2017.
  */
 
-import {UserComponent} from './user';
+import {ClientComponent} from './user';
 import {IOEvent} from './event-types';
 import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
@@ -12,7 +12,7 @@ import {Clock} from './clock';
 /**
  * Maintains the connect for a single client
  */
-export class Connection extends UserComponent {
+export class Connection extends ClientComponent {
 
     // We need more server functionality to support re-connection
     public static DISCONNECT_TIMEOUT_DURATION: number = 0;

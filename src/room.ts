@@ -4,7 +4,7 @@
 
 import {IOEvent} from './event-types';
 import {NetworkEntity} from './network-index';
-import {User} from './user';
+import {Client} from './user';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms
@@ -12,7 +12,7 @@ import {User} from './user';
 export class Room extends NetworkEntity {
     public name: string;
 
-    protected users: User[];
+    protected users: Client[];
     // How many users the rooms can contain
     private capacity: number = NaN;
 
@@ -24,26 +24,26 @@ export class Room extends NetworkEntity {
 
     /**
      * Return a collection of users in the room
-     * @returns {User[]}
+     * @returns {Client[]}
      */
-    public getUsers(): User[] {
+    public getUsers(): Client[] {
         return this.users;
     }
 
     /**
      * Indicates if a given user is in the room
-     * @param user {User}: user to locate
+     * @param user {Client}: user to locate
      * @returns {boolean}
      */
-    public contains(user: User): boolean {
+    public contains(user: Client): boolean {
         return this.users.indexOf(user) > -1;
     }
 
     /**
      * Add a user to this room and notify clients
-     * @param user {User}: the user to add
+     * @param user {Client}: the user to add
      */
-    public add(user: User): void {
+    public add(user: Client): void {
         if (isNaN(this.capacity) || this.users.length < this.capacity) {
             if (!this.contains(user)) { // users can't be in the room twice
                 console.log(`${this.name} add user ${user.getName()}`);
@@ -62,9 +62,9 @@ export class Room extends NetworkEntity {
 
     /**
      * Remove a user from the room and notify clients
-     * @param user {User}: the user to remove
+     * @param user {Client}: the user to remove
      */
-    public remove(user: User): boolean {
+    public remove(user: Client): boolean {
         const userIndex = this.users.indexOf(user);
         if (userIndex > -1) {
             console.log(`${this.name} remove user ${user.getName()}`);
