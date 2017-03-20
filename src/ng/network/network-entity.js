@@ -1,8 +1,8 @@
 /**
- * TODO: [Description]
+ * Handles synchronizing a given entity with it's server counterpart
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
-'use strict';
+const MDT = require('../mallet/mallet.dependency-tree').MDT;
 const IOEvent = require('event-types').IOEvent;
 const EventTarget = require('eventtarget');
 
@@ -11,10 +11,10 @@ resolve: ADT => [
     ADT.network.Connection,
     ADT.ng.$q,
     ADT.ng.$rootScope,
+    MDT.Log,
     networkEntityFactory]};
 
-function networkEntityFactory(Connection, $q, $rootScope) {
-
+function networkEntityFactory(Connection, $q, $rootScope, Log) {
     /**
      * Manages synchronization for a entity with the server instance
      */
@@ -24,6 +24,11 @@ function networkEntityFactory(Connection, $q, $rootScope) {
             super();
             this.id = id;
             this.syncTime = ~~performance.now();
+            NetworkEntity.putEntity(this.getType(), this);
+        }
+
+        getType() {
+            return this.constructor;
         }
 
         getId() {
@@ -34,28 +39,37 @@ function networkEntityFactory(Connection, $q, $rootScope) {
             Object.assign(this, params);
             this.syncTime = ~~performance.now();
 
-            console.log(`sync ${this.constructor.name} ${this.id} at ${this.syncTime}`);
+            Log.debug(`sync ${this.constructor.name} ${this.id} at ${this.syncTime}`);
             $rootScope.$evalAsync();
+        }
+
+        static putEntity(type, entity) {
+            const lookupType = NetworkEntity.getLookupType(type.name);
+            NetworkEntity.entities.get(lookupType.name).set(entity.getId(), entity);
         }
 
         static registerType(type) {
             let baseType = type;
+
+            // determine if the new type is derived from an existing type
+            // inherited types are indexed by their base type
             NetworkEntity.lookupTypes.forEach((candidateType) => {
-                if(type.prototype instanceof candidateType) {
+                if (type.prototype instanceof candidateType) {
                     baseType = candidateType;
                 }
             });
 
             NetworkEntity.constructorTypes.set(type.name, type);
             NetworkEntity.lookupTypes.set(type.name, baseType);
-            if(baseType === type) {
+            Log.debug(`Register NetworkEntity type ${type.name} [as ${baseType.name}]`);
+            if (baseType === type) {
                 NetworkEntity.entities.set(type.name, new Map());
             }
         }
 
         static getConstructorType(typeName) {
             let resolvedType = typeName;
-            if(NetworkEntity.constructorTypes.has(typeName) === false) {
+            if (NetworkEntity.constructorTypes.has(typeName) === false) {
                 if (NetworkEntity.constructorTypes.has(`Client${typeName}`)) {
                     resolvedType = `Client${typeName}`;
                 } else {
@@ -100,12 +114,12 @@ function networkEntityFactory(Connection, $q, $rootScope) {
             if (NetworkEntity.localEntityExists(lookupType, id) === true) {
                 // console.log('use local copy ', id);
                 return $q.when(NetworkEntity.entities.get(lookupType.name).get(id));
-            } else if (NetworkEntity.pendingRequests.has(id)) {
-                console.log('use pending ', id);
-                return NetworkEntity.pendingRequests.get(id);
+            } else if (NetworkEntity.pendingRequests.has(type.name + id)) {
+                Log.debug('use pending ', id);
+                return NetworkEntity.pendingRequests.get(type.name + id);
             }
 
-            console.log('request ', id);
+            Log.debug(`request ${type.name} ${id}`);
             const serverType = type.name.replace('Client', '');
             const request = Connection.getSocket()
                 .request(IOEvent.syncNetworkEntity, {type: serverType, id})
@@ -118,16 +132,18 @@ function networkEntityFactory(Connection, $q, $rootScope) {
          * Indicates if the entity identified by the registered type and name exists locally
          * @param type {any}
          * @param id {string}
+         * @return {boolean}
          */
         static localEntityExists(type, id) {
             try {
                 return NetworkEntity.entities.get(type.name).has(id);
             } catch (e) {
-                if(NetworkEntity.getLookupType(type.name)) {
+                if (NetworkEntity.getLookupType(type.name)) {
                     throw new Error(`Could not complete look up: ${e.message || e}`);
+                } else {
+                    return false;
                 }
             }
-
         }
 
         /**
@@ -159,15 +175,14 @@ function networkEntityFactory(Connection, $q, $rootScope) {
             if (NetworkEntity.localEntityExists(type, data.id) === true) {
                 entity = NetworkEntity.entities.get(type.name).get(data.id);
             } else {
-                console.log('construct ', data.id);
+                Log.debug('construct ', data.id);
                 const ctorType = NetworkEntity.getConstructorType(data.type);
                 /* eslint new-cap: off */
                 entity = new ctorType(data.params);
-                NetworkEntity.entities.get(type.name).set(data.id, entity);
             }
 
-            if (NetworkEntity.pendingRequests.has(entity.id)) {
-                NetworkEntity.pendingRequests.delete(entity.id);
+            if (NetworkEntity.pendingRequests.has(type.name + entity.id)) {
+                NetworkEntity.pendingRequests.delete(type.name + entity.id);
             }
 
             return $q.when(entity.sync(data.params)).then(() => entity);

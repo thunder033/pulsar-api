@@ -43,7 +43,7 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
         Keyboard.onKeyUp(Keys.Left, () => clientShip.strafe(0));
         Keyboard.onKeyUp(Keys.Right, () => clientShip.strafe(0));
 
-        MScheduler.schedule((dt) => {
+        MScheduler.schedule(() => {
             const rot = (~~performance.now()) / 200;
             tCube.rotation.x = rot;
             tCube.rotation.y = rot;
@@ -53,16 +53,20 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
             $scope.updateTime = clientShip.getUpdateTime();
 
             MScheduler.draw(() => {
-                ships.forEach(ship => MCamera.render(
+                players.forEach(player => MCamera.render(
                     Geometry.meshes.Ship,
-                    ship.getTransform(),
-                    ship.getColor()));
+                    player.getShip().getTransform(),
+                    player.getColor()));
 
                 MCamera.render(Geometry.meshes.Cube, [tCube], MM.vec3(255, 0, 0));
                 MCamera.present();
             });
         });
     }
+
+    $scope.$on('$destroy', () => {
+        MScheduler.reset();
+    });
 
     $scope.$on(GameEvent.playStarted, init);
 }

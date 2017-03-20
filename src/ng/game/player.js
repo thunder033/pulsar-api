@@ -2,21 +2,45 @@
  * TODO: [Description]
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
+const MDT = require('../mallet/mallet.dependency-tree').MDT;
+
 module.exports = {playerFactory,
 resolve: ADT => [
-    ADT.network.User,
-    ADT.game.ClientShip,
-    ADT.game.ClientMatch,
+    ADT.network.NetworkEntity,
+    MDT.Color,
     playerFactory]};
 
-function playerFactory(User, ClientShip, ClientMatch) {
-    class Player {
+function playerFactory(NetworkEntity, Color) {
+    class Player extends NetworkEntity {
 
         constructor(user, match, ship) {
+            super(user.getId());
             console.log(`create player for ${user.getId()}`);
             this.user = user;
             this.ship = ship;
             this.match = match;
+
+            this.hue = 0;
+            this.score = 0;
+
+            this.color = Color.hslToRgb(this.hue, 50, 80);
+        }
+
+        sync(params) {
+            this.color = Color.hslToRgb(params.hue, 50, 80);
+            super.sync(params);
+        }
+
+        /**
+         * Returns the color of this player
+         * @return {Vector3}
+         */
+        getColor() {
+            return this.color;
+        }
+
+        getScore() {
+            return this.score;
         }
 
         getMatch() {
@@ -31,6 +55,8 @@ function playerFactory(User, ClientShip, ClientMatch) {
             return this.user;
         }
     }
+
+    NetworkEntity.registerType(Player);
 
     return Player;
 }

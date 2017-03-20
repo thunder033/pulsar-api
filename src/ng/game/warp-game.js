@@ -20,14 +20,17 @@ function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $
         const view = new DataView(buffer);
         const bufferString = utf8Decoder.decode(view);
 
-        for(let i = 0; i * NetworkEntity.ID_LENGTH < bufferString.length; i += 2) {
+        for (let i = 0; i * NetworkEntity.ID_LENGTH < bufferString.length; i += 2) {
             const userId = bufferString.substr(i * NetworkEntity.ID_LENGTH, NetworkEntity.ID_LENGTH);
             const shipId = bufferString.substr((i + 1) * NetworkEntity.ID_LENGTH, NetworkEntity.ID_LENGTH);
             console.log(`create player for ship ${shipId} and user ${userId}`);
             players.push($q.all([
                 NetworkEntity.getById(User, userId),
                 NetworkEntity.getById(ClientShip, shipId),
-            ]).spread((user, ship) => new Player(user, match, ship)));
+            ]).spread((user, ship) => {
+                const player = new Player(user, match, ship);
+                return NetworkEntity.getById(Player, player.getId());
+            }));
         }
 
         return $q.all(players);
@@ -47,9 +50,9 @@ function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $
         }
 
         sync(params) {
-            return NetworkEntity.getById(ClientMatch, params.matchId).then(match => {
+            return NetworkEntity.getById(ClientMatch, params.matchId).then((match) => {
                 this.match = match;
-                return createPlayers(params.shipIds, match).then(players => this.players = players);
+                return createPlayers(params.shipIds, match).then((players) => { this.players = players; });
             }).finally(() => {
                 delete params.matchId;
                 delete params.shipIds;
