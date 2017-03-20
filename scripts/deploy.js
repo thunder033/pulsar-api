@@ -7,8 +7,22 @@
 const deploy = require('heroku-deploy-tarball');
 
 const config = {
-    app: 'pulsar-api',
-    tarball: 'dist.tar.gz'
+    master: {
+        app: 'pulsar-api-stage',
+        tarball: 'dist.tar.gz'
+    },
+    production: {
+        app: 'pulsar-api',
+        tarball: 'dist.tar.gz'
+    },
+    prototype1: {
+        app: 'pulsar-api-p1',
+        tarball: 'dist.tar.gz'
+    },
+    release1: {
+        app: 'pulsar-api-r1',
+        tarball: 'dist.tar.gz'
+    },
 };
 
-deploy(config);
+deploy(config[process.env.CIRCLE_BRANCH || 'master']);
