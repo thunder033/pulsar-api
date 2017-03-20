@@ -1,88 +1,107 @@
-'use strict';
 /**
  * @author Greg Rozmarynowycz<greg@thunderlab.net>
  */
 const MDT = require('./mallet.dependency-tree').MDT;
+// const convert = require('convert-source-map');
 
-require('angular')
-    .module('mallet')
-    .service(MDT.Log, [MDT.StateMachine, Log]);
+require('angular').module('mallet')
+    .service(MDT.Log, [MDT.StateMachine, '$http', Log]);
 
-function Log(StateMachine){
-
-    var levels = [
+// const currentScript = document.currentScript.src;
+function Log(StateMachine) {
+    const levels = [
         'None',
         'Error',
         'Warning',
         'Info',
-        'Debug'
-    ],
-        level = 0;
+        'Debug',
+    ];
+
+    // $http.get(currentScript).then((c) => {
+    //     const sourceMap = convert.fromSource(c.data);
+    //     console.log(sourceMap);
+    // });
+
+    const loggers = [console];
     
-    var loggers = [console];
-    
-    var logState = new StateMachine(levels),
-        allStates = Math.pow(2, levels.length - 1) - 1;
-    //for faster access, store the state locally
-    logState.onState(allStates, (newState)=>{
+    const logState = new StateMachine(levels);
+    let level = logState.Info;
+    /* eslint no-restricted-properties: "off" */
+    const allStates = Math.pow(2, levels.length - 1) - 1;
+    // for faster access, store the state locally
+    logState.onState(allStates, (newState) => {
         level = newState;
     });
     
-    //Expose logging levels
+    // Expose logging levels
     this.levels = {};
     Object.assign(this.levels, logState);
     
-    this.config = params => {
-        logState.setState(typeof(params.level) !== 'undefined' ? params.level : logState.Error);
+    this.config = (params) => {
+        logState.setState(typeof (params.level) !== 'undefined' ? params.level : logState.Error);
     };
     
     /**
      * @param {string} stack
      * @param {number} [calls=0]
      */
-    function getTrace(stack, calls){
-        return stack.split('\n')[(calls || 0) + 2].split(' at ').pop();
+    function getTrace(stack, calls = 0) {
+        // we have to trace back to 2 calls because of calls from the logger
+        return stack
+            .split('\n')[calls + 2]
+            .split(' at ').pop()
+            .split('/').pop();
     }
     
-    function logOut(args, level, func){
-        var stack = Error().stack,
-            trace = getTrace(stack);
+    function logOut(args, msgLevel, func) {
+        const stack = Error().stack;
+        const trace = getTrace(stack);
+
+        if (msgLevel > level) {
+            return;
+        }
 
         args[0] = `${trace} ${args[0]}`;
-        for(var i = 0, l = loggers.length; i < l; i++){
-            loggers[i][func].apply(loggers[i], args);
+        for (let i = 0, l = loggers.length; i < l; i++) {
+            loggers[i][func](...args);
         }
     }
     
-    this.error = () => {
-        if(level < logState.Error){
+    this.error = (...args) => {
+        if (level < logState.Error) {
             return;
         }
         
-        logOut(Array.prototype.slice.call(arguments), logState.Error, 'error');
+        logOut(Array.prototype.slice.call(args), logState.Error, 'error');
     };
     
-    this.warn = () => {
-        if(level < logState.Warning){
+    this.warn = (...args) => {
+        if (level < logState.Warning) {
             return;
         }
         
-        logOut(Array.prototype.slice.call(arguments), logState.Warning, 'warn');
+        logOut(Array.prototype.slice.call(args), logState.Warning, 'warn');
+    };
+
+    this.info = (...args) => {
+        if (level < logState.Info) {
+            return;
+        }
+        logOut(Array.prototype.slice.call(args), logState.Info, 'info');
     };
     
-    this.out = () => {
-        if(level < logState.Info){
+    this.out = (...args) => {
+        if (level < logState.Info) {
             return;
         }
-        
-        logOut(Array.prototype.slice.call(arguments), logState.Info, 'info');
+        logOut(Array.prototype.slice.call(args), logState.Info, 'info');
     };
     
-    this.debug = () => {
-        if(level < logState.Debug){
+    this.debug = (...args) => {
+        if (level < logState.Debug) {
             return;
         }
         
-        logOut(Array.prototype.slice.call(arguments), logState.Debug, 'debug');
+        logOut(Array.prototype.slice.call(args), logState.Debug, 'debug');
     };
 }

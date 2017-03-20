@@ -2,6 +2,7 @@
  * @author Greg Rozmarynowycz <greg@thunderlab.net>
  */
 
+const MDT = require('../mallet/mallet.dependency-tree').MDT;
 const IOEvent = require('event-types').IOEvent;
 const MatchEvent = require('event-types').MatchEvent;
 
@@ -10,20 +11,24 @@ resolve: ADT => [
     ADT.network.Connection,
     ADT.ng.$rootScope,
     ADT.network.AsyncInitializer,
+    MDT.Log,
     clientFactory]};
 
-function clientFactory(Connection, $rootScope, AsyncInitializer) {
+function clientFactory(Connection, $rootScope, AsyncInitializer, Log) {
     class Client extends AsyncInitializer {
 
         constructor() {
             super();
-
             this.user = null;
+            this.connection = Connection;
             const forward = this.forwardClientEvent.bind(this);
-            $rootScope.$on(IOEvent.joinedRoom, forward);
-            $rootScope.$on(IOEvent.leftRoom, forward);
-            $rootScope.$on(MatchEvent.matchStarted, forward);
-            $rootScope.$on(MatchEvent.matchEnded, forward);
+
+            [ // Forward Client Events
+                IOEvent.joinedRoom,
+                IOEvent.leftRoom,
+                MatchEvent.matchStarted,
+                MatchEvent.matchEnded,
+            ].forEach(e => $rootScope.$on(e, forward));
         }
 
         getUser() {
@@ -31,12 +36,12 @@ function clientFactory(Connection, $rootScope, AsyncInitializer) {
         }
 
         emit(name, data) {
-            Connection.getSocket().get().emit(name, data);
+            this.connection.getSocket().get().emit(name, data);
         }
 
         forwardClientEvent(evt, args) {
-            console.log('client recieved evt ', evt.name);
-            console.log(args);
+            Log.out('client recieved evt ', evt.name);
+            Log.out(args);
             if ((args.user && args.user === this.user) || args.clientEvent === true) {
                 const e = new Event(evt.name);
                 Object.assign(e, args);
