@@ -6,6 +6,7 @@ const GameEvent = require('event-types').GameEvent;
 const MDT = require('../mallet/mallet.dependency-tree').MDT;
 const Track = require('game-params').Track;
 const ShipEngine = require('game-params').ShipEngine;
+const DataFormat = require('game-params').DataFormat;
 
 module.exports = {shipFactory,
 resolve: ADT => [
@@ -30,6 +31,12 @@ resolve: ADT => [
 function shipFactory(NetworkEntity, Connection, Geometry, Scheduler, MM, Clock) {
     const utf8Decoder = new TextDecoder('utf-8');
 
+    const timestampOffset = DataFormat.SHIP.get('timestamp');
+    const positionOffset = DataFormat.SHIP.get('positionX');
+
+    let syncCount = 0;
+    let tossCount = 0;
+
     function lerp(a, disp, p) {
         return MM.Vector3.scale(disp, p).add(a);
     }
@@ -44,6 +51,7 @@ function shipFactory(NetworkEntity, Connection, Geometry, Scheduler, MM, Clock) 
             this.tDest = new Geometry.Transform();
             this.tRender = new Geometry.Transform();
 
+            this.updateTS = 0;
             this.lastUpdate = Clock.getNow();
             this.syncElapsed = 0;
             this.lerpPct = 0;
@@ -52,17 +60,38 @@ function shipFactory(NetworkEntity, Connection, Geometry, Scheduler, MM, Clock) 
         }
 
         sync(bufferView) {
-            this.tPrev.position.x = this.tDest.position.x;
-            this.tDest.position.x = bufferView.getFloat32(NetworkEntity.ID_LENGTH);
-            this.disp = MM.Vector3.subtract(this.tDest.position, this.tPrev.position);
+            if (bufferView instanceof DataView) {
+                const timeStamp = bufferView.getFloat64(timestampOffset);
+                syncCount++;
 
-            const updateTime = Clock.getNow();
-            this.syncElapsed = updateTime - this.lastUpdate;
-            this.lastUpdate = updateTime;
+                if (timeStamp <= this.updateTS) {
+                    tossCount++;
+                    return;
+                }
 
-            this.lerpPct = 0;
+                this.updateTS = timeStamp;
+                this.tPrev.position.x = this.tDest.position.x;
+                this.tDest.position.x = bufferView.getFloat32(positionOffset);
+                this.disp = MM.Vector3.subtract(this.tDest.position, this.tPrev.position);
 
-            super.sync({});
+                const updateTime = Clock.getNow();
+                this.syncElapsed = updateTime - this.lastUpdate;
+                this.lastUpdate = updateTime;
+
+                this.lerpPct = 0;
+
+                super.sync({});
+            } else {
+                super.sync(bufferView);
+            }
+        }
+
+        getUpdateTime() {
+            return this.updateTS;
+        }
+
+        getDataLoss() {
+            return tossCount / syncCount;
         }
 
         strafe(direction) {
@@ -71,7 +100,7 @@ function shipFactory(NetworkEntity, Connection, Geometry, Scheduler, MM, Clock) 
         }
         
         update(dt) {
-            this.lerpPct += dt / this.syncElapsed;
+            this.lerpPct += this.syncElapsed > 0 ? dt / this.syncElapsed : 0;
             this.tRender.position.set(lerp(this.tPrev.position, this.disp, this.lerpPct));
         }
 

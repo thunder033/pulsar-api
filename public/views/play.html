@@ -7,7 +7,9 @@
     </div>
 
     <div ng-controller="game.WarpCtrl" class="warp-wrapper" ng-show="state === states.PLAYING">
-        <span ng-bind="posX"></span>
+        <span ng-bind="posX"></span><span> </span>
+        <span ng-bind="lossPct + '%'"></span>
+        <span ng-bind="updateTime"></span>
         <m-easel id="game"></m-easel>
     </div>
 
