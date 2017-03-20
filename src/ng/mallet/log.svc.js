@@ -8,6 +8,18 @@ require('angular').module('mallet')
     .service(MDT.Log, [MDT.StateMachine, '$http', Log]);
 
 // const currentScript = document.currentScript.src;
+
+/**
+ *
+ * @param StateMachine
+ * @method debug
+ * @method error
+ * @method warn
+ * @method verbose
+ * @method out
+ * @method info
+ * @constructor
+ */
 function Log(StateMachine) {
     const levels = [
         'None',
@@ -15,6 +27,7 @@ function Log(StateMachine) {
         'Warning',
         'Info',
         'Debug',
+        'Verbose',
     ];
 
     // $http.get(currentScript).then((c) => {
@@ -25,7 +38,7 @@ function Log(StateMachine) {
     const loggers = [console];
     
     const logState = new StateMachine(levels);
-    let level = logState.Info;
+    let level = logState.Debug;
     /* eslint no-restricted-properties: "off" */
     const allStates = Math.pow(2, levels.length - 1) - 1;
     // for faster access, store the state locally
@@ -46,11 +59,14 @@ function Log(StateMachine) {
      * @param {number} [calls=0]
      */
     function getTrace(stack, calls = 0) {
+        const call = stack
+            .split('\n')[calls + 3]
+            .split(' at ').pop();
         // we have to trace back to 2 calls because of calls from the logger
-        return stack
-            .split('\n')[calls + 2]
-            .split(' at ').pop()
-            .split('/').pop();
+        const file = call.split('/').pop();
+        const method = call.split(' (').shift();
+
+        return `(${method}:${file}`;
     }
     
     function logOut(args, msgLevel, func) {
@@ -61,7 +77,8 @@ function Log(StateMachine) {
             return;
         }
 
-        args[0] = `${trace} ${args[0]}`;
+        // args[0] = `${trace} ${args[0]}`;
+        args.unshift(trace);
         for (let i = 0, l = loggers.length; i < l; i++) {
             loggers[i][func](...args);
         }
@@ -101,7 +118,15 @@ function Log(StateMachine) {
         if (level < logState.Debug) {
             return;
         }
-        
+
         logOut(Array.prototype.slice.call(args), logState.Debug, 'debug');
+    };
+
+    this.verbose = (...args) => {
+        if (level < logState.Verbose) {
+            return;
+        }
+
+        logOut(Array.prototype.slice.call(args), logState.Verbose, 'debug');
     };
 }
