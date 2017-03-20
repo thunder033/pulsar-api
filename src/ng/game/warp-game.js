@@ -26,11 +26,13 @@ function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $
             const shipId = bufferString.substr((i + 1) * NetworkEntity.ID_LENGTH, NetworkEntity.ID_LENGTH);
             console.log(`create player for ship ${shipId} and user ${userId}`);
             players.push($q.all([
+                // Resolve the entities associated with the player
                 NetworkEntity.getById(User, userId),
                 NetworkEntity.getById(ClientShip, shipId),
             ]).spread((user, ship) => {
                 const player = new Player(user, match, ship);
-                return NetworkEntity.getById(Player, player.getId());
+                // The player is identified by the user id, so get player data from the server
+                return player.requestSync();
             }));
         }
 
@@ -50,6 +52,10 @@ function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $
             this.players = [];
         }
 
+        /**
+         * @param params {{matchId, shipIds}}
+         * @returns {*}
+         */
         sync(params) {
             return NetworkEntity.getById(ClientRoom, params.matchId).then((match) => {
                 this.match = match;
