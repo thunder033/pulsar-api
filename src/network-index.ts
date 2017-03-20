@@ -236,6 +236,12 @@ export class NetworkIndex extends ServerComponent {
         return this.types.get(name);
     }
 
+    /**
+     * Retrieve a network entity by it's type and id
+     * @param type {T}
+     * @param id {string}
+     * @returns {T}
+     */
     public getById<T extends INetworkEntity>(type: INetworkEntityCtor, id: string): T {
         const keyType: any = this.resolveNetworkEntityType(type);
 

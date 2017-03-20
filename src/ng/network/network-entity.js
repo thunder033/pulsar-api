@@ -45,6 +45,7 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
 
         static putEntity(type, entity) {
             const lookupType = NetworkEntity.getLookupType(type.name);
+            Log.verbose(`Put entity ${lookupType.name} ${entity.getId()}`);
             NetworkEntity.entities.get(lookupType.name).set(entity.getId(), entity);
         }
 
@@ -63,6 +64,7 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
             NetworkEntity.lookupTypes.set(type.name, baseType);
             Log.debug(`Register NetworkEntity type ${type.name} [as ${baseType.name}]`);
             if (baseType === type) {
+                Log.verbose(`Create NetworkEntity index ${type.name}`);
                 NetworkEntity.entities.set(type.name, new Map());
             }
         }
@@ -135,13 +137,15 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
          * @return {boolean}
          */
         static localEntityExists(type, id) {
+            Log.verbose(`check ${type.name} ${id} exists`);
             try {
                 return NetworkEntity.entities.get(type.name).has(id);
             } catch (e) {
                 if (NetworkEntity.getLookupType(type.name)) {
                     throw new Error(`Could not complete look up: ${e.message || e}`);
                 } else {
-                    return false;
+                    throw e;
+                    // return false;
                 }
             }
         }
@@ -172,6 +176,7 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
         static reconstruct(data) {
             const type = NetworkEntity.getLookupType(data.type);
             let entity = null;
+            Log.verbose(`Resolved ${data.type} to ${type.name}`);
             if (NetworkEntity.localEntityExists(type, data.id) === true) {
                 entity = NetworkEntity.entities.get(type.name).get(data.id);
             } else {

@@ -38,7 +38,7 @@ function Log(StateMachine) {
     const loggers = [console];
     
     const logState = new StateMachine(levels);
-    let level = logState.Debug;
+    let level = logState.Verbose;
     /* eslint no-restricted-properties: "off" */
     const allStates = Math.pow(2, levels.length - 1) - 1;
     // for faster access, store the state locally

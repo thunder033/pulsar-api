@@ -10,9 +10,10 @@ resolve: ADT => [
     ADT.game.ClientShip,
     ADT.network.User,
     ADT.ng.$q,
+    ADT.network.ClientRoom,
     warpGameFactory]};
 
-function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $q) {
+function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $q, ClientRoom) {
     const utf8Decoder = new TextDecoder('utf-8');
     function createPlayers(buffer, match) {
         const players = [];
@@ -50,7 +51,7 @@ function warpGameFactory(Player, NetworkEntity, ClientMatch, ClientShip, User, $
         }
 
         sync(params) {
-            return NetworkEntity.getById(ClientMatch, params.matchId).then((match) => {
+            return NetworkEntity.getById(ClientRoom, params.matchId).then((match) => {
                 this.match = match;
                 return createPlayers(params.shipIds, match).then((players) => { this.players = players; });
             }).finally(() => {
