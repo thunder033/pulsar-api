@@ -15,7 +15,6 @@ resolve: ADT => [
     matchFactory]};
 
 function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
-
     const matches = new Map();
     const matchList = [];
 
@@ -82,7 +81,7 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
         const it = matches.values();
         let item = it.next();
         while (item.done === false) {
-            if(item.value.isOpen()) {
+            if (item.value.isOpen()) {
                 matchList.push(item.value);
             }
 
@@ -91,11 +90,11 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
     }
 
     function addMatch(matchId) {
-        if(!matchId){
+        if (!matchId) {
             return;
         }
 
-        NetworkEntity.getById(ClientRoom, matchId).then(match => {
+        NetworkEntity.getById(ClientRoom, matchId).then((match) => {
             matches.set(matchId, match);
             updateMatchList();
         });
@@ -116,14 +115,12 @@ function matchFactory(Connection, ClientRoom, User, NetworkEntity, $rootScope) {
     }
 
     NetworkEntity.registerType(ClientMatch);
-    Connection.ready().then(socket => {
-        socket.get().on(MatchEvent.matchCreated, (data) => addMatch(data.matchId));
+    Connection.ready().then((socket) => {
+        socket.get().on(MatchEvent.matchCreated, data => addMatch(data.matchId));
         socket.get().on(MatchEvent.matchListUpdate, parseMatchIds);
         socket.get().on(MatchEvent.matchStarted, triggerMatchStart);
         socket.get().on(MatchEvent.matchEnded, triggerMatchEnd);
     });
-
-
 
     return ClientMatch;
 }

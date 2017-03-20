@@ -13,7 +13,10 @@ const ADT = {
         $state: '$state',
         $socket: 'socketFactory',
         $stateParams: '$stateParams',
-        $timeout: '$timeout'
+        $timeout: '$timeout',
+        $stateProvider: '$stateProvider',
+        $locationProvider: '$locationProvider',
+        $urlRouterProvider: '$urlRouterProvider',
     }
 };
 

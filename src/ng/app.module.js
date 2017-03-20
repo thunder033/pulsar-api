@@ -22,8 +22,13 @@ angular.module('warp-test-client', [
     mallet.name,
     require('angular-ui-router'),
     '$q-spread',
-]).config(['$stateProvider','$urlRouterProvider', ($stateProvider, $urlRouterProvider) => {
+]).config([
+    ADT.ng.$stateProvider,
+    ADT.ng.$urlRouterProvider,
+    ADT.ng.$locationProvider,
+($stateProvider, $urlRouterProvider, $locationProvider) => {
     $urlRouterProvider.otherwise('/lobby');
+    $locationProvider.hashPrefix('');
 
     $stateProvider.state('lobby', {
         url: '/lobby',
@@ -38,7 +43,6 @@ angular.module('warp-test-client', [
         templateUrl: 'views/results.html',
         controller: ADT.game.ResultsCtrl,
     });
-
 }]).run([MDT.Scheduler, function(MScheduler){
     MScheduler.startMainLoop();
 }]);
