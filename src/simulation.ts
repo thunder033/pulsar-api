@@ -3,7 +3,7 @@
  */
 
 import {ServerComponent, SyncServer} from './sync-server';
-import {User, UserComponent} from './user';
+import {Client, ClientComponent} from './client';
 import {NetworkEntity} from './network-index';
 import {GameEvent} from './event-types';
 import {PriorityQueue} from './priority-queue';
@@ -45,7 +45,7 @@ class StrafeCommand extends Command {
     }
 }
 
-export class ShipControl extends UserComponent {
+export class ShipControl extends ClientComponent {
     private ship: Ship;
     private commandQueue: PriorityQueue;
     private connection: Connection;
@@ -89,7 +89,7 @@ export class ShipControl extends UserComponent {
     }
 }
 
-export class Player extends UserComponent {
+export class Player extends ClientComponent {
 
     private score: number;
     private match: Match;
@@ -144,7 +144,7 @@ export class Simulation extends NetworkEntity {
     }
 
     public getSerializable() {
-        const makeIdPair = (user: User) => Buffer.from(user.getId() + user.getComponent(ShipControl).getShip().getId());
+        const makeIdPair = (user: Client) => Buffer.from(user.getId() + user.getComponent(ShipControl).getShip().getId());
         const shipIds = Buffer.concat(this.match.getUsers().map(makeIdPair));
         console.log(shipIds.toString('utf8'));
         return Object.assign(super.getSerializable(), {matchId: this.match.getId(), shipIds});

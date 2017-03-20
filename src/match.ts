@@ -6,7 +6,7 @@ import * as uuid from 'uuid/v4';
 import {INetworkEntity} from './network-index';
 import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
-import {User} from './user';
+import {Client} from './client';
 import {MatchEvent} from './event-types';
 import {Connection} from './connection';
 
@@ -33,7 +33,7 @@ export class Match extends Room implements INetworkEntity {
         this.startTime = NaN;
     }
 
-    public remove(user: User): boolean {
+    public remove(user: Client): boolean {
         const removed = super.remove(user);
         if (removed && this.started === true && !user.getComponent(Connection).isTerminated()) {
             this.matchMaker.getLobby().add(user);
@@ -43,7 +43,7 @@ export class Match extends Room implements INetworkEntity {
         if (this.users.length === 0) {
             this.end();
             this.destroy();
-        } else if ((user as User).getComponent(MatchMember).isHost()) {
+        } else if ((user as Client).getComponent(MatchMember).isHost()) {
             this.host = this.users[0].getComponent(MatchMember);
             this.sync(null, this.getName());
         }

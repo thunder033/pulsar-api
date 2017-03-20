@@ -2,24 +2,22 @@
  * Created by gjr8050 on 2/24/2017.
  */
 
-'use strict';
-
-var browserify = {
+const browserify = {
     files: {
-        'public/dist/bundle.js': 'src/ng/app.module.js'
+        'public/dist/bundle.js': 'src/ng/app.module.js',
     },
     options: {
         alias: {
-            'angular': './scripts/angular.min.proxy.js',
+            angular: './scripts/angular.min.proxy.js',
             'angular-ui-router': './node_modules/angular-ui-router/release/angular-ui-router.min.js'
         },
         browserifyOptions: {
-            paths: ['./node_modules','./src/']
-        }
-    }
+            paths: ['./node_modules','./src/'],
+        },
+    },
 };
 
-module.exports = function(grunt){
+module.exports = (grunt) => {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         browserify: {
@@ -29,11 +27,11 @@ module.exports = function(grunt){
                     alias: browserify.options.alias,
                     browserifyOptions: {
                         debug: true,
-                        paths: ['./node_modules','./src/']
-                    }
-                }
+                        paths: ['./node_modules', './src/'],
+                    },
+                },
             },
-            dist: browserify
+            dist: browserify,
         },
         // jshint: {
         //     options: {
@@ -45,11 +43,12 @@ module.exports = function(grunt){
         clean: {
             all: ['public/dist/*'],
             pulsarDist: ['public/dist/*'],
-            tmp: ['.tmp/*']
+            tmp: ['.tmp/*'],
         },
         copy: {
             prod: {
-                files: [{expand: true, src: [
+                files: [{expand: true,
+                    src: [
                     // Pulsar
                     'public/dist/**/*.js',
                     'public/index.html',
@@ -61,25 +60,26 @@ module.exports = function(grunt){
                     '!src/ng/**/*.js',
 
                     'LICENSE',
-                    'package.json'
-                ], dest: '.tmp'}]
+                    'package.json',
+                ],
+                    dest: '.tmp'}],
             },
             pulsarAssets: {
                 files: [
-                    { expand: true, cwd: 'pulsar/assets/fonts', src: ['*'], dest: 'pulsar/dist/fonts/'}
-                ]
-            }
+                    { expand: true, cwd: 'pulsar/assets/fonts', src: ['*'], dest: 'pulsar/dist/fonts/'},
+                ],
+            },
         },
         watch: {
             js: {
                 files: ['src/ng/**/*.js'],
-                tasks: ['browserify:dev']
-            }
-        }
+                tasks: ['browserify:dev'],
+            },
+        },
     });
 
     grunt.loadNpmTasks('grunt-browserify');
-    //grunt.loadNpmTasks('grunt-contrib-jshint');
+    // grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-copy');
@@ -87,17 +87,17 @@ module.exports = function(grunt){
     grunt.registerTask('default', ['build-dev']);
 
     grunt.registerTask('build-dev', [
-        //'jshint:all',
+        // 'jshint:all',
         'clean:pulsarDist',
         'browserify:dev',
         //'copy:pulsarAssets'
     ]);
 
     grunt.registerTask('build-prod', [
-        //'jshint:all',
+        // 'jshint:all',
         'clean:pulsarDist',
         'browserify:dist',
-        //'copy:pulsarAssets',
+        // 'copy:pulsarAssets',
         'copy:prod',
         //'clean:pulsarDist'
     ]);

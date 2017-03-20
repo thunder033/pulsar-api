@@ -4,7 +4,7 @@
 import {Match} from './match';
 import {ServerComponent, SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
-import {User, UserComponent} from './user';
+import {Client, ClientComponent} from './client';
 import {Room} from './room';
 import {IOEvent, MatchEvent} from './event-types';
 import {Building} from './building';
@@ -13,7 +13,7 @@ import {ShipControl, Simulator} from './simulation';
 /**
  * Providers users the ability to join and leave matches
  */
-export class MatchMember extends UserComponent {
+export class MatchMember extends ClientComponent {
 
     private match: Match = null;
 
@@ -159,11 +159,11 @@ export class MatchMaker extends ServerComponent {
 
     /**
      * Attempts to add the user to the match specified by name
-     * @param user {User}: the user to add to the match
+     * @param user {Client}: the user to add to the match
      * @param name {string}: the match to find by name
      * @returns {Match}
      */
-    public joinMatch(user: User, name: string): Match {
+    public joinMatch(user: Client, name: string): Match {
         const match = this.getMatch(name);
 
         if (!(match instanceof Match)) {

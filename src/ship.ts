@@ -3,24 +3,9 @@
  */
 
 import {NetworkEntity} from './network-index';
-
-export class Track {
-    public static readonly LANE_WIDTH: number = 1.15;
-    public static readonly NUM_LANES: number  = 3;
-    public static readonly POSITION_X: number = (-Track.NUM_LANES / 2) * Track.LANE_WIDTH;
-    public static readonly WIDTH: number      = Track.LANE_WIDTH * Track.NUM_LANES;
-}
-
-export enum Direction {
-    LEFT = -1,
-    NONE = 0,
-    RIGHT = 1,
-}
+import {Direction, ShipEngine, Track} from './game-params';
 
 export class Ship extends NetworkEntity {
-
-    private static readonly MOVE_SPEED: number = 0.0045;
-    private static readonly SNAP_DELTA: number = 0.03; // 3% of lane width
 
     // only the x-coordinate is of consequence, so we only care about it
     public positionX: number;
@@ -69,7 +54,7 @@ export class Ship extends NetworkEntity {
          */
         if (this.activeCmd !== Direction.NONE &&
             this.lastCmd === this.activeCmd &&
-            this.isInBounds(this.activeCmd * Ship.MOVE_SPEED * dt)) {
+            this.isInBounds(this.activeCmd * ShipEngine.MOVE_SPEED * dt)) {
 
             this.strafe(this.activeCmd);
             if (this.hasReachedLane()) {
@@ -103,13 +88,20 @@ export class Ship extends NetworkEntity {
         this.updateBuffer.writeFloatBE((this.positionX || 0), NetworkEntity.ID_LENGTH);
     }
 
+    /**
+     * Determines if the ship is near the center of its current lane
+     * @returns {boolean}
+     */
     public isAtLaneCenter() {
         const laneCoord = this.getLaneCoord();
-        const minBound = 0.5 - Ship.SNAP_DELTA;
-        const maxBound = 0.5 + Ship.SNAP_DELTA;
+        const minBound = 0.5 - ShipEngine.SNAP_DELTA;
+        const maxBound = 0.5 + ShipEngine.SNAP_DELTA;
         return laneCoord > minBound && laneCoord < maxBound;
     }
 
+    /**
+     * Determine which lane the ship is nearest to, and begin moving towards it
+     */
     public strafeToNearestLane() {
         // "snaps" the ship to the middle of the lane when the user releases all controls
         const lane = this.getLaneFromPos();
@@ -133,17 +125,26 @@ export class Ship extends NetworkEntity {
         this.strafe(this.getSwitchDirection());
     }
 
+    /**
+     * Get the data buffer storing the ship's state
+     * @returns {Buffer}
+     */
     public getDataBuffer(): Buffer {
         return this.updateBuffer;
     };
 
+    /**
+     * commands the ship to begin moving in the given direction
+     * @param direction {number}: the Direction to move in
+     * @param pingDelay {number}: how many ms ago the client issued the command
+     */
     public switchLane(direction: Direction, pingDelay: number = 0): void {
         if (direction !== Direction.NONE && direction !== this.lastCmd) {
             this.lastCmd = direction;
 
             if (Ship.isValidDestLane(this.destLane + direction)) {
                 this.activeCmd = direction;
-                this.positionX += pingDelay * Ship.MOVE_SPEED;
+                this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
                 this.setDestLane(this.destLane + direction);
             }
 
@@ -157,7 +158,7 @@ export class Ship extends NetworkEntity {
      * @param direction {number} sign of direction
      */
     public strafe(direction: Direction): void {
-        this.velocityX = Ship.MOVE_SPEED * direction;
+        this.velocityX = ShipEngine.MOVE_SPEED * direction;
     }
 
     /**

@@ -22,7 +22,6 @@ resolve: ADT => [
  * @returns {ClientConnection}
  */
 function connectionFactory($q, Socket, AsyncInitializer, Clock) {
-
     const deferConnected = $q.defer();
     const deferJoined = $q.defer();
 

@@ -10,19 +10,19 @@ import {Room} from './room';
 import {SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
 
-export interface IUserComponent extends Component {
-    init(socket: Socket, server: SyncServer, user: User): void;
+export interface IClientComponent extends Component {
+    init(socket: Socket, server: SyncServer, user: Client): void;
     onInit(): void;
     onJoin(data): void;
     onDisconnect(): void;
 }
 
-export abstract class UserComponent extends Component implements IUserComponent {
+export abstract class ClientComponent extends Component implements IClientComponent {
     protected server: SyncServer;
     protected socket: Socket;
-    protected user: User;
+    protected user: Client;
 
-    public init(socket: Socket, server: SyncServer, user: User): UserComponent {
+    public init(socket: Socket, server: SyncServer, user: Client): ClientComponent {
         this.server = server;
         this.socket = socket;
         this.user = user;
@@ -47,7 +47,7 @@ export abstract class UserComponent extends Component implements IUserComponent 
     }
 }
 
-export class User extends Composite implements INetworkEntity {
+export class Client extends Composite implements INetworkEntity {
 
     protected server: SyncServer;
     protected socket: Socket;
@@ -72,23 +72,8 @@ export class User extends Composite implements INetworkEntity {
     }
 
     public addComponent(component: IComponent): Component {
-        return (super.addComponent(component) as UserComponent)
+        return (super.addComponent(component) as ClientComponent)
             .init(this.socket, this.server, this);
-    }
-
-    public join(room: Room): void {
-        console.log(`${this.name} join ${room.getName()}`);
-        room.add(this);
-        this.rooms.push(room);
-        this.invokeComponentEvents('onJoin', room);
-    }
-
-    public leave(room: Room): void {
-        console.log(`${this.name} leave ${room.getName()}`);
-        room.remove(this);
-        const roomIndex = this.rooms.indexOf(room);
-        this.rooms.splice(roomIndex, 1);
-        this.invokeComponentEvents('onLeave', room);
     }
 
     public setName(name: string): void {

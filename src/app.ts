@@ -6,8 +6,8 @@
 
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
-import {MatchMaker} from './match-maker';
 import {NetworkIndex} from './network-index';
+import {MatchMaker} from './match-maker';
 import {Building} from './building';
 import {Simulator} from './simulation';
 

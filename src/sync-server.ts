@@ -66,7 +66,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
 
 // This is hacky af, but we're not moving users to their own component yet
 import {Connection} from './connection';
-import {User} from './user';
+import {Client} from './client';
 
 /**
  * Maintains client connections
@@ -74,7 +74,7 @@ import {User} from './user';
 export class SyncServer extends Composite {
 
     private io: SocketIO.Server;
-    private users: User[];
+    private users: Client[];
 
     constructor(httpServer: http.Server) {
         super();
@@ -87,7 +87,7 @@ export class SyncServer extends Composite {
         });
     }
 
-    public getUsers(): User[] {
+    public getUsers(): Client[] {
         return this.users;
     }
 
@@ -106,7 +106,7 @@ export class SyncServer extends Composite {
      * @param socket {Socket}: the socket connecting
      */
     public registerConnection(socket: Socket) {
-        const user = new User(socket, this, this.getUserComponents());
+        const user = new Client(socket, this, this.getUserComponents());
         user.setName(socket.handshake.query.name);
         this.users.push(user);
     };
@@ -138,8 +138,8 @@ export class SyncServer extends Composite {
      * @param targetUser
      * @returns {boolean}
      */
-    public removeClient(targetUser: User): boolean {
-        return this.users.some((user: User, i: number) => {
+    public removeClient(targetUser: Client): boolean {
+        return this.users.some((user: Client, i: number) => {
             if (targetUser === user) {
                 this.users.splice(i, 1);
                 this.invokeComponentEvents('onClientTerminated', targetUser);

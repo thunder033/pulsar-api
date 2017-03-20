@@ -1,7 +1,7 @@
 import {ServerComponent, SyncServer} from './sync-server';
 import {Room} from './room';
 import {IOEvent} from './event-types';
-import {User} from './user';
+import {Client} from './client';
 /**
  * Created by gjrwcs on 3/6/2017.
  */
@@ -55,7 +55,7 @@ export class Building extends ServerComponent {
         return this.defaultRoom;
     }
 
-    public onClientTerminated(user: User): void {
+    public onClientTerminated(user: Client): void {
         this.rooms.forEach((room) => {
             room.remove(user);
         });
