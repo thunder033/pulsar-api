@@ -25,7 +25,7 @@ export interface INetworkEntity {
 /**
  * Constructor that generates a network entity
  */
-interface INetworkEntityCtor {
+export interface INetworkEntityCtor {
     new(...args: any[]): INetworkEntity;
 }
 

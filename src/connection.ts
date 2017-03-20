@@ -89,19 +89,19 @@ export class Connection extends ClientComponent {
         if (req.type && req.id) {
             const type = networkIndex.getType(req.type);
             if (!type) {
-                this.socket.emit(errorKey, `Invalid ${IOEvent.syncNetworkEntity} request type: ${req.type}`);
+                this.socket.emit(errorKey, `SyncError: Invalid ${IOEvent.syncNetworkEntity} request type: ${req.type}`);
                 return;
             }
 
             const entity: INetworkEntity = networkIndex.getById(type, req.id);
             if (!entity) {
-                this.socket.emit(errorKey, `No ${type.name} was found with id ${req.id}`);
+                this.socket.emit(errorKey, `SyncError: No ${type.name} was found with id ${req.id}`);
                 return;
             }
 
             this.socket.emit(`${IOEvent.syncNetworkEntity}-${data.reqId}`, new SyncResponse(entity));
         } else {
-            this.socket.emit(errorKey, `Invalid ${IOEvent.syncNetworkEntity} request`);
+            this.socket.emit(errorKey, `SyncError: Invalid ${IOEvent.syncNetworkEntity} request`);
         }
 
     }

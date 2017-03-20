@@ -4,7 +4,7 @@
 
 import {ServerComponent, SyncServer} from './sync-server';
 import {Client, ClientComponent} from './client';
-import {NetworkEntity} from './network-index';
+import {INetworkEntity, INetworkEntityCtor, NetworkEntity, NetworkIndex} from './network-index';
 import {GameEvent} from './event-types';
 import {PriorityQueue} from './priority-queue';
 import Timer = NodeJS.Timer;
@@ -13,6 +13,7 @@ import {Match} from './match';
 import {Ship} from './ship';
 import {Clock} from './clock';
 import {DataFormat} from './game-params';
+import {Composite} from './component';
 
 enum Method {
     accelerate,
@@ -107,11 +108,21 @@ export class ShipControl extends ClientComponent {
     }
 }
 
-export class Player extends ClientComponent {
+export class Player extends ClientComponent implements INetworkEntity {
 
     private score: number;
     private match: Match;
     private hue: number;
+
+    constructor(parent: Composite) {
+        super(parent);
+    }
+
+    public onInit(): void {
+        const networkIndex = this.server.getComponent(NetworkIndex);
+        networkIndex.registerType(this.getType());
+        networkIndex.putNetworkEntity(this.getType(), this);
+    }
 
     public attachMatch(match: Match): void {
         this.match = match;
@@ -119,6 +130,26 @@ export class Player extends ClientComponent {
 
         const simulation = this.server.getComponent(Simulator).getSimulation(match);
         this.hue = simulation.getNewPlayerHue();
+    }
+
+    public getSerializable(): Object {
+        return {
+            hue: this.hue,
+            id: this.getId(),
+            score: this.score,
+        };
+    }
+
+    public getId(): string {
+        return this.user.getId();
+    }
+
+    public sync(socket?: SocketIO.Socket): void {
+        NetworkEntity.prototype.sync.apply(this, socket);
+    }
+
+    public getType(): INetworkEntityCtor {
+        return this.constructor as INetworkEntityCtor;
     }
 }
 
@@ -169,6 +200,10 @@ export class Simulation extends NetworkEntity {
         this.clock = new Clock();
     }
 
+    /**
+     * Get the current game time in ms
+     * @returns {number}
+     */
     public getTime(): number {
         return this.clock.now();
     }
@@ -180,25 +215,45 @@ export class Simulation extends NetworkEntity {
         return Object.assign(super.getSerializable(), {matchId: this.match.getId(), shipIds});
     }
 
+    /**
+     * Add an operation to run each step of the simulation
+     * @param operation {SimulationOperation}
+     * @param [priority] {number}
+     */
     public schedule(operation: SimulationOperation, priority?: number) {
         this.operations.enqueue(priority || 0, operation);
     }
 
+    /**
+     * Begin running the game
+     */
     public start() {
         this.lastStepTime = Date.now();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
     }
 
+    /**
+     * Generate a unique hue (HSL) value for a player in this game
+     * @returns {number} the hue value for an hsl color, 0 - 255
+     */
     public getNewPlayerHue(): number {
         let hue = 0;
+        let count = 0;
         do {
             hue = ~~(Math.random() * 255);
+            if (count++ > 255) {
+                throw new Error('No new player hues available within constraints');
+            }
         } while (this.isUsedHue(hue));
 
+        this.usedHues.push(hue);
         return hue;
     }
 
-    protected step() {
+    /**
+     * Execute the next step in the simulation
+     */
+    protected step(): void {
         const stepTime = Date.now();
         const dt = stepTime - this.lastStepTime;
         this.lastStepTime = stepTime;
@@ -210,6 +265,11 @@ export class Simulation extends NetworkEntity {
         }
     }
 
+    /**
+     * Indicates if the given value is used by a player already (within value constraint)
+     * @param hue {number}: HSL hue value, 0 - 255
+     * @returns {boolean}
+     */
     private isUsedHue(hue: number): boolean {
         const THRESHOLD = 50;
         return this.usedHues.some((usedHue) => {
