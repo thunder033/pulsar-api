@@ -10,6 +10,14 @@ require('angular').module('mallet').service(MDT.Scheduler, [
     MDT.Log,
     Scheduler]);
 
+/**
+ *
+ * @param MaxFrameRate
+ * @param MState
+ * @param $rootScope
+ * @param Log
+ * @constructor
+ */
 function Scheduler(MaxFrameRate, MState, $rootScope, Log) {
     var self = this,
         updateOperations = new PriorityQueue(),

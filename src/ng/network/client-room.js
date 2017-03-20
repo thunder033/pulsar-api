@@ -28,7 +28,7 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
         }
 
         add(user) {
-            if(this.users.has(user.getId()) === true){
+            if (this.users.has(user.getId()) === true) {
                 return;
             }
 
@@ -40,12 +40,12 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
                 evt.user = user;
                 this.dispatchEvent(evt);
             } else {
-                throw new Error(`Room is full and cannot accept any more users`);
+                throw new Error('Room is full and cannot accept any more users');
             }
         }
 
         remove(user) {
-            if(this.users.has(user.getId())) {
+            if (this.users.has(user.getId())) {
                 this.users.delete(user.getId());
                 NetworkEntity.syncValueList(this.users, this.userList);
 
@@ -89,14 +89,14 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
     }
 
     NetworkEntity.registerType(ClientRoom);
-    Connection.ready().then(socket => {
+    Connection.ready().then((socket) => {
         socket.get().on(IOEvent.joinedRoom, (data) => {
             $q.all([
                 NetworkEntity.getById(User, data.userId),
                 NetworkEntity.getById(ClientRoom, data.roomId),
             ]).spread((user, room) => {
                 room.add(user);
-                $rootScope.$broadcast(IOEvent.joinedRoom, {user: user, room: room});
+                $rootScope.$broadcast(IOEvent.joinedRoom, {user, room});
             });
         });
 
@@ -106,10 +106,10 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
                 NetworkEntity.getById(ClientRoom, data.roomId),
             ]).spread((user, room) => {
                 room.remove(user);
-                $rootScope.$broadcast(IOEvent.leftRoom, {user: user, room: room});
+                $rootScope.$broadcast(IOEvent.leftRoom, {user, room});
             });
         });
     });
 
-    return ClientRoom
+    return ClientRoom;
 }
