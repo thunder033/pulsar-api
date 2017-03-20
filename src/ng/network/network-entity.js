@@ -21,8 +21,11 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
     class NetworkEntity extends EventTarget {
 
         constructor(id) {
+            if (!id) {
+                throw new ReferenceError('NetworkEntity must be constructed with an ID');
+            }
             super();
-            this.id = id;
+            this.id = id.id || id;
             this.syncTime = ~~performance.now();
             NetworkEntity.putEntity(this.getType(), this);
         }
@@ -41,6 +44,16 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
 
             Log.debug(`sync ${this.constructor.name} ${this.id} at ${this.syncTime}`);
             $rootScope.$evalAsync();
+        }
+
+        requestSync() {
+            const serverType = NetworkEntity.getLookupType(this.getType().name).name.replace('Client', '');
+            const request = Connection.getSocket()
+                .request(IOEvent.syncNetworkEntity, {type: serverType, id: this.getId()})
+                .then(NetworkEntity.reconstruct);
+            NetworkEntity.pendingRequests.set(this.getId(), request);
+
+            return request;
         }
 
         static putEntity(type, entity) {
@@ -85,7 +98,7 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
         /**
          * Retrieve a network entity constructor based on name
          * @param typeName
-         * @returns {undefined|V|V}
+         * @returns {V}
          */
         static getLookupType(typeName) {
             let resolvedType = typeName;
@@ -132,7 +145,7 @@ function networkEntityFactory(Connection, $q, $rootScope, Log) {
 
         /**
          * Indicates if the entity identified by the registered type and name exists locally
-         * @param type {any}
+         * @param type {Function}
          * @param id {string}
          * @return {boolean}
          */
