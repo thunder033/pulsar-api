@@ -43,6 +43,7 @@ angular.module('warp-test-client', [
         templateUrl: 'views/results.html',
         controller: ADT.game.ResultsCtrl,
     });
-}]).run([MDT.Scheduler, function(MScheduler){
+}]).run([MDT.Scheduler, MDT.Log, function(MScheduler, Log){
+    Log.config({level: Log.Info});
     MScheduler.startMainLoop();
 }]);
