@@ -43,7 +43,7 @@ export class Building extends ServerComponent {
     public createRoom(name: string): Room {
         const room = new Room(name);
         this.addRoom(room);
-        this.server.broadcast(IOEvent.roomCreated, room.getName());
+        this.server.broadcast(IOEvent.roomCreated, room.getId());
         return room;
     }
 

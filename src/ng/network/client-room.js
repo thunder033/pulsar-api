@@ -19,7 +19,7 @@ function roomFactory(Connection, NetworkEntity, User, $rootScope, $q) {
     class ClientRoom extends NetworkEntity {
 
         constructor(params) {
-            super(params.name);
+            super(params.id);
             rooms[params.name] = this;
 
             this.users = new Map();
