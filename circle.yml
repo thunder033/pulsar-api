@@ -12,7 +12,8 @@ dependencies:
   post:
     - npm run build
 deployment:
-  staging:
-    branch: master
+  default:
+    branch: [master, production, prototype1, release1]
     commands:
       - sh ./scripts/deploy.sh
+
