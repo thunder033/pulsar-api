@@ -17,6 +17,9 @@ export class Ship extends NetworkEntity {
     private activeCmd: number; // the current command the ship is executing
     private lastCmd: number; // the last command given to the ship
 
+    private inactiveElapsed: number;
+    private inactiveSnapDuration: number = 100;
+
     private updateBuffer: Buffer;
 
     public static isValidDestLane(lane: number): boolean {
@@ -57,9 +60,6 @@ export class Ship extends NetworkEntity {
             this.isInBounds(this.activeCmd * ShipEngine.MOVE_SPEED * dt)) {
 
             this.strafe(this.activeCmd);
-            if (this.hasReachedLane()) {
-                this.setDestLane(this.destLane + this.getSwitchDirection());
-            }
             // otherwise, if there's a lane switch in progress
         } else if (this.isSwitchingLanes() === true) {
             this.strafe(this.getSwitchDirection());
@@ -78,9 +78,17 @@ export class Ship extends NetworkEntity {
                 this.activeCmd = Direction.NONE;
             }
             // Finally if there was an active command but input has stopped
-        } else if (this.activeCmd !== Direction.NONE || !this.isAtLaneCenter()) {
+        } else if ((this.activeCmd !== Direction.NONE || !this.isAtLaneCenter()) &&
+            this.inactiveElapsed > this.inactiveSnapDuration) {
+
             this.strafeToNearestLane();
             this.activeCmd = Direction.NONE;
+        }
+
+        if (this.lastCmd === Direction.NONE) {
+            this.inactiveElapsed += dt;
+        } else {
+            this.inactiveElapsed = 0;
         }
 
         this.positionX += this.velocityX * dt;
@@ -109,7 +117,7 @@ export class Ship extends NetworkEntity {
 
         // Determine if the ship is closer to the left or to the right
         // Then set the destination and current lanes accordingly
-        const snapDirection = this.getLaneCoord() >= 0.5 ? 1 : -1;
+        const snapDirection = this.getLaneCoord() >= 0.5 ? -1 : 1;
         this.lane = lane - snapDirection;
         this.destLane = lane;
 
@@ -146,7 +154,6 @@ export class Ship extends NetworkEntity {
             if (Ship.isValidDestLane(this.destLane + direction)) {
                 this.activeCmd = direction;
                 this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
-                this.setDestLane(this.destLane + direction);
             }
 
         }

@@ -37,11 +37,17 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
         console.log(clientShip);
         $scope.posX = 0;
 
+        function sendKeysReleased() {
+            if(!Keyboard.isKeyDown(Keys.Left) && !Keyboard.isKeyDown(Keys.Right)) {
+                clientShip.strafe(0);
+            }
+        }
+
         Keyboard.onKeyDown(Keys.Left, () => clientShip.strafe(-1));
         Keyboard.onKeyDown(Keys.Right, () => clientShip.strafe(1));
 
-        Keyboard.onKeyUp(Keys.Left, () => clientShip.strafe(0));
-        Keyboard.onKeyUp(Keys.Right, () => clientShip.strafe(0));
+        Keyboard.onKeyUp(Keys.Left, sendKeysReleased);
+        Keyboard.onKeyUp(Keys.Right, sendKeysReleased);
 
         MScheduler.schedule(() => {
             const rot = (~~performance.now()) / 200;

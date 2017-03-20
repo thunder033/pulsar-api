@@ -5,7 +5,7 @@
 
 export class Track {
     public static readonly LANE_WIDTH: number = 1.15;
-    public static readonly NUM_LANES: number  = 3;
+    public static readonly NUM_LANES: number  = 5;
     public static readonly POSITION_X: number = (-Track.NUM_LANES / 2) * Track.LANE_WIDTH;
     public static readonly WIDTH: number      = Track.LANE_WIDTH * Track.NUM_LANES;
 }

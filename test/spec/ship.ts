@@ -78,10 +78,14 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
         this.ship['lane'] = 2; // tslint:disable-line
         this.ship['destLane'] = 2; // tslint:disable-line
         expect(this.ship.getSwitchDirection()).to.equal(Direction.NONE);
-        this.ship.switchLane(Direction.LEFT);
+
+        this.ship['lane'] = 2; // tslint:disable-line
+        this.ship['destLane'] = 1; // tslint:disable-line
         expect(this.ship.getSwitchDirection()).to.equal(Direction.LEFT);
-        this.ship.switchLane(Direction.RIGHT);
-        expect(this.ship.getSwitchDirection()).to.equal(Direction.NONE);
+
+        this.ship['lane'] = 2; // tslint:disable-line
+        this.ship['destLane'] = 3; // tslint:disable-line
+        expect(this.ship.getSwitchDirection()).to.equal(Direction.RIGHT);
     }
 
     @test 'Gets switch direction across multiple lanes'() {
@@ -140,14 +144,14 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
         expect(this.ship.getLaneCoord(), 'right edge, negative').to.be.approximately(1, delta);
 
         this.ship.positionX = Track.POSITION_X + Track.LANE_WIDTH;
-        expect(this.ship.getLaneCoord(), 'next lane, left edge').to.equal(0);
+        expect(this.ship.getLaneCoord(), 'next lane, left edge').to.be.approximately(0, delta);
 
         const rightTrackEdge = Track.POSITION_X + Track.WIDTH;
         this.ship.positionX = rightTrackEdge;
-        expect(this.ship.getLaneCoord(), 'next lane, right edge').to.equal(0);
+        expect(this.ship.getLaneCoord(), 'next lane, right edge').to.be.approximately(0, delta);
 
         this.ship.positionX = rightTrackEdge - Track.LANE_WIDTH;
-        expect(this.ship.getLaneCoord(), 'left edge, positive').to.equal(0);
+        expect(this.ship.getLaneCoord(), 'left edge, positive').to.be.approximately(0, delta);
 
         this.ship.positionX = rightTrackEdge - Track.LANE_WIDTH / 2;
         expect(this.ship.getLaneCoord(), 'center lane, positive').to.be.approximately(0.5, delta);
@@ -186,7 +190,13 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
         this.ship.positionX = Track.POSITION_X + Track.LANE_WIDTH + Track.LANE_WIDTH / 3;
         this.ship.strafeToNearestLane();
         expect(this.ship['destLane'], 'dest lane, middle lane').equal(1); // tslint:disable-line
-        expect(this.ship['lane'], 'lane, middle lane').equal(2); // tslint:disable-line
+        expect(this.ship['lane'], 'lane, middle lane').equal(0); // tslint:disable-line
+        expect(this.ship.getSwitchDirection()).to.equal(Direction.RIGHT);
+
+        this.ship.positionX = Track.POSITION_X + Track.LANE_WIDTH - Track.LANE_WIDTH / 3;
+        this.ship.strafeToNearestLane();
+        expect(this.ship['destLane'], 'dest lane, middle lane').equal(0); // tslint:disable-line
+        expect(this.ship['lane'], 'lane, middle lane').equal(1); // tslint:disable-line
         expect(this.ship.getSwitchDirection()).to.equal(Direction.LEFT);
 
         this.ship.positionX = Track.POSITION_X + Track.WIDTH;
