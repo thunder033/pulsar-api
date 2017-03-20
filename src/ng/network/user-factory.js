@@ -13,8 +13,10 @@ resolve: ADT => [
     userFactory]};
 
 function userFactory(NetworkEntity, Connection) {
-
-    class User extends NetworkEntity {
+    /**
+     * Yes this looks stupid as hell...
+     */
+    class ClientClient extends NetworkEntity {
 
         constructor(params) {
             super(params.id);
@@ -26,13 +28,13 @@ function userFactory(NetworkEntity, Connection) {
         }
     }
 
-    NetworkEntity.registerType(User);
+    NetworkEntity.registerType(ClientClient);
     Connection.addEventListener(IOEvent.joinServer, (e) => {
         // Assign a local user entity to the client connection on join
-        Connection.deferReady(NetworkEntity.getById(User, e.userId).then((user) => {
+        Connection.deferReady(NetworkEntity.getById(ClientClient, e.userId).then((user) => {
             Connection.user = user;
         }));
     });
 
-    return User;
+    return ClientClient;
 }

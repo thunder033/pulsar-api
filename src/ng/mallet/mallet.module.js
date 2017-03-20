@@ -11,7 +11,7 @@ var math = require('./math.svc'),
  * Library for interactive web apps
  * @module mallet
  */
-var mallet = require('angular')
+const mallet = require('angular')
     .module('mallet', [
         config.name,
         constants.name,
@@ -19,6 +19,8 @@ var mallet = require('angular')
         simpleRequest.name]);
 
 //Core
+require('./state-machine.factory');
+require('./log.svc');
 require('./state.svc');
 require('./scheduler.svc');
 require('./thread.factory');
