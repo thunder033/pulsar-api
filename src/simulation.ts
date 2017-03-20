@@ -111,10 +111,14 @@ export class Player extends ClientComponent {
 
     private score: number;
     private match: Match;
+    private hue: number;
 
     public attachMatch(match: Match): void {
         this.match = match;
         this.score = 0;
+
+        const simulation = this.server.getComponent(Simulator).getSimulation(match);
+        this.hue = simulation.getNewPlayerHue();
     }
 }
 
@@ -156,6 +160,8 @@ export class Simulation extends NetworkEntity {
     private match: Match;
     private clock: Clock;
 
+    private usedHues: number[] = [];
+
     constructor(match: Match) {
         super(Simulation);
         this.operations = new PriorityQueue();
@@ -183,6 +189,15 @@ export class Simulation extends NetworkEntity {
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
     }
 
+    public getNewPlayerHue(): number {
+        let hue = 0;
+        do {
+            hue = ~~(Math.random() * 255);
+        } while (this.isUsedHue(hue));
+
+        return hue;
+    }
+
     protected step() {
         const stepTime = Date.now();
         const dt = stepTime - this.lastStepTime;
@@ -193,5 +208,12 @@ export class Simulation extends NetworkEntity {
         while (!it.isEnd()) {
             (it.next() as SimulationOperation).call(null, dt);
         }
+    }
+
+    private isUsedHue(hue: number): boolean {
+        const THRESHOLD = 50;
+        return this.usedHues.some((usedHue) => {
+            return Math.abs(usedHue - hue) < THRESHOLD;
+        });
     }
 }

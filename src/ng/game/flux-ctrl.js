@@ -53,10 +53,10 @@ function FluxCtrl($scope, MScheduler, MCamera, Geometry, MM, MEasel, Keyboard, K
             $scope.updateTime = clientShip.getUpdateTime();
 
             MScheduler.draw(() => {
-                MCamera.render(
+                ships.forEach(ship => MCamera.render(
                     Geometry.meshes.Ship,
-                    ships.map(s => s.getTransform()),
-                    MM.vec3(255));
+                    ship.getTransform(),
+                    ship.getColor()));
 
                 MCamera.render(Geometry.meshes.Cube, [tCube], MM.vec3(255, 0, 0));
                 MCamera.present();

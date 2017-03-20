@@ -49,14 +49,22 @@ function shipFactory(NetworkEntity, Connection, Geometry, Scheduler, MM, Clock) 
 
             this.tPrev = new Geometry.Transform();
             this.tDest = new Geometry.Transform();
-            this.tRender = new Geometry.Transform();
+            this.tRender = new Geometry.Transform()
+                .translate(0, -1, -2)
+                .scaleBy(0.75, 0.5, 0.75)
+                .rotateBy(-Math.PI / 6, 0, 0);
 
             this.updateTS = 0;
             this.lastUpdate = Clock.getNow();
             this.syncElapsed = 0;
             this.lerpPct = 0;
+            this.color = MM.vec3(255, 255, 255);
 
             Scheduler.schedule(this.update.bind(this));
+        }
+
+        getColor() {
+            return this.color;
         }
 
         sync(bufferView) {
