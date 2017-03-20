@@ -21,9 +21,9 @@ export class ShipEngine {
     public static readonly SNAP_DELTA: number = 0.03; // 3% of lane width
 }
 
-export class DataFormats {
+export class DataFormat {
     public static readonly SHIP: Map<string, number> = new Map([
-        ['positionX', 8],
-        ['velocityX', 8],
+        ['timestamp', 36],
+        ['positionX', 44],
     ]);
 }

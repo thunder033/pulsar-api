@@ -3,7 +3,7 @@
  */
 
 import {NetworkEntity} from './network-index';
-import {Direction, ShipEngine, Track} from './game-params';
+import {DataFormat, Direction, ShipEngine, Track} from './game-params';
 
 export class Ship extends NetworkEntity {
 
@@ -28,7 +28,7 @@ export class Ship extends NetworkEntity {
         this.activeCmd = Direction.NONE;
         this.lastCmd = Direction.NONE;
 
-        this.updateBuffer = Buffer.alloc(NetworkEntity.ID_LENGTH + 8);
+        this.updateBuffer = Buffer.alloc(NetworkEntity.ID_LENGTH + 16);
         this.updateBuffer.write(this.getId(), 0);
 
         this.positionX = 0;
@@ -85,7 +85,8 @@ export class Ship extends NetworkEntity {
 
         this.positionX += this.velocityX * dt;
 
-        this.updateBuffer.writeFloatBE((this.positionX || 0), NetworkEntity.ID_LENGTH);
+        const positionOffset = DataFormat.SHIP.get('positionX');
+        this.updateBuffer.writeFloatBE((this.positionX || 0), positionOffset);
     }
 
     /**

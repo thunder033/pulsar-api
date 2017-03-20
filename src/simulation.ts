@@ -11,6 +11,8 @@ import Timer = NodeJS.Timer;
 import {Connection} from './connection';
 import {Match} from './match';
 import {Ship} from './ship';
+import {Clock} from './clock';
+import {DataFormat} from './game-params';
 
 enum Method {
     accelerate,
@@ -50,6 +52,10 @@ export class ShipControl extends ClientComponent {
     private commandQueue: PriorityQueue;
     private connection: Connection;
     private match: Match;
+    private simulation: Simulation;
+
+    private readonly SYNC_INTERVAL: number = 50;
+    private syncElapsed: number = 0;
 
     public onInit() {
         this.connection = this.user.getComponent(Connection);
@@ -65,6 +71,9 @@ export class ShipControl extends ClientComponent {
         this.ship = new Ship();
         simulation.schedule(this.ship.update.bind(this.ship));
         simulation.schedule(this.syncClients.bind(this), 10);
+        this.simulation = simulation;
+
+        this.syncElapsed = 0;
     }
 
     public getShip(): Ship {
@@ -78,7 +87,16 @@ export class ShipControl extends ClientComponent {
     }
 
     private syncClients(dt: number): void {
-        this.match.broadcast(GameEvent.shipSync, this.ship.getDataBuffer());
+        this.syncElapsed += dt;
+        if (this.syncElapsed < this.SYNC_INTERVAL) {
+            return;
+        }
+
+        this.syncElapsed = 0;
+        const buffer: Buffer = this.ship.getDataBuffer();
+        const timestampOffset = DataFormat.SHIP.get('timestamp');
+        buffer.writeDoubleBE(this.simulation.getTime(), timestampOffset);
+        this.match.broadcast(GameEvent.shipSync, buffer);
     }
 
     private queueCommand(data) {
@@ -136,11 +154,17 @@ export class Simulation extends NetworkEntity {
     private stepInterval: Timer;
     private lastStepTime: number;
     private match: Match;
+    private clock: Clock;
 
     constructor(match: Match) {
         super(Simulation);
         this.operations = new PriorityQueue();
         this.match = match;
+        this.clock = new Clock();
+    }
+
+    public getTime(): number {
+        return this.clock.now();
     }
 
     public getSerializable() {
