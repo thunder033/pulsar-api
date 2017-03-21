@@ -7,7 +7,7 @@ import {INetworkEntity} from './network-index';
 import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
 import {Client} from './client';
-import {MatchEvent} from './event-types';
+import {MatchEvent} from 'event-types';
 import {Connection} from './connection';
 
 /**

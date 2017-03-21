@@ -3,7 +3,12 @@
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "event-types": ["node_modules/pulsar-lib/dist/src/event-types"],
+      "game-params": ["node_modules/pulsar-lib/dist/src/game-params"]
+    }
   },
   "exclude": [
     "node_modules"

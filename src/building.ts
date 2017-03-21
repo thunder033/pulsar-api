@@ -1,7 +1,7 @@
 import {ServerComponent, SyncServer} from './sync-server';
 import {Room} from './room';
-import {IOEvent} from './event-types';
 import {Client} from './client';
+import {IOEvent} from 'event-types';
 /**
  * Created by gjrwcs on 3/6/2017.
  */

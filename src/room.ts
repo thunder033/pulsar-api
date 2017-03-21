@@ -2,7 +2,7 @@
  * Created by gjr8050 on 2/23/2017.
  */
 
-import {IOEvent} from './event-types';
+import {IOEvent} from 'event-types';
 import {NetworkEntity} from './network-index';
 import {Client} from './client';
 

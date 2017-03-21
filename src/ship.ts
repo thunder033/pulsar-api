@@ -3,7 +3,7 @@
  */
 
 import {NetworkEntity} from './network-index';
-import {DataFormat, Direction, ShipEngine, Track} from './game-params';
+import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
 
 export class Ship extends NetworkEntity {
 

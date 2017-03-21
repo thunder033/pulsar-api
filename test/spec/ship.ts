@@ -2,10 +2,13 @@
  * Created by Greg on 3/11/2017.
  */
 
+import { setAliases } from '../../src/configure-aliases';
+setAliases();
+
 import { only, skip, slow, suite, test, timeout } from 'mocha-typescript';
 import { expect } from 'chai';
 import {Ship} from '../../src/ship';
-import {Direction, Track} from '../../src/game-params';
+import {Direction, Track} from 'game-params';
 import {NetworkIndex} from '../../src/network-index';
 import {SyncServer} from '../../src/sync-server';
 import {ExpressServer} from '../../src/express-server';

@@ -4,6 +4,9 @@
  * Created by gjrwcs on 2/16/2017.
  */
 
+import { setAliases } from './configure-aliases';
+setAliases();
+
 import {ExpressServer} from './express-server';
 import {SyncServer} from './sync-server';
 import {NetworkIndex} from './network-index';

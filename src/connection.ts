@@ -3,7 +3,7 @@
  */
 
 import {ClientComponent} from './client';
-import {IOEvent} from './event-types';
+import {IOEvent} from 'event-types';
 import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
 import {Building} from './building';

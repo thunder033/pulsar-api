@@ -4,7 +4,7 @@
  */
 
 import * as uuid from 'uuid/v4';
-import {IOEvent} from './event-types';
+import {IOEvent} from 'event-types';
 import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {Component, Composite} from './component';

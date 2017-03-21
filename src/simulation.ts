@@ -5,14 +5,14 @@
 import {ServerComponent, SyncServer} from './sync-server';
 import {Client, ClientComponent} from './client';
 import {INetworkEntity, INetworkEntityCtor, NetworkEntity, NetworkIndex} from './network-index';
-import {GameEvent} from './event-types';
+import {GameEvent} from 'event-types';
 import {PriorityQueue} from './priority-queue';
 import Timer = NodeJS.Timer;
 import {Connection} from './connection';
 import {Match} from './match';
 import {Ship} from './ship';
 import {Clock} from './clock';
-import {DataFormat} from './game-params';
+import {DataFormat} from 'game-params';
 import {Composite} from './component';
 
 enum Method {

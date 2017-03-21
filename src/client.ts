@@ -4,7 +4,7 @@
  */
 
 import {Component, Composite, IComponent} from './component';
-import {IOEvent} from './event-types';
+import {IOEvent} from 'event-types';
 import {INetworkEntity, Networkable} from './network-index';
 import {Room} from './room';
 import {SyncServer} from './sync-server';
