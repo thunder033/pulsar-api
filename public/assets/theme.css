@@ -91,6 +91,7 @@ button {
     box-sizing: border-box;
     height: 100%;
     float: right;
+    text-align: center;
 }
 
 .match-list {
@@ -141,4 +142,21 @@ select option {
 .warp-wrapper {
     width: 100%;
     height: 100%;
+}
+
+.client-link {
+    font-size: 2em;
+    padding: .5em;
+    border: 1px #ccc solid;
+    color: #cc0000;
+    background: #ddd;
+    border-radius: .2em;
+    margin-top: 1em;
+    text-decoration: none;
+    display: inline-block;
+    width: 12em;
+}
+
+.client-link:hover {
+    background: #fdd;
 }
