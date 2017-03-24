@@ -58,6 +58,7 @@ module.exports = (grunt) => {
                     'public/views/**',
 
                     'src/**/*.js',
+                    'src/tsconfig.json',
                     // angular js included in dist bundle
                     '!src/ng/**/*.js',
 
