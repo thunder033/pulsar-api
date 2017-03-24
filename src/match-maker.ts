@@ -42,6 +42,10 @@ export class MatchMember extends ClientComponent {
         }
     }
 
+    public unsetMatch() {
+        this.match = null;
+    }
+
     public endMatch(data) {
         if (this.match instanceof Match) {
             this.match.end();
@@ -56,7 +60,7 @@ export class MatchMember extends ClientComponent {
             this.match.remove(this.user);
 
             this.server.broadcast(IOEvent.leftRoom, {roomId: matchId, userId: this.user.getId()});
-            this.match = null;
+            this.unsetMatch();
         } else {
             this.socket.emit(IOEvent.serverError, `Client is not member of match to leave`);
         }

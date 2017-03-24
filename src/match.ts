@@ -48,6 +48,8 @@ export class Match extends Room implements INetworkEntity {
             this.sync(null, this.getName());
         }
 
+        user.getComponent(MatchMember).unsetMatch();
+
         return removed;
     }
 
@@ -60,9 +62,9 @@ export class Match extends Room implements INetworkEntity {
 
         this.broadcast(MatchEvent.matchEnded, {matchId: this.getId()});
         // Return users to the lobby at the end of the match
-        this.users.forEach((user) => {
-            this.matchMaker.getLobby().add(user);
-        });
+        while (this.users.length > 0) {
+            this.remove(this.users[0]);
+        }
     }
 
     /**
