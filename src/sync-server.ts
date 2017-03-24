@@ -80,7 +80,7 @@ export class SyncServer extends Composite {
         super();
         this.users = [];
 
-        this.io = socketio(httpServer);
+        this.io = socketio(httpServer, {transports: ['websocket', 'jsonp-polling']});
         this.io.origins('*:*');
         this.io.use((socket: Socket, next) => {
             this.registerConnection(socket);

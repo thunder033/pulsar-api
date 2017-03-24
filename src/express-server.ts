@@ -30,6 +30,12 @@ export class ExpressServer {
 
     constructor(routes: Object) {
         this.app = express();
+        this.app.all('/', (req, res, next) => {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'X-Request-With');
+            next();
+        });
+
         this.server = http.createServer(this.app);
         this.server.listen(this.port);
 
@@ -43,12 +49,6 @@ export class ExpressServer {
 
     private config() {
         this.readFileAsync = Q.denodeify(fs.readFile);
-
-        this.app.all('/', (req, res, next) => {
-            res.header('Access-Control-Allow-Origin', '*');
-            res.header('Access-Control-Allow-Headers', 'X-Request-With');
-            next();
-        });
     }
 
     private routes(routes: Object): void {
