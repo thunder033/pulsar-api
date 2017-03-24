@@ -3,7 +3,7 @@ import {NetworkEntity} from './network-index';
  * Created by Greg on 3/24/2017.
  */
 
-class LevelSlice {
+export class LevelSlice {
     private gems: number[];
     private loudness: number;
 
@@ -35,6 +35,14 @@ export class WarpField extends NetworkEntity {
 
         this.timeStep = 500; // ms
         this.duration = length * this.timeStep;
+    }
+
+    public getTimeStep(): number {
+        return this.timeStep;
+    }
+
+    public getFieldValues(): LevelSlice[] {
+        return this.level;
     }
 
     public getSerializable() {

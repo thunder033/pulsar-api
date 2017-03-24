@@ -15,6 +15,8 @@ import {Clock} from './clock';
 import {DataFormat} from 'game-params';
 import {Composite} from './component';
 import {WarpField} from './warp-field';
+import {WarpDrive} from './warp-drive';
+import {StateMachine} from './state-machine';
 
 enum Method {
     accelerate,
@@ -182,9 +184,18 @@ export class Simulator extends ServerComponent {
     }
 }
 
+export class GameState extends StateMachine {
+    public Playing;
+    public Paused;
+    public LevelComplete;
+    public Loading;
+}
+
 export class Simulation extends NetworkEntity {
 
-    private warpField: WarpField;
+    private warpDrive: WarpDrive;
+    private state: GameState;
+
     private targetFPS: number;
     private operations: PriorityQueue;
 
@@ -200,7 +211,13 @@ export class Simulation extends NetworkEntity {
         this.operations = new PriorityQueue();
         this.match = match;
         this.clock = new Clock();
-        this.warpField = new WarpField();
+
+        this.state = new GameState();
+        this.state.setState(this.state.Loading);
+
+        this.warpDrive = new WarpDrive();
+        this.warpDrive.load(new WarpField(), this.state);
+        this.schedule(this.warpDrive.update.bind(this.warpDrive));
     }
 
     /**
@@ -218,7 +235,7 @@ export class Simulation extends NetworkEntity {
         return Object.assign(super.getSerializable(), {
             matchId: this.match.getId(),
             shipIds,
-            warpFieldId: this.warpField.getId(),
+            warpFieldId: this.warpDrive.getWarpField().getId(),
         });
     }
 
@@ -231,12 +248,28 @@ export class Simulation extends NetworkEntity {
         this.operations.enqueue(priority || 0, operation);
     }
 
+    public getState(): GameState {
+        return this.state;
+    }
+
     /**
      * Begin running the game
      */
     public start() {
         this.lastStepTime = Date.now();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
+        this.state.setState(this.state.Playing);
+    }
+
+    public suspend() {
+
+    }
+
+    /**
+     * End the simulation
+     */
+    public end() {
+        clearInterval(this.stepInterval);
     }
 
     /**
