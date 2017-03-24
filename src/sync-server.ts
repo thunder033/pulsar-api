@@ -81,6 +81,7 @@ export class SyncServer extends Composite {
         this.users = [];
 
         this.io = socketio(httpServer);
+        this.io.origins('*:*');
         this.io.use((socket: Socket, next) => {
             this.registerConnection(socket);
             next();
