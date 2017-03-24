@@ -62,6 +62,7 @@ module.exports = (grunt) => {
                     '!src/ng/**/*.js',
 
                     'LICENSE',
+                    'tsconfig.json',
                     'package.json',
                 ],
                     dest: '.tmp'}],
