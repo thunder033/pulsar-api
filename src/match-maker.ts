@@ -125,7 +125,7 @@ export class MatchMember extends ClientComponent {
  */
 export class MatchMaker extends ServerComponent {
 
-    private static MAX_MATCHES: number = parseInt(process.env.WARP_MAX_MATCHES, 10) || 5;
+    // private static MAX_MATCHES: number = parseInt(process.env.WARP_MAX_MATCHES, 10) || 5;
 
     private lobby: Room;
     private matches: Match[];
@@ -150,15 +150,11 @@ export class MatchMaker extends ServerComponent {
      * @returns {any}
      */
     public createMatch(params): Match {
-        if (this.matches.length < MatchMaker.MAX_MATCHES) {
-            const match: Match = new Match(params.host, this);
-            this.server.getComponent(Building).addRoom(match);
-            match.setLabel(params.label);
-            this.matches.push(match);
-            return match;
-        } else {
-            return null;
-        }
+        const match: Match = new Match(params.host, this);
+        this.server.getComponent(Building).addRoom(match);
+        match.setLabel(params.label);
+        this.matches.push(match);
+        return match;
     }
 
     /**

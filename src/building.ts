@@ -14,7 +14,6 @@ export class Occupant extends ClientComponent {
     private getRooms(data) {
         const req = data.body;
         // const errorKey = `${IOEvent.serverError}-${data.reqId}`;
-        console.log(`${data.reqId}: ${req.type} ${req.id}`);
 
         const rooms = this.server.getComponent(Building).getClientRooms(this.user);
         this.socket.emit(`${'requestRooms'}-${data.reqId}`, rooms.map((room) => room.getId()));

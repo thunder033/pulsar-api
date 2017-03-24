@@ -14,6 +14,7 @@ import {Ship} from './ship';
 import {Clock} from './clock';
 import {DataFormat} from 'game-params';
 import {Composite} from './component';
+import {WarpField} from './warp-field';
 
 enum Method {
     accelerate,
@@ -183,6 +184,7 @@ export class Simulator extends ServerComponent {
 
 export class Simulation extends NetworkEntity {
 
+    private warpField: WarpField;
     private targetFPS: number;
     private operations: PriorityQueue;
 
@@ -198,6 +200,7 @@ export class Simulation extends NetworkEntity {
         this.operations = new PriorityQueue();
         this.match = match;
         this.clock = new Clock();
+        this.warpField = new WarpField();
     }
 
     /**
@@ -212,7 +215,11 @@ export class Simulation extends NetworkEntity {
         const makeIdPair = (user: Client) => Buffer.from(user.getId() + user.getComponent(ShipControl).getShip().getId());
         const shipIds = Buffer.concat(this.match.getUsers().map(makeIdPair));
         console.log(shipIds.toString('utf8'));
-        return Object.assign(super.getSerializable(), {matchId: this.match.getId(), shipIds});
+        return Object.assign(super.getSerializable(), {
+            matchId: this.match.getId(),
+            shipIds,
+            warpFieldId: this.warpField.getId(),
+        });
     }
 
     /**
