@@ -43,6 +43,12 @@ export class ExpressServer {
 
     private config() {
         this.readFileAsync = Q.denodeify(fs.readFile);
+
+        this.app.all('/', (req, res, next) => {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'X-Request-With');
+            next();
+        });
     }
 
     private routes(routes: Object): void {
