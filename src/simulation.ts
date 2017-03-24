@@ -262,7 +262,7 @@ export class Simulation extends NetworkEntity {
     }
 
     public suspend() {
-
+        // pause the game loop
     }
 
     /**
