@@ -5,6 +5,7 @@ import {GameState} from './simulation';
  * Created by Greg on 3/24/2017.
  */
 
+import {bind} from 'bind-decorator';
 class Bar {
     public static readonly scaleX: number = 1.5;
     public static readonly scaleY: number = 1;
@@ -52,6 +53,7 @@ export class WarpDrive {
         return this.warpField;
     }
 
+    @bind
     public update(dt) {
         if (!this.state.is(this.state.Playing)) {
             return;

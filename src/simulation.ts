@@ -17,6 +17,7 @@ import {Composite} from './component';
 import {WarpField} from './warp-field';
 import {WarpDrive} from './warp-drive';
 import {StateMachine} from './state-machine';
+import {bind} from 'bind-decorator';
 
 enum Method {
     accelerate,
@@ -70,11 +71,11 @@ export class ShipControl extends ClientComponent {
         this.match = match;
         this.socket.on(GameEvent.command, (data) => this.queueCommand(data));
         const simulation = this.server.getComponent(Simulator).getSimulation(this.match);
-        simulation.schedule(this.update.bind(this));
+        simulation.schedule(this.update);
 
         this.ship = new Ship();
-        simulation.schedule(this.ship.update.bind(this.ship));
-        simulation.schedule(this.syncClients.bind(this), 10);
+        simulation.schedule(this.ship.update);
+        simulation.schedule(this.syncClients, 10);
         this.simulation = simulation;
 
         this.syncElapsed = 0;
@@ -84,12 +85,14 @@ export class ShipControl extends ClientComponent {
         return this.ship;
     }
 
+    @bind
     private update(dt: number): void {
         while (this.commandQueue.peek() !== null) {
             (this.commandQueue.dequeue() as Command).execute(dt);
         }
     }
 
+    @bind
     private syncClients(dt: number): void {
         this.syncElapsed += dt;
         if (this.syncElapsed > this.SYNC_INTERVAL) {
@@ -217,7 +220,8 @@ export class Simulation extends NetworkEntity {
 
         this.warpDrive = new WarpDrive();
         this.warpDrive.load(new WarpField(), this.state);
-        this.schedule(this.warpDrive.update.bind(this.warpDrive));
+
+        this.schedule(this.warpDrive.update);
     }
 
     /**

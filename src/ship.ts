@@ -4,6 +4,7 @@
 
 import {BinaryNetworkEntity, NetworkEntity} from './network-index';
 import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
+import {bind} from 'bind-decorator';
 
 export class Ship extends BinaryNetworkEntity {
 
@@ -34,6 +35,7 @@ export class Ship extends BinaryNetworkEntity {
         this.lane = 0;
     }
 
+    @bind
     public update(dt: number): void {
         // clear out velocity
         this.velocityX = 0;

@@ -48,6 +48,7 @@
     "angular-q-spread": "^1.1.0",
     "angular-socket-io": "^0.7.0",
     "angular-ui-router": "^0.4.2",
+    "bind-decorator": "^1.0.10",
     "browserify": "^14.1.0",
     "chai": "^3.5.0",
     "eslint": "^3.16.1",
