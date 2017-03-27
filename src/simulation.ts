@@ -243,6 +243,7 @@ export class Simulation extends NetworkEntity {
         return Object.assign(super.getSerializable(), {
             matchId: this.match.getId(),
             shipIds,
+            warpDriveId: this.warpDrive.getId(),
             warpFieldId: this.warpDrive.getWarpField().getId(),
         });
     }

@@ -332,8 +332,12 @@ export class NetworkIndex extends ServerComponent {
      * @param type
      */
     public registerType(type: INetworkEntityCtor) {
+        if (typeof EntityType[type.name] === 'undefined') {
+            throw new ReferenceError(`Unknown Network Entity Type ${type.name}. Type must present in pulsar-lib type code map.`);
+        }
+
         if (!this.types.has(EntityType[type.name])) {
-            console.log(`Register type ${type.name}`);
+            console.log(`Register type ${type.name} as ${EntityType[type.name]}`);
             this.types.set(EntityType[type.name], type);
             this.entities.set(EntityType[type.name], new Map());
         }
