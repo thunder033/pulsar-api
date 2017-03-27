@@ -7,7 +7,8 @@
     "baseUrl": "../",
     "paths": {
       "event-types": ["node_modules/pulsar-lib/dist/src/event-types"],
-      "game-params": ["node_modules/pulsar-lib/dist/src/game-params"]
+      "game-params": ["node_modules/pulsar-lib/dist/src/game-params"],
+      "entity-type": ["node_modules/pulsar-lib/dist/src/entity-types"]
     }
   }
 }

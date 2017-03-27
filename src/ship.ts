@@ -2,10 +2,10 @@
  * Created by Greg on 3/12/2017.
  */
 
-import {NetworkEntity} from './network-index';
+import {BinaryNetworkEntity, NetworkEntity} from './network-index';
 import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
 
-export class Ship extends NetworkEntity {
+export class Ship extends BinaryNetworkEntity {
 
     // only the x-coordinate is of consequence, so we only care about it
     public positionX: number;
@@ -20,19 +20,14 @@ export class Ship extends NetworkEntity {
     private inactiveElapsed: number;
     private inactiveSnapDuration: number = 100;
 
-    private updateBuffer: Buffer;
-
     public static isValidDestLane(lane: number): boolean {
         return lane >= -1 && lane <= Track.NUM_LANES;
     }
 
     constructor() {
-        super(Ship);
+        super(Ship, DataFormat.SHIP);
         this.activeCmd = Direction.NONE;
         this.lastCmd = Direction.NONE;
-
-        this.updateBuffer = Buffer.alloc(NetworkEntity.ID_LENGTH + 16);
-        this.updateBuffer.write(this.getId(), 0);
 
         this.positionX = 0;
         this.destLane = 0;
@@ -93,8 +88,7 @@ export class Ship extends NetworkEntity {
 
         this.positionX += this.velocityX * dt;
 
-        const positionOffset = DataFormat.SHIP.get('positionX');
-        this.updateBuffer.writeFloatBE((this.positionX || 0), positionOffset);
+        this.updateBuffer();
     }
 
     /**
@@ -133,14 +127,6 @@ export class Ship extends NetworkEntity {
 
         this.strafe(this.getSwitchDirection());
     }
-
-    /**
-     * Get the data buffer storing the ship's state
-     * @returns {Buffer}
-     */
-    public getDataBuffer(): Buffer {
-        return this.updateBuffer;
-    };
 
     /**
      * commands the ship to begin moving in the given direction

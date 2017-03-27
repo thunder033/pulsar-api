@@ -92,15 +92,10 @@ export class ShipControl extends ClientComponent {
 
     private syncClients(dt: number): void {
         this.syncElapsed += dt;
-        if (this.syncElapsed < this.SYNC_INTERVAL) {
-            return;
+        if (this.syncElapsed > this.SYNC_INTERVAL) {
+            this.ship.sync(null, this.match.getName());
+            this.syncElapsed = 0;
         }
-
-        this.syncElapsed = 0;
-        const buffer: Buffer = this.ship.getDataBuffer();
-        const timestampOffset = DataFormat.SHIP.get('timestamp');
-        buffer.writeDoubleBE(this.simulation.getTime(), timestampOffset);
-        this.match.broadcast(GameEvent.shipSync, buffer);
     }
 
     private queueCommand(data) {
