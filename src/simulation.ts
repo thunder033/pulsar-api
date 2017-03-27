@@ -207,6 +207,9 @@ export class Simulation extends NetworkEntity {
     private match: Match;
     private clock: Clock;
 
+    private readonly SYNC_INTERVAL: number = 50;
+    private syncElapsed: number = 0;
+
     private usedHues: number[] = [];
 
     constructor(match: Match) {
@@ -222,6 +225,7 @@ export class Simulation extends NetworkEntity {
         this.warpDrive.load(new WarpField(), this.state);
 
         this.schedule(this.warpDrive.update);
+        this.schedule(this.syncClients);
     }
 
     /**
@@ -323,5 +327,14 @@ export class Simulation extends NetworkEntity {
         return this.usedHues.some((usedHue) => {
             return Math.abs(usedHue - hue) < THRESHOLD;
         });
+    }
+
+    @bind
+    private syncClients(dt: number): void {
+        this.syncElapsed += dt;
+        if (this.syncElapsed > this.SYNC_INTERVAL) {
+            this.warpDrive.sync(null, this.match.getName());
+            this.syncElapsed = 0;
+        }
     }
 }

@@ -1,11 +1,13 @@
-import {ServerComponent, SyncServer} from './sync-server';
-import {LevelSlice, WarpField} from './warp-field';
-import {GameState} from './simulation';
 /**
  * Created by Greg on 3/24/2017.
  */
 
+import {LevelSlice, WarpField} from './warp-field';
+import {GameState} from './simulation';
+import {BinaryNetworkEntity} from './network-index';
+import {DataFormat} from 'pulsar-lib/dist/src/game-params';
 import {bind} from 'bind-decorator';
+
 class Bar {
     public static readonly scaleX: number = 1.5;
     public static readonly scaleY: number = 1;
@@ -19,7 +21,7 @@ class Bar {
  * Reads and utilizes WarpFields to advance the state of
  * the game
  */
-export class WarpDrive {
+export class WarpDrive extends BinaryNetworkEntity {
 
     private barVisibleCnt: number = 55;
     private barQueue;
@@ -33,7 +35,13 @@ export class WarpDrive {
     private timeStep: number;
     private barOffset: number;
 
+    // binary getter
+    private get stateValue(): number {
+        return this.state.getState();
+    }
+
     constructor() {
+        super(WarpDrive, DataFormat.WARP_DRIVE);
         this.sliceElapsed = 0;
         this.sliceIndex = 0;
         this.timeStep = NaN;
@@ -79,6 +87,8 @@ export class WarpDrive {
         if (this.sliceIndex > this.fieldValues.length) {
             this.state.setState(this.state.LevelComplete);
         }
+
+        this.updateBuffer();
     }
 
 }
