@@ -177,6 +177,11 @@ export class Simulator extends ServerComponent {
     public getSimulation(match: Match): Simulation {
         return this.games.get(match.getId());
     }
+
+    public endSimulation(match: Match): void {
+        this.games.get(match.getId()).end();
+        this.games.delete(match.getId());
+    }
 }
 
 export class GameState extends StateMachine {
@@ -257,7 +262,7 @@ export class Simulation extends NetworkEntity {
     }
 
     public suspend() {
-
+        this.state.setState(this.state.Paused);
     }
 
     /**
@@ -289,6 +294,10 @@ export class Simulation extends NetworkEntity {
      * Execute the next step in the simulation
      */
     protected step(): void {
+        if (this.state.is(this.state.Paused)) {
+            return;
+        }
+
         const stepTime = Date.now();
         const dt = stepTime - this.lastStepTime;
         this.lastStepTime = stepTime;

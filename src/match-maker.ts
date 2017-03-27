@@ -186,6 +186,10 @@ export class MatchMaker extends ServerComponent {
     public removeMatch(match: Match): void {
         const matchIndex = this.matches.indexOf(match);
         if (matchIndex > -1) {
+            if (match.hasStarted()) {
+                this.server.getComponent(Simulator).endSimulation(match);
+            }
+
             console.log(`removed match ${match.getName()}`);
             this.matches.splice(matchIndex, 1);
             this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getId()));
