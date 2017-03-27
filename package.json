@@ -13,7 +13,8 @@
     "version": "npm run build",
     "postversion": "git push && git push --tags",
     "watch": "grunt watch",
-    "buildRun": "tsc -p ./ && node ./src/app.js"
+    "buildRun": "tsc -p ./ && node ./src/app.js",
+    "updateLib": "npm i git+https://github.com/thunder033/pulsar-lib.git"
   },
   "repository": {
     "type": "git",
