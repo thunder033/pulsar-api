@@ -47,7 +47,7 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.timeStep = NaN;
         this.barOffset = 0;
 
-        this.barQueue = [];
+        this.barQueue = [{}, {}, {}];
     }
 
     public load(warpField: WarpField, state: GameState): void {

@@ -16,7 +16,7 @@ import {DataFormat} from 'game-params';
 import {Composite} from './component';
 import {WarpField} from './warp-field';
 import {WarpDrive} from './warp-drive';
-import {StateMachine} from './state-machine';
+import {state, StateMachine} from './state-machine';
 import {bind} from 'bind-decorator';
 
 enum Method {
@@ -188,10 +188,10 @@ export class Simulator extends ServerComponent {
 }
 
 export class GameState extends StateMachine {
-    public Playing;
-    public Paused;
-    public LevelComplete;
-    public Loading;
+    @state public Playing;
+    @state public Paused;
+    @state public LevelComplete;
+    @state public Loading;
 }
 
 export class Simulation extends NetworkEntity {
