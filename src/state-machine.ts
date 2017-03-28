@@ -21,22 +21,26 @@ class StateListener {
     }
 }
 
+export function state(target: Object, key: string) {
+    if (delete target[key]) {
+        Object.defineProperty(target, key, {
+            enumerable: true,
+            value: Math.pow(2, Object.keys(target).length),
+        });
+    }
+}
+
 export abstract class StateMachine {
 
     @enumerable(false)
-    private state: number;
+    private state;
 
     @enumerable(false)
     private stateListeners: StateListener[];
 
-    /**
-     * @param {string[]} states
-     */
     constructor() {
-        Object.keys(this).forEach((state, i) => {
-            this[state] = Math.pow(2, i);
-            // Object.defineProperty(this, state, {value: Math.pow(2, i), enumerable: true});
-        });
+        this.state = 0;
+        this.stateListeners = [];
     }
 
     /**

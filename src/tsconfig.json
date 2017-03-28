@@ -4,6 +4,7 @@
     "target": "es6",
     "sourceMap": true,
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "baseUrl": "../",
     "paths": {
       "event-types": ["node_modules/pulsar-lib/dist/src/event-types"],
