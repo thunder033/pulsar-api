@@ -89,4 +89,18 @@ import { PriorityQueue } from '../../src/priority-queue';
 
         expect(this.priorityQueue.asArray()).to.deep.equal(['item1', 'item3', 'item2']);
     }
+
+    @test 'remove item from the queue'() {
+        this.priorityQueue.enqueue(0, 'item1');
+        this.priorityQueue.enqueue(2, 'item2');
+        this.priorityQueue.enqueue(1, 'item3');
+
+        this.priorityQueue.remove('item2');
+
+        expect(this.priorityQueue.asArray()).to.deep.equal(['item1', 'item3']);
+
+        this.priorityQueue.remove('item1');
+
+        expect(this.priorityQueue.asArray()).to.deep.equal(['item3']);
+    }
 }
