@@ -30,6 +30,7 @@
     "@types/q": "0.0.32",
     "@types/socket.io": "^1.4.28",
     "@types/uuid": "^2.0.29",
+    "bind-decorator": "^1.0.10",
     "express": "^4.14.1",
     "module-alias": "^2.0.0",
     "pulsar-lib": "github:thunder033/pulsar-lib#v1.0.10",
@@ -41,7 +42,6 @@
   "devDependencies": {
     "@types/chai": "^3.4.35",
     "@types/mocha": "^2.2.39",
-    "bind-decorator": "^1.0.10",
     "browserify": "^14.1.0",
     "chai": "^3.5.0",
     "grunt": "^1.0.1",
