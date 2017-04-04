@@ -1,6 +1,6 @@
 {
   "name": "pulsar-api",
-  "version": "1.0.54",
+  "version": "1.0.55",
   "description": "Backend services for Pulsar, including multiplayer Warp",
   "main": "src/app.js",
   "scripts": {
