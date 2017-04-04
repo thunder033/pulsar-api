@@ -23,8 +23,7 @@ class Bar {
  */
 export class WarpDrive extends BinaryNetworkEntity {
 
-    private barVisibleCnt: number = 55;
-    private barQueue;
+    private static readonly RENDER_OFFSET: number = 2;
 
     private state: GameState;
     private warpField: WarpField;
@@ -34,6 +33,8 @@ export class WarpDrive extends BinaryNetworkEntity {
     private sliceElapsed: number;
     private timeStep: number;
     private barOffset: number;
+
+    private velocity: number;
 
     // binary getter
     private get stateValue(): number {
@@ -47,7 +48,7 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.timeStep = NaN;
         this.barOffset = 0;
 
-        this.barQueue = [{}, {}, {}];
+        this.velocity = 0;
     }
 
     public load(warpField: WarpField, state: GameState): void {
@@ -74,15 +75,11 @@ export class WarpDrive extends BinaryNetworkEntity {
             this.sliceIndex++;
             this.barOffset = 0;
 
-            this.barQueue.shift();
-
-            while (this.barQueue.length < this.barVisibleCnt) {
-                this.barQueue.push({speed: 0.95});
-            }
+            const sliceSpeed = this.getSlice(WarpDrive.RENDER_OFFSET).getSpeed();
+            this.velocity = (Bar.scaleZ * sliceSpeed + Bar.margin) / this.timeStep;
         }
 
-        const velocity = (Bar.scaleZ * this.barQueue[2].speed + Bar.margin) / this.timeStep;
-        this.barOffset -= dt * velocity;
+        this.barOffset -= dt * this.velocity;
 
         if (this.sliceIndex > this.fieldValues.length) {
             this.state.setState(this.state.LevelComplete);
@@ -91,4 +88,11 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.updateBuffer();
     }
 
+    private getSlice(offset = 0) {
+        if (this.sliceIndex + offset < this.fieldValues.length) {
+            return this.fieldValues[this.sliceIndex + offset];
+        } else {
+            return LevelSlice.Empty;
+        }
+    }
 }

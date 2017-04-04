@@ -4,14 +4,24 @@ import {NetworkEntity} from './network-index';
  */
 
 export class LevelSlice {
+    public static readonly Empty: LevelSlice = new LevelSlice([], 0, 1);
+
     private gems: number[];
     private loudness: number;
     private speed: number;
 
     constructor(gems: number[], loudness: number, speed: number) {
-        this.loudness = loudness;
+        this.loudness = Math.abs(loudness);
         this.gems = gems;
-        this.speed = speed;
+        this.speed = Math.abs(speed);
+    }
+
+    /**
+     * Get the speed of the slice
+     * @returns {number}
+     */
+    public getSpeed(): number {
+        return this.speed;
     }
 }
 
@@ -33,7 +43,7 @@ export class WarpField extends NetworkEntity {
             const gems = new Array(lanes);
             gems.fill(0);
             gems[i % lanes] = 1;
-            this.level[i] = new LevelSlice(gems, Math.sin(i * DEG_TO_RAD), Math.cos(i * DEG_TO_RAD));
+            this.level[i] = new LevelSlice(gems, 1 - Math.sin(i * DEG_TO_RAD), 2 - Math.cos(i * DEG_TO_RAD));
         }
 
         this.timeStep = 500; // ms
