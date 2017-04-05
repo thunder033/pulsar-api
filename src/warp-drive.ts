@@ -19,6 +19,7 @@ export class WarpDrive extends BinaryNetworkEntity {
 
     private sliceIndex: number;
     private sliceElapsed: number;
+    private endSliceIndex: number;
     private timeStep: number;
     private barOffset: number;
 
@@ -35,6 +36,7 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.sliceIndex = 0;
         this.timeStep = NaN;
         this.barOffset = 0;
+        this.endSliceIndex = 0;
 
         this.velocity = 0;
     }
@@ -44,6 +46,8 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.state = state;
         this.timeStep = warpField.getTimeStep();
         this.fieldValues = warpField.getFieldValues();
+        this.sliceIndex = -DriveParams.LEVEL_BUFFER_START / this.timeStep;
+        this.endSliceIndex = this.fieldValues.length + DriveParams.LEVEL_BUFFER_END / this.timeStep;
     }
 
     public getWarpField(): WarpField {
@@ -69,7 +73,7 @@ export class WarpDrive extends BinaryNetworkEntity {
 
         this.barOffset -= dt * this.velocity;
 
-        if (this.sliceIndex > this.fieldValues.length) {
+        if (this.sliceIndex > this.endSliceIndex) {
             this.state.setState(this.state.LevelComplete);
         }
 
@@ -77,8 +81,9 @@ export class WarpDrive extends BinaryNetworkEntity {
     }
 
     private getSlice(offset = 0) {
-        if (this.sliceIndex + offset < this.fieldValues.length) {
-            return this.fieldValues[this.sliceIndex + offset];
+        const index = this.sliceIndex + offset;
+        if (index < this.fieldValues.length && index >= 0) {
+            return this.fieldValues[index];
         } else {
             return LevelSlice.Empty;
         }
