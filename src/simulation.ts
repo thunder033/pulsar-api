@@ -52,7 +52,35 @@ class StrafeCommand extends Command {
     }
 }
 
-export class ShipControl extends ClientComponent {
+interface IGameComponent {
+    attachMatch(match: Match): void;
+}
+
+function gameComponent(target: any) {
+    const original = target;
+
+    function construct(constructor, args) {
+        // tslint:disable-next-line:only-arrow-functions
+        const c: any = function() {
+            return constructor.apply(this, args);
+        };
+
+        c.prototype = constructor.prototype;
+        return new c();
+    }
+
+    // tslint:disable-next-line:only-arrow-functions
+    const gameComponentCtor: any = function(...args) {
+        return construct(original, args);
+    };
+
+    gameComponentCtor.prototype = original.prototype;
+
+    return gameComponentCtor;
+}
+
+// @gameComponent
+export class ShipControl extends ClientComponent implements IGameComponent {
     private ship: Ship;
     private commandQueue: PriorityQueue;
     private connection: Connection;
@@ -109,7 +137,8 @@ export class ShipControl extends ClientComponent {
     }
 }
 
-export class Player extends ClientComponent implements INetworkEntity {
+
+export class Player extends ClientComponent implements INetworkEntity, IGameComponent {
 
     private score: number;
     private match: Match;
