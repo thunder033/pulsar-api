@@ -137,7 +137,6 @@ export class ShipControl extends ClientComponent implements IGameComponent {
     }
 }
 
-
 export class Player extends ClientComponent implements INetworkEntity, IGameComponent {
 
     private score: number;
