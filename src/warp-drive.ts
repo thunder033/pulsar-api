@@ -5,26 +5,14 @@
 import {LevelSlice, WarpField} from './warp-field';
 import {GameState} from './simulation';
 import {BinaryNetworkEntity} from './network-index';
-import {DataFormat} from 'pulsar-lib/dist/src/game-params';
+import {DataFormat, DriveParams, SliceBar} from 'game-params';
 import {bind} from 'bind-decorator';
-
-class Bar {
-    public static readonly scaleX: number = 1.5;
-    public static readonly scaleY: number = 1;
-    public static readonly scaleZ: number = 0.9;
-
-    // The distance between each bar
-    public static readonly margin: number = 0.1;
-}
 
 /**
  * Reads and utilizes WarpFields to advance the state of
  * the game
  */
 export class WarpDrive extends BinaryNetworkEntity {
-
-    private static readonly RENDER_OFFSET: number = 2;
-
     private state: GameState;
     private warpField: WarpField;
     private fieldValues: LevelSlice[];
@@ -75,8 +63,8 @@ export class WarpDrive extends BinaryNetworkEntity {
             this.sliceIndex++;
             this.barOffset = 0;
 
-            const sliceSpeed = this.getSlice(WarpDrive.RENDER_OFFSET).getSpeed();
-            this.velocity = (Bar.scaleZ * sliceSpeed + Bar.margin) / this.timeStep;
+            const sliceSpeed = this.getSlice(DriveParams.RENDER_OFFSER).getSpeed();
+            this.velocity = (SliceBar.scaleZ * sliceSpeed + SliceBar.margin) / this.timeStep;
         }
 
         this.barOffset -= dt * this.velocity;
