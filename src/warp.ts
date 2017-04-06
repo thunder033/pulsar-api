@@ -2,12 +2,13 @@
  * Created by Greg on 4/5/2017.
  */
 import {ServerComponent, SyncServer} from './sync-server';
-import {IGameComponent, IGameComponentCtor, Simulation, Simulator} from './simulation';
+import {IGameComponent, IGameComponentCtor, Simulator} from './simulation';
 import {Match} from './match';
 import {Player} from './player';
 import {ShipControl} from './ship-control';
 import {Client} from './client';
 import {Component} from './component';
+import {Scoring} from './scoring';
 
 export class WarpFactory extends ServerComponent {
 
@@ -15,6 +16,7 @@ export class WarpFactory extends ServerComponent {
         Player,
         ShipControl,
         ShipRoster,
+        Scoring,
     ];
 
     constructor(syncServer: SyncServer) {
