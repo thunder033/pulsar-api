@@ -23,6 +23,10 @@ export class LevelSlice {
     public getSpeed(): number {
         return this.speed;
     }
+
+    public getGems(): number[] {
+        return this.gems;
+    }
 }
 
 export class WarpField extends NetworkEntity {

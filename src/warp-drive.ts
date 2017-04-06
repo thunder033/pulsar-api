@@ -7,6 +7,7 @@ import {GameState} from './simulation';
 import {BinaryNetworkEntity} from './network-index';
 import {DataFormat, DriveParams, SliceBar} from 'game-params';
 import {bind} from 'bind-decorator';
+import {Match} from './match';
 
 /**
  * Reads and utilizes WarpFields to advance the state of
@@ -50,13 +51,17 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.endSliceIndex = this.fieldValues.length + ~~(DriveParams.LEVEL_BUFFER_END / this.timeStep);
     }
 
+    public getSliceIndex() {
+        return this.sliceIndex;
+    }
+
     public getWarpField(): WarpField {
         return this.warpField;
     }
 
     @bind
     public update(dt) {
-        if (!this.state.is(this.state.Playing)) {
+        if (!this.state.is(GameState.Playing)) {
             return;
         }
 
@@ -74,13 +79,13 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.barOffset -= dt * this.velocity;
 
         if (this.sliceIndex > this.endSliceIndex) {
-            this.state.setState(this.state.LevelComplete);
+            this.state.setState(GameState.LevelComplete);
         }
 
         this.updateBuffer();
     }
 
-    private getSlice(offset = 0) {
+    public getSlice(offset = 0) {
         const index = this.sliceIndex + offset;
         if (index < this.fieldValues.length && index >= 0) {
             return this.fieldValues[index];
