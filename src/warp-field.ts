@@ -36,17 +36,18 @@ export class WarpField extends NetworkEntity {
         this.level = [];
 
         const lanes = 3;
-        const length = 250;
+        const length = 400;
 
         const DEG_TO_RAD = Math.PI / 180;
         for (let i = 0; i < length; i++) {
             const gems = new Array(lanes);
             gems.fill(0);
             gems[i % lanes] = 1;
-            this.level[i] = new LevelSlice(gems, 1 - Math.sin(i * DEG_TO_RAD), 2 - Math.cos(i * DEG_TO_RAD));
+            this.level[i] = new LevelSlice(gems, 1 - Math.sin(i * DEG_TO_RAD * 3), 2 - Math.cos(i * DEG_TO_RAD * 3));
         }
 
-        this.timeStep = 500; // ms
+        console.log(this.level.length);
+        this.timeStep = 300; // ms
         this.duration = length * this.timeStep;
     }
 

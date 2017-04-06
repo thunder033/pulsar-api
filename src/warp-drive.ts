@@ -46,8 +46,8 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.state = state;
         this.timeStep = warpField.getTimeStep();
         this.fieldValues = warpField.getFieldValues();
-        this.sliceIndex = -DriveParams.LEVEL_BUFFER_START / this.timeStep;
-        this.endSliceIndex = this.fieldValues.length + DriveParams.LEVEL_BUFFER_END / this.timeStep;
+        this.sliceIndex = ~~(-DriveParams.LEVEL_BUFFER_START / this.timeStep);
+        this.endSliceIndex = this.fieldValues.length + ~~(DriveParams.LEVEL_BUFFER_END / this.timeStep);
     }
 
     public getWarpField(): WarpField {
