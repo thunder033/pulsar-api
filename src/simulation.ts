@@ -4,182 +4,26 @@
 
 import {ServerComponent, SyncServer} from './sync-server';
 import {Client, ClientComponent} from './client';
-import {INetworkEntity, INetworkEntityCtor, NetworkEntity, NetworkIndex} from './network-index';
-import {GameEvent} from 'event-types';
 import {PriorityQueue} from './priority-queue';
 import Timer = NodeJS.Timer;
-import {Connection} from './connection';
 import {Match} from './match';
-import {Ship} from './ship';
 import {Clock} from './clock';
-import {DataFormat} from 'game-params';
-import {Composite} from './component';
+import {IComponent} from './component';
 import {WarpField} from './warp-field';
 import {WarpDrive} from './warp-drive';
 import {state, StateMachine} from './state-machine';
 import {bind} from 'bind-decorator';
+import {CompositeNetworkEntity} from './composite-network-entity';
+import {Networkable} from './network-index';
 
-enum Method {
-    accelerate,
-    strafe,
+export interface IGameComponentCtor {
+    new(...args: any[]): IGameComponent;
 }
 
-class Command {
-    protected instruction: Method;
-    protected timestamp: number;
-    protected ship: Ship;
-
-    constructor(params: {ship: Ship, timestamp: number}) {
-        this.timestamp = params.timestamp;
-        this.ship = params.ship;
-    }
-
-    public execute(dt: number) {
-        return undefined;
-    }
-}
-
-class StrafeCommand extends Command {
-    private direction: number;
-
-    constructor(params: {direction: number, ship: Ship, timestamp: number}) {
-        super(params);
-        this.direction = params.direction;
-    }
-
-    public execute(dt: number) {
-        this.ship.switchLane(this.direction, Date.now() - this.timestamp);
-    }
-}
-
-interface IGameComponent {
+export interface IGameComponent extends IComponent {
     attachMatch(match: Match): void;
-}
-
-function gameComponent(target: any) {
-    const original = target;
-
-    function construct(constructor, args) {
-        // tslint:disable-next-line:only-arrow-functions
-        const c: any = function() {
-            return constructor.apply(this, args);
-        };
-
-        c.prototype = constructor.prototype;
-        return new c();
-    }
-
-    // tslint:disable-next-line:only-arrow-functions
-    const gameComponentCtor: any = function(...args) {
-        return construct(original, args);
-    };
-
-    gameComponentCtor.prototype = original.prototype;
-
-    return gameComponentCtor;
-}
-
-// @gameComponent
-export class ShipControl extends ClientComponent implements IGameComponent {
-    private ship: Ship;
-    private commandQueue: PriorityQueue;
-    private connection: Connection;
-    private match: Match;
-    private simulation: Simulation;
-
-    private readonly SYNC_INTERVAL: number = 50;
-    private syncElapsed: number = 0;
-
-    public onInit() {
-        this.connection = this.user.getComponent(Connection);
-        this.commandQueue = new PriorityQueue();
-    }
-
-    public attachMatch(match: Match): void {
-        this.match = match;
-        this.socket.on(GameEvent.command, (data) => this.queueCommand(data));
-        const simulation = this.server.getComponent(Simulator).getSimulation(this.match);
-        simulation.schedule(this.update);
-
-        this.ship = new Ship();
-        simulation.schedule(this.ship.update);
-        simulation.schedule(this.syncClients, 10);
-        this.simulation = simulation;
-
-        this.syncElapsed = 0;
-    }
-
-    public getShip(): Ship {
-        return this.ship;
-    }
-
-    @bind
-    private update(dt: number): void {
-        while (this.commandQueue.peek() !== null) {
-            (this.commandQueue.dequeue() as Command).execute(dt);
-        }
-    }
-
-    @bind
-    private syncClients(dt: number): void {
-        this.syncElapsed += dt;
-        if (this.syncElapsed > this.SYNC_INTERVAL) {
-            this.ship.sync(null, this.match.getName());
-            this.syncElapsed = 0;
-        }
-    }
-
-    private queueCommand(data) {
-        // calculate the timestamp
-        const timestamp: number = Date.now() - (this.connection.getPing() || 0);
-        const cmd = new StrafeCommand({direction: parseInt(data, 10), ship: this.ship, timestamp});
-        this.commandQueue.enqueue(timestamp, cmd);
-    }
-}
-
-export class Player extends ClientComponent implements INetworkEntity, IGameComponent {
-
-    private score: number;
-    private match: Match;
-    private hue: number;
-
-    constructor(parent: Composite) {
-        super(parent);
-    }
-
-    public onInit(): void {
-        const networkIndex = this.server.getComponent(NetworkIndex);
-        networkIndex.registerType(this.getType());
-        networkIndex.putNetworkEntity(this.getType(), this);
-    }
-
-    public attachMatch(match: Match): void {
-        this.match = match;
-        this.score = 0;
-
-        const simulation = this.server.getComponent(Simulator).getSimulation(match);
-        this.hue = simulation.getNewPlayerHue();
-    }
-
-    public getSerializable(): Object {
-        return {
-            hue: this.hue,
-            id: this.getId(),
-            score: this.score,
-        };
-    }
-
-    public getId(): string {
-        return this.user.getId();
-    }
-
-    public sync(socket?: SocketIO.Socket): void {
-        NetworkEntity.prototype.sync.apply(this, socket);
-    }
-
-    public getType(): INetworkEntityCtor {
-        return this.constructor as INetworkEntityCtor;
-    }
+    update(deltaTime: number): void;
+    getSerializable(): Object;
 }
 
 type SimulationOperation = (dt: number) => void;
@@ -189,17 +33,25 @@ export class Simulator extends ServerComponent {
     private games: Map<string, Simulation>;
 
     constructor(syncServer: SyncServer) {
-        super(syncServer, [ShipControl, Player]);
+        super(syncServer);
         this.games = new Map();
     }
 
-    public createSimulation(match: Match): Simulation {
+    public createSimulation(match: Match, gameComponents: IGameComponentCtor[]): Simulation {
         const game = new Simulation(match);
         this.games.set(match.getId(), game);
 
-        match.getUsers().forEach((user) => {
-            user.getComponent(ShipControl).attachMatch(match);
-            user.getComponent(Player).attachMatch(match);
+        gameComponents.forEach((type) => {
+            if (type.prototype instanceof ClientComponent) {
+                match.getUsers().forEach((user) => {
+                    user.getComponent(type).attachMatch(match);
+                });
+            } else if (type.prototype instanceof ServerComponent) {
+                this.server.getComponent(type).attachMatch(match);
+            } else {
+                game.addComponent(type);
+                game.getComponent(type).attachMatch(match);
+            }
         });
 
         return game;
@@ -222,7 +74,13 @@ export class GameState extends StateMachine {
     @state public Loading;
 }
 
-export class Simulation extends NetworkEntity {
+function instanceOfGameComponent(obj: any): obj is IGameComponent {
+    return 'attachMatch' in obj &&
+        'getSerializable' in obj &&
+        'update' in obj;
+}
+
+export class Simulation extends CompositeNetworkEntity {
 
     private warpDrive: WarpDrive;
     private state: GameState;
@@ -241,7 +99,8 @@ export class Simulation extends NetworkEntity {
     private usedHues: number[] = [];
 
     constructor(match: Match) {
-        super(Simulation);
+        super();
+
         this.operations = new PriorityQueue();
         this.match = match;
         this.clock = new Clock();
@@ -254,6 +113,7 @@ export class Simulation extends NetworkEntity {
 
         this.schedule(this.warpDrive.update);
         this.schedule(this.syncClients);
+        this.getComponent(Networkable).init();
     }
 
     /**
@@ -265,12 +125,15 @@ export class Simulation extends NetworkEntity {
     }
 
     public getSerializable() {
-        const makeIdPair = (user: Client) => Buffer.from(user.getId() + user.getComponent(ShipControl).getShip().getId());
-        const shipIds = Buffer.concat(this.match.getUsers().map(makeIdPair));
-        console.log(shipIds.toString('utf8'));
-        return Object.assign(super.getSerializable(), {
+        const buffer = super.getSerializable();
+        this.getComponents().forEach((component: Object | IComponent) => {
+            if (instanceOfGameComponent(component)) {
+                Object.assign(buffer, component.getSerializable());
+            }
+        });
+
+        return Object.assign(buffer, {
             matchId: this.match.getId(),
-            shipIds,
             warpDriveId: this.warpDrive.getId(),
             warpFieldId: this.warpDrive.getWarpField().getId(),
         });

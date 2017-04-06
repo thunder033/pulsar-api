@@ -13,6 +13,7 @@ import {NetworkIndex} from './network-index';
 import {MatchMaker} from './match-maker';
 import {Building} from './building';
 import {Simulator} from './simulation';
+import {WarpFactory} from './warp';
 
 const HTTP_ROUTES = {
     '/': 'public/index.html',
@@ -31,3 +32,4 @@ syncServer.addComponent(Building);
 syncServer.addComponent(NetworkIndex);
 syncServer.addComponent(MatchMaker);
 syncServer.addComponent(Simulator);
+syncServer.addComponent(WarpFactory);

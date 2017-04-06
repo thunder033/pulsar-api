@@ -3,12 +3,13 @@
  * Created by Greg on 2/17/2017.
  */
 
-import {Component, Composite, IComponent} from './component';
+import {Component, Composite, IComponentCtor} from './component';
 import {IOEvent} from 'event-types';
 import {INetworkEntity, Networkable} from './network-index';
 import {Room} from './room';
 import {SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
+import {CompositeNetworkEntity} from './composite-network-entity';
 
 export interface IClientComponent extends Component {
     init(socket: Socket, server: SyncServer, user: Client): void;
@@ -47,7 +48,7 @@ export abstract class ClientComponent extends Component implements IClientCompon
     }
 }
 
-export class Client extends Composite implements INetworkEntity {
+export class Client extends CompositeNetworkEntity {
 
     protected server: SyncServer;
     protected socket: Socket;
@@ -55,7 +56,7 @@ export class Client extends Composite implements INetworkEntity {
 
     private name: string;
 
-    constructor(socket: Socket, server: SyncServer, componentTypes: IComponent[] = []) {
+    constructor(socket: Socket, server: SyncServer, componentTypes: IComponentCtor[] = []) {
         super();
         this.server = server;
         this.socket = socket;
@@ -63,7 +64,7 @@ export class Client extends Composite implements INetworkEntity {
 
         socket.on(IOEvent.disconnect, this.onDisconnect.bind(this));
 
-        componentTypes.forEach((type: IComponent) => this.addComponent(type));
+        componentTypes.forEach((type: IComponentCtor) => this.addComponent(type));
         socket.emit(IOEvent.joinServer, {userId: this.getComponent(Networkable).getId(), serverTime: Date.now()});
     }
 
@@ -71,7 +72,7 @@ export class Client extends Composite implements INetworkEntity {
         return this.socket;
     }
 
-    public addComponent(component: IComponent): Component {
+    public addComponent(component: IComponentCtor): Component {
         return (super.addComponent(component) as ClientComponent)
             .init(this.socket, this.server, this);
     }
@@ -85,22 +86,9 @@ export class Client extends Composite implements INetworkEntity {
     }
 
     public getSerializable(): Object {
-        return {
-            id: this.getId(),
+        return Object.assign(super.getSerializable(), {
             name: this.name,
-        };
-    }
-
-    public getId(): string {
-        return this.getComponent(Networkable).getId();
-    }
-
-    public getType() {
-        return this.getComponent(Networkable).getType();
-    }
-
-    public sync(socket?: SocketIO.Socket): void {
-        this.getComponent(Networkable).sync(socket);
+        });
     }
 
     public onSessionEnd() {
