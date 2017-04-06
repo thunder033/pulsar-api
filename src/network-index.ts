@@ -107,8 +107,12 @@ export abstract class NetworkEntity implements INetworkEntity {
     }
 }
 
+/**
+ * Network Entity that transmits its sync packets as a binary buffer
+ */
 export abstract class BinaryNetworkEntity extends NetworkEntity {
 
+    // mapping of data types to buffer write methods
     private static readonly writeMethods: Map<DataType, string> = new Map<DataType, string>([
         [DataType.String, 'write'],
         [DataType.Float, 'writeFloatBE'],
@@ -120,11 +124,11 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
 
     private static clock: Clock = new Clock();
     private static BNEFormat: Map<string, DataType> = DataFormat.NETWORK_ENTITY;
-    private static BNESizes: Map<string, number>;
-    private static entityOffset: number;
+    private static BNESizes: Map<string, number>; // byte sizes of metadata fields
+    private static entityOffset: number; // how many bytes entity metadata occupies at the start of a buffer
 
     private buffer: Buffer;
-    private format: Map<string, DataType>;
+    private format: Map<string, DataType>; // *ORDERED* listing of fields in the buffer
     private timestamp: number; // the last time the buffer was updated
 
     private fieldSizes: Map<string, number>;
@@ -220,6 +224,8 @@ export class Networkable extends Component implements INetworkEntity {
     protected parent: Composite & INetworkEntity;
     protected type: INetworkEntityCtor;
 
+    private initialized: boolean;
+
     public static init(networkIndex: NetworkIndex): void {
         Networkable.networkIndex = networkIndex;
     }
@@ -231,6 +237,7 @@ export class Networkable extends Component implements INetworkEntity {
         // The network db needs to any entry of each type of entity
         this.type = Object.getPrototypeOf(parent).constructor;
         Networkable.networkIndex.registerType(this.type);
+        this.initialized = false;
     }
 
     /**
@@ -238,19 +245,24 @@ export class Networkable extends Component implements INetworkEntity {
      * @returns {string}
      */
     public getId(): string {
+        this.assertInitialized();
         return this.id;
     }
 
     public init() {
         // this is done in init and not in the ctor so the parent can call methods of this component
+        // and the ID is available when the network index gets it
         Networkable.networkIndex.putNetworkEntity(this.type, this.parent);
+        this.initialized = true;
     }
 
     public getSerializable(): Object {
+        this.assertInitialized();
         return Object.assign(this.parent.getSerializable(), {id: this.id});
     }
 
     public getType(): INetworkEntityCtor {
+        this.assertInitialized();
         return this.type;
     }
 
@@ -260,14 +272,27 @@ export class Networkable extends Component implements INetworkEntity {
      * [@param roomName {string}]: the room to broadcast the sync to
      */
     public sync(socket?: Socket, roomName?: string) {
+        this.assertInitialized();
         if (!isNullOrUndefined(socket)) {
             socket.emit(IOEvent.syncNetworkEntity, SyncResponse.create(this));
         } else {
             Networkable.networkIndex.sync(this, roomName);
         }
     }
+
+    /**
+     * Asserts the Networkable component has been initialized, as it required for proper
+     * functionality
+     */
+    private assertInitialized() {
+        if (!this.initialized) {
+            throw new Error('Networkable component must be initialized before usage');
+        }
+    }
 }
 
+// These are imported here because they would otherwise create c-dep with
+// SyncServer->Client->NetworkEntity->...
 import {ServerComponent, SyncServer} from './sync-server';
 
 /**
