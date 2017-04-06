@@ -8,7 +8,7 @@ import {IOEvent} from 'event-types';
 import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {Component, Composite} from './component';
-import {ByteSizes, DataFormat, DataType} from 'game-params';
+import {ByteSizes, DataFormat, DataType, FieldType} from 'game-params';
 import {Clock} from './clock';
 import {EntityType} from 'entity-type';
 
@@ -107,10 +107,7 @@ export abstract class NetworkEntity implements INetworkEntity {
     }
 }
 
-/**
- * Network Entity that transmits its sync packets as a binary buffer
- */
-export abstract class BinaryNetworkEntity extends NetworkEntity {
+class FormattedBuffer {
 
     // mapping of data types to buffer write methods
     private static readonly writeMethods: Map<DataType, string> = new Map<DataType, string>([
@@ -123,24 +120,13 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
     ]);
 
     private static clock: Clock = new Clock();
-    private static BNEFormat: Map<string, DataType> = DataFormat.NETWORK_ENTITY;
-    private static BNESizes: Map<string, number>; // byte sizes of metadata fields
-    private static entityOffset: number; // how many bytes entity metadata occupies at the start of a buffer
 
     private buffer: Buffer;
-    private format: Map<string, DataType>; // *ORDERED* listing of fields in the buffer
+    private format: Map<string, FieldType>; // *ORDERED* listing of fields in the buffer
     private timestamp: number; // the last time the buffer was updated
-
     private fieldSizes: Map<string, number>;
 
-    public static init() {
-        BinaryNetworkEntity.BNESizes = new Map<string, number>();
-        BinaryNetworkEntity.parseFieldSizes(
-            BinaryNetworkEntity.BNEFormat,
-            BinaryNetworkEntity.BNESizes);
-        BinaryNetworkEntity.entityOffset = BinaryNetworkEntity.BNESizes.get('id') +
-            BinaryNetworkEntity.BNESizes.get('type');
-    }
+    private metaDataLength: number;
 
     /**
      * Update the size map using the format map. Replaces any override size keys
@@ -148,7 +134,7 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
      * @param format {Map}
      * @param sizes {Map}
      */
-    private static parseFieldSizes(format, sizes) {
+    public static parseFieldSizes(format: Map<string, FieldType>, sizes) {
         // fields to delete at the end
         const overriddenFields = [];
 
@@ -159,24 +145,33 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
                 sizes.set(fieldName, parseInt(size, 10));
                 format.set(fieldName, type);
             } else if (!sizes.has(field)) {
-                sizes.set(field, ByteSizes.get(type));
+                if (type instanceof Array && (!(type[0] in DataType) || !Number.isInteger(type[1]))) {
+                    throw new TypeError(`
+                    ArrayBuffer type ${type} is invalid. 
+                    ArrayBuffer type must be formatted as [{DataType}, {integer}]`);
+                }
+
+                const size = type instanceof Array ? ByteSizes.get(type[0]) * type[1] : ByteSizes.get(type);
+                sizes.set(field, size);
             }
         });
 
         overriddenFields.forEach((field) => format.delete(field));
     }
 
-    constructor(type: INetworkEntityCtor, format: Map<string, DataType>) {
-        super(type);
+    constructor(format: Map<string, FieldType>, metaData: Buffer = Buffer.alloc(0)) {
         this.format = format;
         this.fieldSizes = new Map<string, number>();
-        BinaryNetworkEntity.parseFieldSizes(this.format, this.fieldSizes);
+        FormattedBuffer.parseFieldSizes(this.format, this.fieldSizes);
 
         const formatSize = this.getFormatSize(this.format);
-        this.buffer = Buffer.alloc(formatSize);
-        this.buffer.write(this.getId(), 0);
-        const bufferType: number = EntityType[this.getType().name];
-        this.buffer.writeInt8(bufferType, NetworkEntity.ID_LENGTH);
+        this.buffer = Buffer.alloc(formatSize + metaData.length);
+        this.metaDataLength = metaData.length;
+        metaData.copy(this.buffer, 0, 0, metaData.length);
+    }
+
+    public getData(): Buffer {
+        return this.buffer;
     }
 
     /**
@@ -184,8 +179,8 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
      * @param format {Map}
      * @returns {number} the size of the format
      */
-    public getFormatSize(format: Map<string, DataType>): number {
-        let size = BinaryNetworkEntity.entityOffset;
+    public getFormatSize(format: Map<string, FieldType>): number {
+        let size = 0;
         format.forEach((type, field) => {
             size += this.fieldSizes.get(field);
         });
@@ -197,19 +192,81 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
      * Iterate through all fields in the BNE format and write the current value to
      * the buffer
      */
-    protected updateBuffer() {
-        this.timestamp = BinaryNetworkEntity.clock.now() || 0;
-        let position: number = BinaryNetworkEntity.entityOffset;
+    public updateBuffer(entity: BinaryNetworkEntity) {
+        this.timestamp = FormattedBuffer.clock.now() || 0;
+        let position: number = this.metaDataLength;
         this.format.forEach((type, field) => {
-            const method = BinaryNetworkEntity.writeMethods.get(type);
             const size = this.fieldSizes.get(field);
-            this.buffer[method](this[field], position);
+            if (type instanceof Array) {
+                const elemSize = ByteSizes.get(type[0]);
+                const elemMethod = FormattedBuffer.writeMethods.get(type[0]);
+                for (let i = 0; i < type[1]; i++) {
+                    this.buffer[elemMethod](entity[field][i], position + elemSize * i);
+                }
+            } else {
+                const method = FormattedBuffer.writeMethods.get(type);
+                this.buffer[method](entity[field], position);
+
+            }
             position += size;
         });
     }
+}
+
+/**
+ * Network Entity that transmits its sync packets as a binary buffer
+ */
+export abstract class BinaryNetworkEntity extends NetworkEntity {
+    private static BNEFormat: Map<string, FieldType> = DataFormat.NETWORK_ENTITY;
+    private static BNESizes: Map<string, number>; // byte sizes of metadata fields
+    private static entityOffset: number; // how many bytes entity metadata occupies at the start of a buffer
+
+    private buffer: FormattedBuffer = null;
+    private metadata: Buffer;
+    private defaultFormat: Map<string, FieldType>; // *ORDERED* listing of fields in the buffer
+    private buffers: Map<DataFormat, FormattedBuffer>;
+
+    public static init() {
+        BinaryNetworkEntity.BNESizes = new Map<string, number>();
+        FormattedBuffer.parseFieldSizes(
+            BinaryNetworkEntity.BNEFormat,
+            BinaryNetworkEntity.BNESizes);
+        BinaryNetworkEntity.entityOffset = BinaryNetworkEntity.BNESizes.get('id') +
+            BinaryNetworkEntity.BNESizes.get('type');
+    }
+
+    constructor(type: INetworkEntityCtor, defaultFormat: Map<string, DataType>) {
+        super(type);
+        this.defaultFormat = defaultFormat;
+        this.buffers = new Map<string, FormattedBuffer>();
+
+        this.metadata = Buffer.alloc(BinaryNetworkEntity.entityOffset);
+        this.metadata.write(this.getId(), 0);
+        const bufferType: number = EntityType[this.getType().name];
+        this.metadata.writeInt8(bufferType, NetworkEntity.ID_LENGTH);
+        this.addFormat(defaultFormat);
+    }
+
+    protected addFormat(format: Map<string, FieldType>) {
+        const buffer = new FormattedBuffer(format, this.metadata);
+        this.buffers.set(format, buffer);
+
+        if (this.buffer === null) {
+            this.buffer = buffer;
+        }
+    }
+
+    /**
+     * Iterate through all fields in the BNE format and write the current value to
+     * the buffer
+     */
+    protected updateBuffer(format: Map<string, FieldType> = this.defaultFormat) {
+        this.buffer = this.buffers.get(format);
+        this.buffer.updateBuffer(this);
+    }
 
     public getSerializable() {
-        return this.buffer;
+        return this.buffer.getData();
     }
 }
 
