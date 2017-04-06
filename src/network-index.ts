@@ -245,7 +245,6 @@ export class Networkable extends Component implements INetworkEntity {
      * @returns {string}
      */
     public getId(): string {
-        this.assertInitialized();
         return this.id;
     }
 
