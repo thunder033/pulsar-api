@@ -44,14 +44,14 @@ export class Simulator extends ServerComponent {
         gameComponents.forEach((type) => {
             if (type.prototype instanceof ClientComponent) {
                 match.getUsers().forEach((user) => {
-                    user.getComponent(type).attachMatch(match);
+                    game.initializeGameComponent(user.getComponent(type));
                 });
             } else if (type.prototype instanceof ServerComponent) {
-                this.server.getComponent(type).attachMatch(match);
+                game.initializeGameComponent(this.server.getComponent(type));
             } else {
-                game.addComponent(type);
-                game.getComponent(type).attachMatch(match);
+                game.initializeGameComponent(game.addComponent(type) as IGameComponent);
             }
+
         });
 
         return game;
@@ -68,10 +68,10 @@ export class Simulator extends ServerComponent {
 }
 
 export class GameState extends StateMachine {
-    @state public Playing;
-    @state public Paused;
-    @state public LevelComplete;
-    @state public Loading;
+    @state public static Playing;
+    @state public static Paused;
+    @state public static LevelComplete;
+    @state public static Loading;
 }
 
 function instanceOfGameComponent(obj: any): obj is IGameComponent {
@@ -106,7 +106,7 @@ export class Simulation extends CompositeNetworkEntity {
         this.clock = new Clock();
 
         this.state = new GameState();
-        this.state.setState(this.state.Loading);
+        this.state.setState(GameState.Loading);
 
         this.warpDrive = new WarpDrive();
         this.warpDrive.load(new WarpField(), this.state);
@@ -116,12 +116,26 @@ export class Simulation extends CompositeNetworkEntity {
         this.getComponent(Networkable).init();
     }
 
+    public initializeGameComponent(component: IGameComponent): IGameComponent {
+        component.attachMatch(this.match);
+        this.schedule(component.update);
+        return component;
+    }
+
     /**
      * Get the current game time in ms
      * @returns {number}
      */
     public getTime(): number {
         return this.clock.now();
+    }
+
+    /**
+     * Get the Warp Drive associated with this game
+     * @returns {WarpDrive}
+     */
+    public getWarpDrive(): WarpDrive {
+        return this.warpDrive;
     }
 
     public getSerializable() {
@@ -158,11 +172,11 @@ export class Simulation extends CompositeNetworkEntity {
     public start() {
         this.lastStepTime = Date.now();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
-        this.state.setState(this.state.Playing);
+        this.state.setState(GameState.Playing);
     }
 
     public suspend() {
-        this.state.setState(this.state.Paused);
+        this.state.setState(GameState.Paused);
     }
 
     /**
@@ -194,7 +208,7 @@ export class Simulation extends CompositeNetworkEntity {
      * Execute the next step in the simulation
      */
     protected step(): void {
-        if (this.state.is(this.state.Paused)) {
+        if (this.state.is(GameState.Paused)) {
             return;
         }
 
