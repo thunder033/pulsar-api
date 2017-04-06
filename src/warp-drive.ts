@@ -72,7 +72,7 @@ export class WarpDrive extends BinaryNetworkEntity {
             this.sliceIndex++;
             this.barOffset = 0;
 
-            const sliceSpeed = this.getSlice(DriveParams.RENDER_OFFSER).getSpeed();
+            const sliceSpeed = this.getSlice(DriveParams.RENDER_OFFSET).getSpeed();
             this.velocity = (SliceBar.scaleZ * sliceSpeed + SliceBar.margin) / this.timeStep;
         }
 

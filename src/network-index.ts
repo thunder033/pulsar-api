@@ -235,7 +235,7 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
             BinaryNetworkEntity.BNESizes.get('type');
     }
 
-    constructor(type: INetworkEntityCtor, defaultFormat: Map<string, DataType>) {
+    constructor(type: INetworkEntityCtor, defaultFormat: Map<string, FieldType>) {
         super(type);
         this.defaultFormat = defaultFormat;
         this.buffers = new Map<string, FormattedBuffer>();
