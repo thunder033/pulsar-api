@@ -10,6 +10,7 @@ import {Player} from './player';
 import {Client} from './client';
 import {Ship} from './ship';
 import {ShipControl} from './ship-control';
+import {bind} from 'bind-decorator';
 
 class ScoreState {
     public lastCollectedLane: number = 0;
@@ -47,6 +48,7 @@ export class Scoring extends Component implements IGameComponent {
         });
     }
 
+    @bind
     public update(deltaTime: number): void {
         const sliceIndex = this.warpDrive.getSliceIndex();
 
