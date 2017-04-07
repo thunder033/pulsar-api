@@ -1,4 +1,5 @@
-import {NetworkEntity} from './network-index';
+import {BinaryNetworkEntity, NetworkEntity} from './network-index';
+import {DataFormat} from 'pulsar-lib/dist/src/game-params';
 /**
  * Created by Greg on 3/24/2017.
  */
@@ -29,14 +30,20 @@ export class LevelSlice {
     }
 }
 
-export class WarpField extends NetworkEntity {
+export class WarpField extends BinaryNetworkEntity {
 
     private level: LevelSlice[];
     private duration: number;
     private timeStep: number;
+    private sliceIndex: number;
+    private syncingSlice: boolean;
+
+    private get gems(): number[] {
+        return this.level[this.sliceIndex].getGems();
+    }
 
     constructor() {
-        super(WarpField);
+        super(WarpField, DataFormat.SLICE_UPDATE);
         this.level = [];
 
         const lanes = 3;
@@ -53,6 +60,16 @@ export class WarpField extends NetworkEntity {
         console.log(this.level.length);
         this.timeStep = 300; // ms
         this.duration = length * this.timeStep;
+        this.syncingSlice = false;
+        this.sliceIndex = 0;
+    }
+
+    public syncSlice(sliceIndex: number) {
+        this.syncingSlice = true;
+        this.sliceIndex = sliceIndex;
+        this.updateBuffer();
+        this.sync();
+        this.syncingSlice = false;
     }
 
     public reconstruct(buffer: Buffer) {
@@ -67,11 +84,16 @@ export class WarpField extends NetworkEntity {
         return this.level;
     }
 
-    public getSerializable() {
-        return Object.assign(super.getSerializable(), {
-            duration: this.duration,
-            level: this.level,
-            timeStep: this.timeStep,
-        });
+    public getSerializable(): Buffer | Object {
+        if (this.syncingSlice === true) {
+            return super.getSerializable();
+        } else {
+            return {
+                duration: this.duration,
+                id: this.getId(),
+                level: this.level,
+                timeStep: this.timeStep,
+            };
+        }
     }
 }

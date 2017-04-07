@@ -4,10 +4,9 @@
 import {GameState, IGameComponent, Simulation} from './simulation';
 import {Match} from './match';
 import {Component} from './component';
-import {LevelSlice} from './warp-field';
+import {LevelSlice, WarpField} from './warp-field';
 import {WarpDrive} from './warp-drive';
 import {Player} from './player';
-import {Client} from './client';
 import {Ship} from './ship';
 import {ShipControl} from './ship-control';
 import {bind} from 'bind-decorator';
@@ -27,7 +26,7 @@ enum Gem {
 
 export class Scoring extends Component implements IGameComponent {
 
-    private fieldValues: LevelSlice[];
+    private warpField: WarpField;
     private warpDrive: WarpDrive;
     private players: Player[];
     private simulation: Simulation;
@@ -37,7 +36,7 @@ export class Scoring extends Component implements IGameComponent {
     public attachMatch(match: Match): void {
         this.simulation = this.getParent() as Simulation;
         this.warpDrive = this.simulation.getWarpDrive();
-        this.fieldValues = this.warpDrive.getWarpField().getFieldValues();
+        this.warpField = this.warpDrive.getWarpField();
 
         this.players = match.getUsers().map((client) => client.getComponent(Player));
         this.scoreStates = new Map<Player, ScoreState>();
@@ -50,14 +49,14 @@ export class Scoring extends Component implements IGameComponent {
 
     @bind
     public update(deltaTime: number): void {
-        const sliceIndex = this.warpDrive.getSliceIndex();
+        const COLLECT_OFFSET = 2;
+        const sliceIndex = this.warpDrive.getSliceIndex() + COLLECT_OFFSET;
 
         // Only collect gems from even slices (only even slices are rendered for spacing)
-        if (sliceIndex % 2 === 0 || !this.simulation.getState().is(GameState.Playing)) {
+        if (sliceIndex % 2 === 1 || !this.simulation.getState().is(GameState.Playing)) {
             return;
         }
 
-        const COLLECT_OFFSET = 5;
         const sliceGems = this.warpDrive.getSlice(COLLECT_OFFSET).getGems();
 
         const BASE_MULTIPLIER_DIST = 10;
@@ -75,7 +74,7 @@ export class Scoring extends Component implements IGameComponent {
                     scoreState.lastCollectedSlice = sliceIndex;
                 }
 
-                if (lane !== currentLane) {
+                if (lane !== currentLane || gem === Gem.NONE || gem === Gem.COLLECTED) {
                     return;
                 }
 
@@ -107,6 +106,8 @@ export class Scoring extends Component implements IGameComponent {
                 }
 
                 sliceGems[lane] = Gem.COLLECTED;
+                this.warpField.syncSlice(sliceIndex);
+                player.sync();
             });
         });
 
