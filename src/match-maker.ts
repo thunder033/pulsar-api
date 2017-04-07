@@ -8,7 +8,8 @@ import {Client, ClientComponent} from './client';
 import {Room} from './room';
 import {IOEvent, MatchEvent} from 'event-types';
 import {Building} from './building';
-import {ShipControl, Simulator} from './simulation';
+import {Simulator} from './simulation';
+import {WarpFactory} from './warp';
 
 /**
  * Providers users the ability to join and leave matches
@@ -186,6 +187,10 @@ export class MatchMaker extends ServerComponent {
     public removeMatch(match: Match): void {
         const matchIndex = this.matches.indexOf(match);
         if (matchIndex > -1) {
+            if (match.hasStarted()) {
+                this.server.getComponent(Simulator).endSimulation(match);
+            }
+
             console.log(`removed match ${match.getName()}`);
             this.matches.splice(matchIndex, 1);
             this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getId()));
@@ -193,11 +198,7 @@ export class MatchMaker extends ServerComponent {
     }
 
     public startMatch(match: Match): void {
-        const game = this.server.getComponent(Simulator).createSimulation(match);
-        match.start(game.getId());
-
-        const remainingStart =  match.getStartTime() - Date.now();
-        setTimeout(() => game.start(), remainingStart);
+        this.server.getComponent(WarpFactory).createGame(match);
     }
 
     public getMatches(): Match[] {

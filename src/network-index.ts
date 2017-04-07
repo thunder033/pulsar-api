@@ -8,6 +8,9 @@ import {IOEvent} from 'event-types';
 import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {Component, Composite} from './component';
+import {BufferFormat, ByteSizes, DataFormat, DataType, FieldType} from 'game-params';
+import {Clock} from './clock';
+import {EntityType} from 'entity-type';
 
 export interface INetworkEntity {
     /**
@@ -35,12 +38,18 @@ export interface INetworkEntityCtor {
 export class SyncResponse {
     public id: string;
     public params: Object;
-    public type: string;
+    public type: number;
+
+    public static create(entity: INetworkEntity): SyncResponse | Buffer {
+        return entity instanceof BinaryNetworkEntity ?
+            entity.getSerializable() :
+            new SyncResponse(entity);
+    }
 
     constructor(entity: INetworkEntity) {
         this.id = entity.getId(); // the client must be able to id the entity
         this.params = entity.getSerializable(); // include serializable fields
-        this.type = entity.getType().name; // the type is present so a client-side instance can be constructed
+        this.type = EntityType[entity.getType().name]; // the type is present so a client-side instance can be constructed
     }
 }
 
@@ -55,6 +64,7 @@ export abstract class NetworkEntity implements INetworkEntity {
 
     public static init(networkIndex: NetworkIndex): void {
         NetworkEntity.networkIndex = networkIndex;
+        BinaryNetworkEntity.init();
     }
 
     constructor(type: INetworkEntityCtor) {
@@ -97,6 +107,169 @@ export abstract class NetworkEntity implements INetworkEntity {
     }
 }
 
+class FormattedBuffer {
+
+    // mapping of data types to buffer write methods
+    private static readonly writeMethods: Map<DataType, string> = new Map<DataType, string>([
+        [DataType.String, 'write'],
+        [DataType.Float, 'writeFloatBE'],
+        [DataType.Double, 'writeDoubleBE'],
+        [DataType.Int8, 'writeInt8'],
+        [DataType.Int16, 'writeInt16BE'],
+        [DataType.Int32, 'writeInt32BE'],
+    ]);
+
+    private static clock: Clock = new Clock();
+
+    private buffer: Buffer;
+    private format: BufferFormat; // *ORDERED* listing of fields in the buffer
+    private timestamp: number; // the last time the buffer was updated
+    private fieldSizes: Map<string, number>;
+
+    private metaDataLength: number;
+
+    /**
+     * Update the size map using the format map. Replaces any override size keys
+     * ("key:size") in the format map with just the size (ex. id:36 -> id)
+     * @param format {Map}
+     * @param sizes {Map}
+     */
+    public static parseFieldSizes(format: BufferFormat, sizes) {
+        // fields to delete at the end
+        const overriddenFields = [];
+
+        format.forEach((type, field) => {
+            if (field.indexOf(':') > 0) {
+                overriddenFields.push(field);
+                const [fieldName, size] = field.split(':');
+                sizes.set(fieldName, parseInt(size, 10));
+                format.set(fieldName, type);
+            } else if (!sizes.has(field)) {
+                if (type instanceof Array && (!(type[0] in DataType) || !Number.isInteger(type[1]))) {
+                    throw new TypeError(`
+                    ArrayBuffer type ${type} is invalid. 
+                    ArrayBuffer type must be formatted as [{DataType}, {integer}]`);
+                }
+
+                const size = type instanceof Array ? ByteSizes.get(type[0]) * type[1] : ByteSizes.get(type);
+                sizes.set(field, size);
+            }
+        });
+
+        overriddenFields.forEach((field) => format.delete(field));
+    }
+
+    constructor(format: BufferFormat, metaData: Buffer = Buffer.alloc(0)) {
+        this.format = format;
+        this.fieldSizes = new Map<string, number>();
+        FormattedBuffer.parseFieldSizes(this.format, this.fieldSizes);
+
+        const formatSize = this.getFormatSize(this.format);
+        this.buffer = Buffer.alloc(formatSize + metaData.length);
+        this.metaDataLength = metaData.length;
+        metaData.copy(this.buffer, 0, 0, metaData.length);
+    }
+
+    public getData(): Buffer {
+        return this.buffer;
+    }
+
+    /**
+     * Calculate the total number of bytes required to store the format map
+     * @param format {Map}
+     * @returns {number} the size of the format
+     */
+    public getFormatSize(format: Map<string, FieldType>): number {
+        let size = 0;
+        format.forEach((type, field) => {
+            size += this.fieldSizes.get(field);
+        });
+
+        return size;
+    }
+
+    /**
+     * Iterate through all fields in the BNE format and write the current value to
+     * the buffer
+     */
+    public updateBuffer(entity: BinaryNetworkEntity) {
+        this.timestamp = FormattedBuffer.clock.now() || 0;
+        let position: number = this.metaDataLength;
+        this.format.forEach((type, field) => {
+            const size = this.fieldSizes.get(field);
+            if (type instanceof Array) {
+                const elemSize = ByteSizes.get(type[0]);
+                const elemMethod = FormattedBuffer.writeMethods.get(type[0]);
+                for (let i = 0; i < type[1]; i++) {
+                    this.buffer[elemMethod](entity[field][i], position + elemSize * i);
+                }
+            } else {
+                const method = FormattedBuffer.writeMethods.get(type);
+                this.buffer[method](entity[field], position);
+
+            }
+            position += size;
+        });
+    }
+}
+
+/**
+ * Network Entity that transmits its sync packets as a binary buffer
+ */
+export abstract class BinaryNetworkEntity extends NetworkEntity {
+    private static BNEFormat: Map<string, FieldType> = DataFormat.NETWORK_ENTITY;
+    private static BNESizes: Map<string, number>; // byte sizes of metadata fields
+    private static entityOffset: number; // how many bytes entity metadata occupies at the start of a buffer
+
+    private buffer: FormattedBuffer = null;
+    private metadata: Buffer;
+    private defaultFormat: Map<string, FieldType>; // *ORDERED* listing of fields in the buffer
+    private buffers: Map<DataFormat, FormattedBuffer>;
+
+    public static init() {
+        BinaryNetworkEntity.BNESizes = new Map<string, number>();
+        FormattedBuffer.parseFieldSizes(
+            BinaryNetworkEntity.BNEFormat,
+            BinaryNetworkEntity.BNESizes);
+        BinaryNetworkEntity.entityOffset = BinaryNetworkEntity.BNESizes.get('id') +
+            BinaryNetworkEntity.BNESizes.get('type');
+    }
+
+    constructor(type: INetworkEntityCtor, defaultFormat: Map<string, FieldType>) {
+        super(type);
+        this.defaultFormat = defaultFormat;
+        this.buffers = new Map<string, FormattedBuffer>();
+
+        this.metadata = Buffer.alloc(BinaryNetworkEntity.entityOffset);
+        this.metadata.write(this.getId(), 0);
+        const bufferType: number = EntityType[this.getType().name];
+        this.metadata.writeInt8(bufferType, NetworkEntity.ID_LENGTH);
+        this.addFormat(defaultFormat);
+    }
+
+    protected addFormat(format: Map<string, FieldType>) {
+        const buffer = new FormattedBuffer(format, this.metadata);
+        this.buffers.set(format, buffer);
+
+        if (this.buffer === null) {
+            this.buffer = buffer;
+        }
+    }
+
+    /**
+     * Iterate through all fields in the BNE format and write the current value to
+     * the buffer
+     */
+    protected updateBuffer(format: Map<string, FieldType> = this.defaultFormat) {
+        this.buffer = this.buffers.get(format);
+        this.buffer.updateBuffer(this);
+    }
+
+    public getSerializable(): Buffer | any {
+        return this.buffer.getData();
+    }
+}
+
 /**
  * A component-based implementation of the NetworkEntity where inheritance isn't possible
  */
@@ -107,6 +280,8 @@ export class Networkable extends Component implements INetworkEntity {
     protected id: string;
     protected parent: Composite & INetworkEntity;
     protected type: INetworkEntityCtor;
+
+    private initialized: boolean;
 
     public static init(networkIndex: NetworkIndex): void {
         Networkable.networkIndex = networkIndex;
@@ -119,6 +294,7 @@ export class Networkable extends Component implements INetworkEntity {
         // The network db needs to any entry of each type of entity
         this.type = Object.getPrototypeOf(parent).constructor;
         Networkable.networkIndex.registerType(this.type);
+        this.initialized = false;
     }
 
     /**
@@ -131,14 +307,18 @@ export class Networkable extends Component implements INetworkEntity {
 
     public init() {
         // this is done in init and not in the ctor so the parent can call methods of this component
+        // and the ID is available when the network index gets it
         Networkable.networkIndex.putNetworkEntity(this.type, this.parent);
+        this.initialized = true;
     }
 
     public getSerializable(): Object {
+        this.assertInitialized();
         return Object.assign(this.parent.getSerializable(), {id: this.id});
     }
 
     public getType(): INetworkEntityCtor {
+        this.assertInitialized();
         return this.type;
     }
 
@@ -148,14 +328,27 @@ export class Networkable extends Component implements INetworkEntity {
      * [@param roomName {string}]: the room to broadcast the sync to
      */
     public sync(socket?: Socket, roomName?: string) {
+        this.assertInitialized();
         if (!isNullOrUndefined(socket)) {
-            socket.emit(IOEvent.syncNetworkEntity, new SyncResponse(this));
+            socket.emit(IOEvent.syncNetworkEntity, SyncResponse.create(this));
         } else {
             Networkable.networkIndex.sync(this, roomName);
         }
     }
+
+    /**
+     * Asserts the Networkable component has been initialized, as it required for proper
+     * functionality
+     */
+    private assertInitialized() {
+        if (!this.initialized) {
+            throw new Error('Networkable component must be initialized before usage');
+        }
+    }
 }
 
+// These are imported here because they would otherwise create c-dep with
+// SyncServer->Client->NetworkEntity->...
 import {ServerComponent, SyncServer} from './sync-server';
 
 /**
@@ -163,8 +356,8 @@ import {ServerComponent, SyncServer} from './sync-server';
  */
 export class NetworkIndex extends ServerComponent {
 
-    public types: Map<string, INetworkEntityCtor>;
-    public entities: Map<string, Map<string, INetworkEntity>>;
+    public types: Map<number, INetworkEntityCtor>;
+    public entities: Map<number, Map<string, INetworkEntity>>;
 
     constructor(syncServer: SyncServer) {
         super(syncServer, [Networkable]);
@@ -182,13 +375,13 @@ export class NetworkIndex extends ServerComponent {
      * @param entity {INetworkEntity}: the entity to add
      */
     public putNetworkEntity(type: INetworkEntityCtor, entity: INetworkEntity): void {
-        const keyType: any = this.resolveNetworkEntityType(type);
+        const keyType = this.resolveNetworkEntityType(type);
 
         if (keyType === null) {
             throw new TypeError(`Could not resolve ${type} to a valid key type`);
         }
 
-        this.entities.get(keyType.name).set(entity.getId(), entity);
+        this.entities.get(EntityType[keyType.name]).set(entity.getId(), entity);
     }
 
     /**
@@ -198,7 +391,7 @@ export class NetworkIndex extends ServerComponent {
      */
     public resolveNetworkEntityType(type: INetworkEntityCtor): INetworkEntityCtor {
         // If the network type is in the index, we're all good
-        if (this.entities.has(type.name)) {
+        if (this.entities.has(EntityType[type.name])) {
             return type;
         } else {
             // If not, it might be a derived type, so attempt to find a matching base type
@@ -220,10 +413,14 @@ export class NetworkIndex extends ServerComponent {
      * @param type
      */
     public registerType(type: INetworkEntityCtor) {
-        if (!this.types.has(type.name)) {
-            console.log(`Register type ${type.name}`);
-            this.types.set(type.name, type);
-            this.entities.set(type.name, new Map());
+        if (typeof EntityType[type.name] === 'undefined') {
+            throw new ReferenceError(`Unknown Network Entity Type ${type.name}. Type must present in pulsar-lib type code map.`);
+        }
+
+        if (!this.types.has(EntityType[type.name])) {
+            console.log(`Register type ${type.name} as ${EntityType[type.name]}`);
+            this.types.set(EntityType[type.name], type);
+            this.entities.set(EntityType[type.name], new Map());
         }
     }
 
@@ -232,8 +429,8 @@ export class NetworkIndex extends ServerComponent {
      * @param name
      * @returns {undefined|INetworkEntityCtor}
      */
-    public getType(name: string): INetworkEntityCtor {
-        return this.types.get(name);
+    public getType(name: string | number): INetworkEntityCtor {
+        return this.types.get(typeof name === 'string' ? EntityType[name] : name);
     }
 
     /**
@@ -243,16 +440,16 @@ export class NetworkIndex extends ServerComponent {
      * @returns {T}
      */
     public getById<T extends INetworkEntity>(type: INetworkEntityCtor, id: string): T {
-        const keyType: any = this.resolveNetworkEntityType(type);
+        const keyType = this.resolveNetworkEntityType(type);
 
         if (keyType === null) {
             throw new TypeError(`Could not resolve ${type} to a valid key type`);
         }
 
-        return this.entities.get(keyType.name).get(id) as T;
+        return this.entities.get(EntityType[keyType.name]).get(id) as T;
     }
 
     public sync(entity: INetworkEntity, roomName: string): void {
-        this.server.broadcast(IOEvent.syncNetworkEntity, new SyncResponse(entity), roomName);
+        this.server.broadcast(IOEvent.syncNetworkEntity, SyncResponse.create(entity), roomName);
     }
 }

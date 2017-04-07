@@ -1,0 +1,1 @@
+npm i git+https://github.com/thunder033/pulsar-lib.git#%1 --save

@@ -10,8 +10,10 @@ const tarball = 'dist.tar.gz';
 const config = {
     master    : {tarball, app: 'pulsar-api-stage'},
     production: {tarball, app: 'pulsar-api'},
-    prototype1: {tarball, app: 'pulsar-api-p1',},
+    prototype1: {tarball, app: 'pulsar-api-p1'},
     release1  : {tarball, app: 'pulsar-api-r1'},
+    prototype2: {tarball, app: 'pulsar-api-p2'},
+    release2  : {tarball, app: 'pulsar-api-r2'},
 };
 
 deploy(config[process.env.CIRCLE_BRANCH || 'master']);

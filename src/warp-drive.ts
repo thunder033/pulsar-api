@@ -1,44 +1,45 @@
-import {ServerComponent, SyncServer} from './sync-server';
-import {LevelSlice, WarpField} from './warp-field';
-import {GameState} from './simulation';
 /**
  * Created by Greg on 3/24/2017.
  */
 
-class Bar {
-    public static readonly scaleX: number = 1.5;
-    public static readonly scaleY: number = 1;
-    public static readonly scaleZ: number = 0.9;
-
-    // The distance between each bar
-    public static readonly margin: number = 0.1;
-}
+import {LevelSlice, WarpField} from './warp-field';
+import {GameState} from './simulation';
+import {BinaryNetworkEntity} from './network-index';
+import {DataFormat, DriveParams, SliceBar} from 'game-params';
+import {bind} from 'bind-decorator';
+import {Match} from './match';
 
 /**
  * Reads and utilizes WarpFields to advance the state of
  * the game
  */
-export class WarpDrive {
-
-    private barVisibleCnt: number = 55;
-    private barQueue;
-
+export class WarpDrive extends BinaryNetworkEntity {
     private state: GameState;
     private warpField: WarpField;
     private fieldValues: LevelSlice[];
 
     private sliceIndex: number;
     private sliceElapsed: number;
+    private endSliceIndex: number;
     private timeStep: number;
     private barOffset: number;
 
+    private velocity: number;
+
+    // binary getter
+    private get stateValue(): number {
+        return this.state.getState();
+    }
+
     constructor() {
+        super(WarpDrive, DataFormat.WARP_DRIVE);
         this.sliceElapsed = 0;
         this.sliceIndex = 0;
         this.timeStep = NaN;
         this.barOffset = 0;
+        this.endSliceIndex = 0;
 
-        this.barQueue = [];
+        this.velocity = 0;
     }
 
     public load(warpField: WarpField, state: GameState): void {
@@ -46,14 +47,21 @@ export class WarpDrive {
         this.state = state;
         this.timeStep = warpField.getTimeStep();
         this.fieldValues = warpField.getFieldValues();
+        this.sliceIndex = ~~(-DriveParams.LEVEL_BUFFER_START / this.timeStep);
+        this.endSliceIndex = this.fieldValues.length + ~~(DriveParams.LEVEL_BUFFER_END / this.timeStep);
+    }
+
+    public getSliceIndex() {
+        return this.sliceIndex;
     }
 
     public getWarpField(): WarpField {
         return this.warpField;
     }
 
+    @bind
     public update(dt) {
-        if (!this.state.is(this.state.Playing)) {
+        if (!this.state.is(GameState.Playing)) {
             return;
         }
 
@@ -64,19 +72,25 @@ export class WarpDrive {
             this.sliceIndex++;
             this.barOffset = 0;
 
-            this.barQueue.shift();
-
-            while (this.barQueue.length < this.barVisibleCnt) {
-                this.barQueue.push({speed: 0.95});
-            }
+            const sliceSpeed = this.getSlice(DriveParams.RENDER_OFFSET).getSpeed();
+            this.velocity = (SliceBar.scaleZ * sliceSpeed + SliceBar.margin) / this.timeStep;
         }
 
-        const velocity = (Bar.scaleZ * this.barQueue[2].speed + Bar.margin) / this.timeStep;
-        this.barOffset -= dt * velocity;
+        this.barOffset -= dt * this.velocity;
 
-        if (this.sliceIndex > this.fieldValues.length) {
-            this.state.setState(this.state.LevelComplete);
+        if (this.sliceIndex > this.endSliceIndex) {
+            this.state.setState(GameState.LevelComplete);
         }
+
+        this.updateBuffer();
     }
 
+    public getSlice(offset = 0) {
+        const index = this.sliceIndex + offset;
+        if (index < this.fieldValues.length && index >= 0) {
+            return this.fieldValues[index];
+        } else {
+            return LevelSlice.Empty;
+        }
+    }
 }

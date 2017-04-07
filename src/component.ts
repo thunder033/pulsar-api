@@ -6,12 +6,12 @@
  * An object that can be extended with run-time functionality through components
  */
 export abstract class Composite {
-    private components: Map<string, Component>;
+    private components: Map<string, IComponent>;
 
     // Initialize the composite with any provided components
-    constructor(componentTypes: IComponent[] = []) {
-        this.components = new Map<string, Component>();
-        componentTypes.forEach((type: IComponent) => this.addComponent(type));
+    constructor(componentTypes: IComponentCtor[] = []) {
+        this.components = new Map<string, IComponent>();
+        componentTypes.forEach((type: IComponentCtor) => this.addComponent(type));
     }
 
     /**
@@ -19,7 +19,7 @@ export abstract class Composite {
      * @param type: the type of component to return
      * @returns {Component}: the component, if found
      */
-    public getComponent<T extends Component>(type: {new(parent: Composite): T}): T {
+    public getComponent<T extends IComponent>(type: {new(parent: Composite): T}): T {
         return this.components.get(type.name) as T;
     }
 
@@ -28,7 +28,7 @@ export abstract class Composite {
      * @param componentType
      * @returns {Component}
      */
-    public addComponent(componentType: IComponent): Component {
+    public addComponent(componentType: IComponentCtor): IComponent {
         const component = new componentType(this);
         this.components.set(componentType.name, component);
         return component;
@@ -38,7 +38,7 @@ export abstract class Composite {
      * Retrieve an array of all components on this composite
      * @returns {Component[]}
      */
-    protected getComponents(): Component[] {
+    protected getComponents(): IComponent[] {
         const components = [];
         const it = this.components.values();
 
@@ -70,18 +70,26 @@ export abstract class Composite {
     }
 }
 
-// A component constructor
 export interface IComponent {
-    new(parent: Composite): Component;
+    getParent(): Composite;
+}
+
+// A component constructor
+export interface IComponentCtor {
+    new(parent: Composite): IComponent;
 }
 
 /**
  * Can be attached to a composite to extend its capabilities
  */
-export abstract class Component {
+export abstract class Component implements IComponent {
     protected parent: Composite;
 
     constructor(parent: Composite) {
         this.parent = parent;
+    }
+
+    public getParent(): Composite {
+        return this.parent;
     }
 }

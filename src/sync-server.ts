@@ -6,13 +6,13 @@ import Socket = SocketIO.Socket;
 
 import * as http from 'http';
 import * as socketio from 'socket.io';
-import {Component, Composite, IComponent} from './component';
+import {Component, Composite, IComponentCtor} from './component';
 
 export interface IServerComponent {
     init(io: SocketIO.Server, server: SyncServer): void;
     onInit(): void;
     getName(): string;
-    getUserComponents(): IComponent[];
+    getUserComponents(): IComponentCtor[];
 }
 
 /**
@@ -21,7 +21,7 @@ export interface IServerComponent {
  */
 export abstract class ServerComponent extends Component implements IServerComponent {
     protected io: SocketIO.Server;
-    protected userComponents: IComponent[];
+    protected userComponents: IComponentCtor[];
     protected server: SyncServer;
 
     private name: string;
@@ -30,7 +30,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
      * @param syncServer:
      * @param userComponents: Components that should be initialized on each user created on the server
      */
-    constructor(syncServer: SyncServer, userComponents: IComponent[] = []) {
+    constructor(syncServer: SyncServer, userComponents: IComponentCtor[] = []) {
         super(syncServer);
         this.name = this.constructor.name;
         this.userComponents = userComponents;
@@ -59,7 +59,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
         return this.name;
     }
 
-    public getUserComponents(): IComponent[] {
+    public getUserComponents(): IComponentCtor[] {
         return this.userComponents;
     }
 }
@@ -97,7 +97,7 @@ export class SyncServer extends Composite {
      * @param component: a component constructor
      * @returns {Component}
      */
-    public addComponent(component: IComponent): Component {
+    public addComponent(component: IComponentCtor): Component {
         console.log('add server component: ', component.name);
         return (super.addComponent(component) as ServerComponent).init(this.io, this);
     }
@@ -153,9 +153,9 @@ export class SyncServer extends Composite {
 
     /**
      * Generates an flat array of all user components required by server components
-     * @returns {IComponent[]}
+     * @returns {IComponentCtor[]}
      */
-    private getUserComponents(): IComponent[] {
+    private getUserComponents(): IComponentCtor[] {
         const userComponents: any = (this.getComponents() as ServerComponent[]).map((c) => c.getUserComponents());
         return [].concat.apply([Connection], userComponents);
     }

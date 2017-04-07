@@ -86,8 +86,8 @@ export class Connection extends ClientComponent {
         const networkIndex = this.server.getComponent(NetworkIndex);
         console.log(`${data.reqId}: ${req.type} ${req.id}`);
 
-        if (req.type && req.id) {
-            const type = networkIndex.getType(req.type);
+        if (typeof req.type === 'number' && req.id) {
+            const type = networkIndex.getType(parseInt(req.type, 10));
             if (!type) {
                 this.socket.emit(errorKey, `SyncError: Invalid ${IOEvent.syncNetworkEntity} request type: ${req.type}`);
                 return;
