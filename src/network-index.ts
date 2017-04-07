@@ -8,7 +8,7 @@ import {IOEvent} from 'event-types';
 import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {Component, Composite} from './component';
-import {ByteSizes, DataFormat, DataType, FieldType} from 'game-params';
+import {BufferFormat, ByteSizes, DataFormat, DataType, FieldType} from 'game-params';
 import {Clock} from './clock';
 import {EntityType} from 'entity-type';
 
@@ -122,7 +122,7 @@ class FormattedBuffer {
     private static clock: Clock = new Clock();
 
     private buffer: Buffer;
-    private format: Map<string, FieldType>; // *ORDERED* listing of fields in the buffer
+    private format: BufferFormat; // *ORDERED* listing of fields in the buffer
     private timestamp: number; // the last time the buffer was updated
     private fieldSizes: Map<string, number>;
 
@@ -134,7 +134,7 @@ class FormattedBuffer {
      * @param format {Map}
      * @param sizes {Map}
      */
-    public static parseFieldSizes(format: Map<string, FieldType>, sizes) {
+    public static parseFieldSizes(format: BufferFormat, sizes) {
         // fields to delete at the end
         const overriddenFields = [];
 
@@ -159,7 +159,7 @@ class FormattedBuffer {
         overriddenFields.forEach((field) => format.delete(field));
     }
 
-    constructor(format: Map<string, FieldType>, metaData: Buffer = Buffer.alloc(0)) {
+    constructor(format: BufferFormat, metaData: Buffer = Buffer.alloc(0)) {
         this.format = format;
         this.fieldSizes = new Map<string, number>();
         FormattedBuffer.parseFieldSizes(this.format, this.fieldSizes);
@@ -265,7 +265,7 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
         this.buffer.updateBuffer(this);
     }
 
-    public getSerializable() {
+    public getSerializable(): Buffer | any {
         return this.buffer.getData();
     }
 }
