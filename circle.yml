@@ -13,7 +13,7 @@ dependencies:
     - npm run build
 deployment:
   default:
-    branch: [master, production, prototype1, release1]
+    branch: [master, production, prototype2, release1]
     commands:
       - sh ./scripts/deploy.sh
 
