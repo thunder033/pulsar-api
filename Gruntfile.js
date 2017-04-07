@@ -12,6 +12,9 @@ module.exports = (grunt) => {
             prod: {
                 files: [{expand: true,
                     src: [
+                    'public/index.html',
+                    'public/assets/**',
+                        
                     'src/**/*.js',
                     'src/tsconfig.json',
 
