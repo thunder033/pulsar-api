@@ -10,6 +10,7 @@ import {IOEvent, MatchEvent} from 'event-types';
 import {Building} from './building';
 import {Simulator} from './simulation';
 import {WarpFactory} from './warp';
+import {Song} from './song';
 
 /**
  * Providers users the ability to join and leave matches
@@ -73,8 +74,10 @@ export class MatchMember extends ClientComponent {
      */
     public requestMatch(data) {
         if (!(this.match instanceof Match)) {
+            const song = new Song(data.song || {});
+
             const match = this.server.getComponent(MatchMaker)
-                .createMatch({label: data.label, host: this});
+                .createMatch({label: data.label, host: this, song});
 
             if (match instanceof Match) {
                 this.match = match;
@@ -154,6 +157,7 @@ export class MatchMaker extends ServerComponent {
         const match: Match = new Match(params.host, this);
         this.server.getComponent(Building).addRoom(match);
         match.setLabel(params.label);
+        match.setSong(params.song);
         this.matches.push(match);
         return match;
     }

@@ -3,12 +3,13 @@
  */
 
 import * as uuid from 'uuid/v4';
-import {INetworkEntity} from './network-index';
+import {INetworkEntity, NetworkEntity} from './network-index';
 import {MatchMaker, MatchMember} from './match-maker';
 import {Room} from './room';
 import {Client} from './client';
 import {MatchEvent} from 'event-types';
 import {Connection} from './connection';
+import {Song} from './song';
 
 /**
  * Specialized Room for staging new play sessions between users
@@ -23,6 +24,7 @@ export class Match extends Room implements INetworkEntity {
     private host: MatchMember;
     private started: boolean;
     private startTime: number;
+    private song: Song;
 
     constructor(user: MatchMember, matchMaker: MatchMaker) {
         super(`match-${uuid()}`);
@@ -76,6 +78,10 @@ export class Match extends Room implements INetworkEntity {
 
     public setLabel(label: string): void {
         this.label = label;
+    }
+
+    public setSong(song: Song): void {
+        this.song = song;
     }
 
     public getLabel(): string {
