@@ -33,7 +33,7 @@
     "bind-decorator": "^1.0.10",
     "express": "^4.14.1",
     "module-alias": "^2.0.0",
-    "pulsar-lib": "github:thunder033/pulsar-lib#v1.0.16",
+    "pulsar-lib": "github:thunder033/pulsar-lib#v1.0.19",
     "q": "^1.4.1",
     "socket.io": "^1.7.2",
     "typescript": "2.1.6",
