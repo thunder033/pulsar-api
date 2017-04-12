@@ -3,26 +3,9 @@
  */
 
 import {
-    BufferFormat, ByteSizes, DataType, FieldType, NUM_TYPE_BITS, SIZE_MASK,
-    TYPE_MASK,
+    BufferFormat, DataType, FieldType, getFieldSize, getPrimitiveType,
 } from 'pulsar-lib/dist/src/game-params';
 import {Clock} from './clock';
-
-function getSize(type: DataType) {
-    if (type > TYPE_MASK) {
-        return (type & SIZE_MASK) >> NUM_TYPE_BITS;
-    } else if (type < 0) {
-        const typeCode = (~type) & TYPE_MASK;
-        const numElems = (~type) & SIZE_MASK >> NUM_TYPE_BITS;
-        return ByteSizes.get(typeCode) * numElems;
-    } else {
-        return ByteSizes.get(type);
-    }
-}
-
-function getPrimitiveType(type: DataType) {
-    return ((type >> 31) ^ type) & TYPE_MASK;
-}
 
 export class FormattedBuffer {
 
@@ -55,7 +38,7 @@ export class FormattedBuffer {
      * @param format {Map}
      * @param sizes {Map}
      */
-    public static parseFieldSizes(format: BufferFormat, sizes) {
+    public static cacheFieldSizes(format: BufferFormat, sizes) {
         // fields to delete at the end
         function assertValidSize(size: number, field: string) {
             if (isNaN(size) || size === 0) {
@@ -64,24 +47,33 @@ export class FormattedBuffer {
         }
 
         format.forEach((type: DataType, field) => {
-            const size = getSize(type);
+            const size = getFieldSize(type);
             assertValidSize(size, field);
             sizes.set(field, size);
         });
     }
 
+    /**
+     * @param format {BufferFormat}: The format of the buffer
+     * @param metaData {FormattedBuffer} = null: an optional set of fields to prepend to the buffer
+     */
     constructor(format: BufferFormat, metaData: FormattedBuffer = null) {
         this.format = new Map(format.entries());
         this.fieldSizes = new Map<string, number>();
-        FormattedBuffer.parseFieldSizes(this.format, this.fieldSizes);
+        // Pre-process the data type associated with each field
+        FormattedBuffer.cacheFieldSizes(this.format, this.fieldSizes);
 
+        // The offset of each field in the buffer
         this.positions = new Map<string, number>();
 
+        // Get the number of bytes in the format
         const formatSize = this.getFormatSize(this.format);
+        // Create the buffer that powers this class
         if (metaData instanceof FormattedBuffer) {
             this.metaDataLength = metaData.getData().length;
             this.buffer = Buffer.alloc(formatSize + this.metaDataLength);
             metaData.getData().copy(this.buffer, 0, 0, this.metaDataLength);
+            // cache the position of each metadata field
             metaData.positions.forEach((position, field) => {
                 this.positions.set(field, position);
             });
@@ -90,24 +82,32 @@ export class FormattedBuffer {
             this.buffer = Buffer.alloc(formatSize);
         }
 
+        // Calculate and cache the position of each field
         let position = this.metaDataLength;
         this.format.forEach((type, field) => {
             this.positions.set(field, position);
             position += this.fieldSizes.get(field);
         });
 
+        // Create functions that are executes during each buffer update
+        // Pre-configuring these update methods is up to 3x faster than looking up
+        // config during updates
         this.updateOps = [];
         position = this.metaDataLength;
         this.format.forEach((type, field) => {
             const size = this.fieldSizes.get(field);
             const primitiveType = getPrimitiveType(type);
             const method = FormattedBuffer.writeMethods.get(primitiveType);
+            // A negative type indicates an array
             if (type > 0) {
+                // Create a closure with the configuration to curry the write method
                 this.updateOps.push(((p, m, f) => {
                     return (e) => this.buffer[m](e[f], p);
                 })(position, method, field));
             } else {
                 this.updateOps.push(((p, m, f, s) => {
+                    // It would be faster to cache this buffer, rather than re-create it
+                    // each time
                     return (e) => Buffer.from(e[f].buffer).copy(this.buffer, p, 0, s);
                 })(position, method, field, size));
             }
