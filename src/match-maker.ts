@@ -11,6 +11,7 @@ import {Building} from './building';
 import {Simulator} from './simulation';
 import {WarpFactory} from './warp';
 import {Song} from './song';
+import {bind} from 'bind-decorator';
 
 /**
  * Providers users the ability to join and leave matches
@@ -21,13 +22,25 @@ export class MatchMember extends ClientComponent {
 
     public onInit() {
         // Register event handlers
-        this.socket.on(MatchEvent.requestMatch, (data) => this.requestMatch(data));
-        this.socket.on(MatchEvent.requestJoin, (data) => this.requestJoin(data));
-        this.socket.on(MatchEvent.requestLeave, (data) => this.leaveMatch(data));
-        this.socket.on(MatchEvent.requestStart, (data) => this.startMatch(data));
-        this.socket.on(MatchEvent.requestEnd, (data) => this.endMatch(data));
+        this.socket.on(MatchEvent.requestMatch, this.requestMatch);
+        this.socket.on(MatchEvent.requestJoin, this.requestJoin);
+        this.socket.on(MatchEvent.requestLeave, this.leaveMatch);
+        this.socket.on(MatchEvent.requestStart, this.startMatch);
+        this.socket.on(MatchEvent.requestEnd, this.endMatch);
+        this.socket.on(MatchEvent.setSong, this.setSong);
     }
 
+    @bind
+    public setSong(data) {
+        if (!this.isHost()) {
+            return this.socket.emit(IOEvent.serverError, new Error('Only the host may set the match song'));
+        }
+
+        this.match.setSong(data);
+        this.match.broadcast(MatchEvent.setSong, data);
+    }
+
+    @bind
     public startMatch(data) {
         if (this.match instanceof Match) {
             if (!this.isHost()) {
@@ -48,6 +61,7 @@ export class MatchMember extends ClientComponent {
         this.match = null;
     }
 
+    @bind
     public endMatch(data) {
         if (this.match instanceof Match) {
             this.match.end();
@@ -56,6 +70,7 @@ export class MatchMember extends ClientComponent {
         }
     }
 
+    @bind
     public leaveMatch(data) {
         if (this.match instanceof Match) {
             const matchId = this.match.getId();
@@ -72,6 +87,7 @@ export class MatchMember extends ClientComponent {
      * Attempt to create a new match with the given parameters
      * @param data
      */
+    @bind
     public requestMatch(data) {
         if (!(this.match instanceof Match)) {
             const song = new Song(data.song || {});
@@ -110,11 +126,13 @@ export class MatchMember extends ClientComponent {
      * Attempts to join the match specified by name
      * @param data
      */
+    @bind
     public requestJoin(data) {
         if (!(this.match instanceof Match)) {
             try {
                 this.match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
             } catch (e) {
+                console.error(e);
                 this.socket.emit(IOEvent.serverError, e.message || e);
             }
         } else {
