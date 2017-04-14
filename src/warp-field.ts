@@ -42,6 +42,10 @@ export class WarpField extends BinaryNetworkEntity {
         return this.level[this.sliceIndex].getGems();
     }
 
+    public static reconstruct(buffer: Buffer): WarpField {
+        return new WarpField();
+    }
+
     constructor() {
         super(WarpField, DataFormat.SLICE_UPDATE);
         this.level = [];
@@ -70,10 +74,6 @@ export class WarpField extends BinaryNetworkEntity {
         this.updateBuffer();
         this.sync();
         this.syncingSlice = false;
-    }
-
-    public reconstruct(buffer: Buffer) {
-        throw new Error('not implemented');
     }
 
     public getTimeStep(): number {

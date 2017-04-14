@@ -57,6 +57,24 @@ export class MatchMember extends ClientComponent {
         }
     }
 
+    /**
+     * Waits for the client (if it's the host) to generate & send a warp field
+     * @returns {Promise<T>}
+     */
+    public waitForWarpField(): Promise<any> {
+        if (!this.isHost()) {
+            throw new Error(`User ${this.getId()} is not the host and will not send a warp field`);
+        }
+
+        return new Promise((resolve, reject) => {
+            this.socket.on(MatchEvent.uploadLevel, resolve);
+
+            const timeoutDuration = 30 * 1000;
+            const timeoutError = new Error('Timed out waiting for host to send generated level.');
+            setTimeout(() => reject(timeoutError), timeoutDuration);
+        });
+    }
+
     public unsetMatch() {
         this.match = null;
     }

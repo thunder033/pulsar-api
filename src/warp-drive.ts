@@ -39,6 +39,10 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.barOffset = 0;
         this.endSliceIndex = 0;
 
+        this.warpField = null;
+        this.fieldValues = null;
+        this.state = null;
+
         this.velocity = 0;
     }
 

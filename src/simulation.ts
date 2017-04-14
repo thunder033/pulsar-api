@@ -15,6 +15,7 @@ import {state, StateMachine} from './state-machine';
 import {bind} from 'bind-decorator';
 import {CompositeNetworkEntity} from './composite-network-entity';
 import {Networkable} from './network-index';
+import {GameEvent} from 'pulsar-lib/dist/src/event-types';
 
 export interface IGameComponentCtor {
     new(...args: any[]): IGameComponent;
@@ -92,6 +93,7 @@ export class Simulation extends CompositeNetworkEntity {
     private lastStepTime: number;
     private match: Match;
     private clock: Clock;
+    private startTime: number;
 
     private readonly SYNC_INTERVAL: number = 50;
     private syncElapsed: number = 0;
@@ -108,8 +110,8 @@ export class Simulation extends CompositeNetworkEntity {
         this.state = new GameState();
         this.state.setState(GameState.Loading);
 
+        this.startTime = NaN;
         this.warpDrive = new WarpDrive();
-        this.warpDrive.load(new WarpField(), this.state);
 
         this.schedule(this.warpDrive.update);
         this.schedule(this.syncClients);
@@ -120,6 +122,22 @@ export class Simulation extends CompositeNetworkEntity {
         component.attachMatch(this.match);
         this.schedule(component.update);
         return component;
+    }
+
+    /**
+     * Sets a start time for the game and notifies all clients
+     */
+    public onClientsLoaded() {
+        this.startTime = Date.now() + Match.MATCH_START_SYNC_TIME;
+        this.match.broadcast(GameEvent.clientsReady, {gameId: this.getId(), startTime: this.startTime});
+    }
+
+    public loadWarpField(warpField: WarpField) {
+        this.warpDrive.load(warpField, this.state);
+    }
+
+    public getStartTime(): number {
+        return this.startTime;
     }
 
     /**
@@ -146,10 +164,11 @@ export class Simulation extends CompositeNetworkEntity {
             }
         });
 
+        const warpFieldId = this.warpDrive.getWarpField() === null ? '' : this.warpDrive.getWarpField().getId();
         return Object.assign(buffer, {
             matchId: this.match.getId(),
             warpDriveId: this.warpDrive.getId(),
-            warpFieldId: this.warpDrive.getWarpField().getId(),
+            warpFieldId,
         });
     }
 

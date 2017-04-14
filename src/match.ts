@@ -16,8 +16,9 @@ import {Song} from './song';
  */
 export class Match extends Room implements INetworkEntity {
 
+    public static MATCH_START_SYNC_TIME: number = 3000;
+
     private static MAX_MATCH_SIZE: number = 2;
-    private static MATCH_START_SYNC_TIME: number = 3000;
 
     private label: string;
     private matchMaker: MatchMaker;

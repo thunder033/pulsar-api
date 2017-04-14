@@ -49,6 +49,12 @@ export class Scoring extends Component implements IGameComponent {
 
     @bind
     public update(deltaTime: number): void {
+        if (this.warpField === null) {
+            // poll for the warp field if it isn't set
+            this.warpField = this.warpDrive.getWarpField();
+            return;
+        }
+
         const COLLECT_OFFSET = 2;
         const sliceIndex = this.warpDrive.getSliceIndex() + COLLECT_OFFSET;
 
