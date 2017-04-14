@@ -24,7 +24,7 @@ export class CompositeNetworkEntity extends Composite implements INetworkEntity 
         return this.getComponent(Networkable).getType();
     }
 
-    public sync(socket?: SocketIO.Socket): void {
-        this.getComponent(Networkable).sync(socket);
+    public sync(socket?: SocketIO.Socket, roomName?: string): void {
+        this.getComponent(Networkable).sync(socket, roomName);
     }
 }
