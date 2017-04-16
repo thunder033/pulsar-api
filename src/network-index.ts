@@ -107,132 +107,17 @@ export abstract class NetworkEntity implements INetworkEntity {
     }
 }
 
-class FormattedBuffer {
-
-    // mapping of data types to buffer write methods
-    private static readonly writeMethods: Map<DataType, string> = new Map<DataType, string>([
-        [DataType.String, 'write'],
-        [DataType.Float, 'writeFloatBE'],
-        [DataType.Double, 'writeDoubleBE'],
-        [DataType.Int8, 'writeInt8'],
-        [DataType.Int16, 'writeInt16BE'],
-        [DataType.Int32, 'writeInt32BE'],
-    ]);
-
-    private static clock: Clock = new Clock();
-
-    private buffer: Buffer;
-    private format: BufferFormat; // *ORDERED* listing of fields in the buffer
-    private timestamp: number; // the last time the buffer was updated
-    private fieldSizes: Map<string, number>;
-
-    private metaDataLength: number;
-
-    /**
-     * Update the size map using the format map. Replaces any override size keys
-     * ("key:size") in the format map with just the size (ex. id:36 -> id)
-     * @param format {Map}
-     * @param sizes {Map}
-     */
-    public static parseFieldSizes(format: BufferFormat, sizes) {
-        // fields to delete at the end
-        const overriddenFields = [];
-
-        format.forEach((type, field) => {
-            if (field.indexOf(':') > 0) {
-                overriddenFields.push(field);
-                const [fieldName, size] = field.split(':');
-                sizes.set(fieldName, parseInt(size, 10));
-                format.set(fieldName, type);
-            } else if (!sizes.has(field)) {
-                if (type instanceof Array && (!(type[0] in DataType) || !Number.isInteger(type[1]))) {
-                    throw new TypeError(`
-                    ArrayBuffer type ${type} is invalid. 
-                    ArrayBuffer type must be formatted as [{DataType}, {integer}]`);
-                }
-
-                const size = type instanceof Array ? ByteSizes.get(type[0]) * type[1] : ByteSizes.get(type);
-                sizes.set(field, size);
-            }
-        });
-
-        overriddenFields.forEach((field) => format.delete(field));
-    }
-
-    constructor(format: BufferFormat, metaData: Buffer = Buffer.alloc(0)) {
-        this.format = format;
-        this.fieldSizes = new Map<string, number>();
-        FormattedBuffer.parseFieldSizes(this.format, this.fieldSizes);
-
-        const formatSize = this.getFormatSize(this.format);
-        this.buffer = Buffer.alloc(formatSize + metaData.length);
-        this.metaDataLength = metaData.length;
-        metaData.copy(this.buffer, 0, 0, metaData.length);
-    }
-
-    public getData(): Buffer {
-        return this.buffer;
-    }
-
-    /**
-     * Calculate the total number of bytes required to store the format map
-     * @param format {Map}
-     * @returns {number} the size of the format
-     */
-    public getFormatSize(format: Map<string, FieldType>): number {
-        let size = 0;
-        format.forEach((type, field) => {
-            size += this.fieldSizes.get(field);
-        });
-
-        return size;
-    }
-
-    /**
-     * Iterate through all fields in the BNE format and write the current value to
-     * the buffer
-     */
-    public updateBuffer(entity: BinaryNetworkEntity) {
-        this.timestamp = FormattedBuffer.clock.now() || 0;
-        let position: number = this.metaDataLength;
-        this.format.forEach((type, field) => {
-            const size = this.fieldSizes.get(field);
-            if (type instanceof Array) {
-                const elemSize = ByteSizes.get(type[0]);
-                const elemMethod = FormattedBuffer.writeMethods.get(type[0]);
-                for (let i = 0; i < type[1]; i++) {
-                    this.buffer[elemMethod](entity[field][i], position + elemSize * i);
-                }
-            } else {
-                const method = FormattedBuffer.writeMethods.get(type);
-                this.buffer[method](entity[field], position);
-
-            }
-            position += size;
-        });
-    }
-}
-
 /**
  * Network Entity that transmits its sync packets as a binary buffer
  */
 export abstract class BinaryNetworkEntity extends NetworkEntity {
-    private static BNEFormat: Map<string, FieldType> = DataFormat.NETWORK_ENTITY;
-    private static BNESizes: Map<string, number>; // byte sizes of metadata fields
-    private static entityOffset: number; // how many bytes entity metadata occupies at the start of a buffer
-
     private buffer: FormattedBuffer = null;
-    private metadata: Buffer;
+    private metadata: FormattedBuffer;
     private defaultFormat: Map<string, FieldType>; // *ORDERED* listing of fields in the buffer
     private buffers: Map<DataFormat, FormattedBuffer>;
 
     public static init() {
-        BinaryNetworkEntity.BNESizes = new Map<string, number>();
-        FormattedBuffer.parseFieldSizes(
-            BinaryNetworkEntity.BNEFormat,
-            BinaryNetworkEntity.BNESizes);
-        BinaryNetworkEntity.entityOffset = BinaryNetworkEntity.BNESizes.get('id') +
-            BinaryNetworkEntity.BNESizes.get('type');
+        // nothing here
     }
 
     constructor(type: INetworkEntityCtor, defaultFormat: Map<string, FieldType>) {
@@ -240,10 +125,13 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
         this.defaultFormat = defaultFormat;
         this.buffers = new Map<string, FormattedBuffer>();
 
-        this.metadata = Buffer.alloc(BinaryNetworkEntity.entityOffset);
-        this.metadata.write(this.getId(), 0);
-        const bufferType: number = EntityType[this.getType().name];
-        this.metadata.writeInt8(bufferType, NetworkEntity.ID_LENGTH);
+        this.metadata = new FormattedBuffer(DataFormat.NETWORK_ENTITY);
+        this.metadata.updateBuffer({
+            format: 0,
+            id: this.getId(),
+            type: EntityType[this.getType().name],
+        });
+
         this.addFormat(defaultFormat);
     }
 
@@ -262,6 +150,7 @@ export abstract class BinaryNetworkEntity extends NetworkEntity {
      */
     protected updateBuffer(format: Map<string, FieldType> = this.defaultFormat) {
         this.buffer = this.buffers.get(format);
+
         this.buffer.updateBuffer(this);
     }
 
@@ -350,6 +239,7 @@ export class Networkable extends Component implements INetworkEntity {
 // These are imported here because they would otherwise create c-dep with
 // SyncServer->Client->NetworkEntity->...
 import {ServerComponent, SyncServer} from './sync-server';
+import {FormattedBuffer} from './formatted-buffer';
 
 /**
  * Provides arbitrary access to entities that are needed by clients

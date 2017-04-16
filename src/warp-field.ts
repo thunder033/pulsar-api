@@ -7,13 +7,13 @@ import {DataFormat} from 'pulsar-lib/dist/src/game-params';
 export class LevelSlice {
     public static readonly Empty: LevelSlice = new LevelSlice([], 0, 1);
 
-    private gems: number[];
+    private gems: Int8Array;
     private loudness: number;
     private speed: number;
 
     constructor(gems: number[], loudness: number, speed: number) {
         this.loudness = Math.abs(loudness);
-        this.gems = gems;
+        this.gems = new Int8Array(gems);
         this.speed = Math.abs(speed);
     }
 
@@ -25,7 +25,7 @@ export class LevelSlice {
         return this.speed;
     }
 
-    public getGems(): number[] {
+    public getGems(): Int8Array {
         return this.gems;
     }
 }
@@ -38,8 +38,12 @@ export class WarpField extends BinaryNetworkEntity {
     private sliceIndex: number;
     private syncingSlice: boolean;
 
-    private get gems(): number[] {
+    private get gems(): Int8Array {
         return this.level[this.sliceIndex].getGems();
+    }
+
+    public static reconstruct(buffer: Buffer): WarpField {
+        return new WarpField();
     }
 
     constructor() {
@@ -70,10 +74,6 @@ export class WarpField extends BinaryNetworkEntity {
         this.updateBuffer();
         this.sync();
         this.syncingSlice = false;
-    }
-
-    public reconstruct(buffer: Buffer) {
-        throw new Error('not implemented');
     }
 
     public getTimeStep(): number {

@@ -10,6 +10,8 @@ import {IOEvent, MatchEvent} from 'event-types';
 import {Building} from './building';
 import {Simulator} from './simulation';
 import {WarpFactory} from './warp';
+import {Song} from './song';
+import {bind} from 'bind-decorator';
 
 /**
  * Providers users the ability to join and leave matches
@@ -20,13 +22,25 @@ export class MatchMember extends ClientComponent {
 
     public onInit() {
         // Register event handlers
-        this.socket.on(MatchEvent.requestMatch, (data) => this.requestMatch(data));
-        this.socket.on(MatchEvent.requestJoin, (data) => this.requestJoin(data));
-        this.socket.on(MatchEvent.requestLeave, (data) => this.leaveMatch(data));
-        this.socket.on(MatchEvent.requestStart, (data) => this.startMatch(data));
-        this.socket.on(MatchEvent.requestEnd, (data) => this.endMatch(data));
+        this.socket.on(MatchEvent.requestMatch, this.requestMatch);
+        this.socket.on(MatchEvent.requestJoin, this.requestJoin);
+        this.socket.on(MatchEvent.requestLeave, this.leaveMatch);
+        this.socket.on(MatchEvent.requestStart, this.startMatch);
+        this.socket.on(MatchEvent.requestEnd, this.endMatch);
+        this.socket.on(MatchEvent.setSong, this.setSong);
     }
 
+    @bind
+    public setSong(data) {
+        if (!this.isHost()) {
+            return this.socket.emit(IOEvent.serverError, new Error('Only the host may set the match song'));
+        }
+
+        this.match.setSong(data);
+        this.match.broadcast(MatchEvent.setSong, data);
+    }
+
+    @bind
     public startMatch(data) {
         if (this.match instanceof Match) {
             if (!this.isHost()) {
@@ -43,10 +57,29 @@ export class MatchMember extends ClientComponent {
         }
     }
 
+    /**
+     * Waits for the client (if it's the host) to generate & send a warp field
+     * @returns {Promise<T>}
+     */
+    public waitForWarpField(): Promise<any> {
+        if (!this.isHost()) {
+            throw new Error(`User ${this.getId()} is not the host and will not send a warp field`);
+        }
+
+        return new Promise((resolve, reject) => {
+            this.socket.on(MatchEvent.uploadLevel, resolve);
+
+            const timeoutDuration = 30 * 1000;
+            const timeoutError = new Error('Timed out waiting for host to send generated level.');
+            setTimeout(() => reject(timeoutError), timeoutDuration);
+        });
+    }
+
     public unsetMatch() {
         this.match = null;
     }
 
+    @bind
     public endMatch(data) {
         if (this.match instanceof Match) {
             this.match.end();
@@ -55,6 +88,7 @@ export class MatchMember extends ClientComponent {
         }
     }
 
+    @bind
     public leaveMatch(data) {
         if (this.match instanceof Match) {
             const matchId = this.match.getId();
@@ -71,10 +105,13 @@ export class MatchMember extends ClientComponent {
      * Attempt to create a new match with the given parameters
      * @param data
      */
+    @bind
     public requestMatch(data) {
         if (!(this.match instanceof Match)) {
+            const song = new Song(data.song || {});
+
             const match = this.server.getComponent(MatchMaker)
-                .createMatch({label: data.label, host: this});
+                .createMatch({label: data.label, host: this, song});
 
             if (match instanceof Match) {
                 this.match = match;
@@ -107,11 +144,13 @@ export class MatchMember extends ClientComponent {
      * Attempts to join the match specified by name
      * @param data
      */
+    @bind
     public requestJoin(data) {
         if (!(this.match instanceof Match)) {
             try {
                 this.match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
             } catch (e) {
+                console.error(e);
                 this.socket.emit(IOEvent.serverError, e.message || e);
             }
         } else {
@@ -154,6 +193,7 @@ export class MatchMaker extends ServerComponent {
         const match: Match = new Match(params.host, this);
         this.server.getComponent(Building).addRoom(match);
         match.setLabel(params.label);
+        match.setSong(params.song);
         this.matches.push(match);
         return match;
     }
@@ -173,7 +213,6 @@ export class MatchMaker extends ServerComponent {
 
         if (match.isOpen()) {
             match.add(user);
-            this.startMatch(match);
             return match;
         } else {
             throw new Error(`Cannot join match ${name}. The match is closed.`);

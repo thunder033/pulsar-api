@@ -9,6 +9,8 @@ import {ShipControl} from './ship-control';
 import {Client} from './client';
 import {Component} from './component';
 import {Scoring} from './scoring';
+import {IOEvent} from 'event-types';
+import {WarpField} from './warp-field';
 
 export class WarpFactory extends ServerComponent {
 
@@ -27,8 +29,16 @@ export class WarpFactory extends ServerComponent {
         const game = this.server.getComponent(Simulator).createSimulation(match, this.gameComponents);
         match.start(game.getId());
 
-        const remainingStart =  match.getStartTime() - Date.now();
-        setTimeout(() => game.start(), remainingStart);
+        // TODO: wait for the clients to respond they have loaded (buffered the song)
+        match.getHost().waitForWarpField().then((fieldParams) => {
+            game.loadWarpField(WarpField.reconstruct(fieldParams));
+            game.onClientsLoaded();
+            game.sync(null, match.getName());
+            const remainingStart = game.getStartTime() - Date.now();
+            setTimeout(() => game.start(), remainingStart);
+        }).catch((e) => {
+            match.broadcast(IOEvent.serverError, e);
+        });
     }
 }
 
