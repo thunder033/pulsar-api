@@ -88,7 +88,7 @@ export class Simulation extends CompositeNetworkEntity {
     private warpDrive: WarpDrive;
     private state: GameState;
 
-    private targetFPS: number;
+    private readonly targetFPS: number = 60;
     private operations: PriorityQueue;
 
     private stepInterval: Timer;
@@ -193,6 +193,10 @@ export class Simulation extends CompositeNetworkEntity {
      * Begin running the game
      */
     public start() {
+        if (!this.state.is(GameState.Loading)) {
+            throw new Error('Simulation can only be started once.');
+        }
+
         this.lastStepTime = Date.now();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
         this.state.setState(GameState.Playing);
@@ -253,8 +257,8 @@ export class Simulation extends CompositeNetworkEntity {
 
         const it = this.operations.getIterator();
 
-        while (!it.isEnd()) {
-            (it.next() as SimulationOperation).call(null, dt);
+        while (it.isEnd() === false) {
+            (it.next() as SimulationOperation)(dt);
         }
     }
 
