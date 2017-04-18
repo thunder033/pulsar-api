@@ -16,6 +16,7 @@ import {bind} from 'bind-decorator';
 import {CompositeNetworkEntity} from './composite-network-entity';
 import {Networkable} from './network-index';
 import {GameEvent} from 'pulsar-lib/dist/src/event-types';
+import * as Measured from 'measured';
 import {logger} from './logger';
 
 export interface IGameComponentCtor {
@@ -95,6 +96,7 @@ export class Simulation extends CompositeNetworkEntity {
     private match: Match;
     private clock: Clock;
     private startTime: number;
+    private meter: Measured.Meter;
 
     private readonly SYNC_INTERVAL: number = 50;
     private syncElapsed: number = 0;
@@ -107,6 +109,7 @@ export class Simulation extends CompositeNetworkEntity {
         this.operations = new PriorityQueue();
         this.match = match;
         this.clock = new Clock();
+        this.meter = new Measured.Meter();
 
         this.state = new GameState();
         this.state.setState(GameState.Loading);
@@ -193,6 +196,15 @@ export class Simulation extends CompositeNetworkEntity {
         this.lastStepTime = Date.now();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
         this.state.setState(GameState.Playing);
+
+        if (process.env.NODE_ENV === 'development') {
+            setInterval(() => {
+                // clear the console and put the cursor at 0,0
+                // http://stackoverflow.com/questions/9006988/node-js-on-windows-how-to-clear-console
+                process.stdout.write('\u001b[2J\u001b[0;0H');
+                logger.info(this.meter.toJSON());
+            }, 1500);
+        }
     }
 
     public suspend() {
@@ -228,6 +240,9 @@ export class Simulation extends CompositeNetworkEntity {
      * Execute the next step in the simulation
      */
     protected step(): void {
+
+        this.meter.mark();
+
         if (this.state.is(GameState.Paused)) {
             return;
         }
