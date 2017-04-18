@@ -61,7 +61,6 @@ export class WarpField extends BinaryNetworkEntity {
             this.level[i] = new LevelSlice(gems, 1 - Math.sin(i * DEG_TO_RAD * 3), 2 - Math.cos(i * DEG_TO_RAD * 3));
         }
 
-        console.log(this.level.length);
         this.timeStep = 300; // ms
         this.duration = length * this.timeStep;
         this.syncingSlice = false;

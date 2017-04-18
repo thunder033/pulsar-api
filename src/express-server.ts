@@ -7,6 +7,7 @@ import * as express from 'express';
 import * as http from 'http';
 import * as Q from 'q';
 import * as fs from 'fs';
+import {logger} from './logger';
 
 export class ExpressServer {
 
@@ -53,9 +54,9 @@ export class ExpressServer {
 
     private routes(routes: Object): void {
         Object.keys(routes).forEach((route: string) => {
-            console.log(`set route for ${route}`);
+            logger.info(`set route for ${route}`);
             this.app.get(route, (req: express.Request, res: express.Response, next: express.NextFunction) => {
-                console.log(req.url);
+                logger.info(req.url);
                 res.sendFile(routes[route], {root: `${__dirname}/../`});
             });
         });

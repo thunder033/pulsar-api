@@ -3,7 +3,7 @@
  */
 
 import {ServerComponent, SyncServer} from './sync-server';
-import {Client, ClientComponent} from './client';
+import {ClientComponent} from './client';
 import {PriorityQueue} from './priority-queue';
 import Timer = NodeJS.Timer;
 import {Match} from './match';
@@ -16,6 +16,7 @@ import {bind} from 'bind-decorator';
 import {CompositeNetworkEntity} from './composite-network-entity';
 import {Networkable} from './network-index';
 import {GameEvent} from 'pulsar-lib/dist/src/event-types';
+import {logger} from './logger';
 
 export interface IGameComponentCtor {
     new(...args: any[]): IGameComponent;

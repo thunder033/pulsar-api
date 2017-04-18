@@ -67,6 +67,7 @@ export abstract class ServerComponent extends Component implements IServerCompon
 // This is hacky af, but we're not moving users to their own component yet
 import {Connection} from './connection';
 import {Client} from './client';
+import {logger} from './logger';
 
 /**
  * Maintains client connections
@@ -98,7 +99,7 @@ export class SyncServer extends Composite {
      * @returns {Component}
      */
     public addComponent(component: IComponentCtor): Component {
-        console.log('add server component: ', component.name);
+        logger.info('add server component: ', component.name);
         return (super.addComponent(component) as ServerComponent).init(this.io, this);
     }
 

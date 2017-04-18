@@ -7,6 +7,7 @@ import { expect } from 'chai';
 import { FormattedBuffer } from '../../src/formatted-buffer';
 import {DataFormat} from 'pulsar-lib/dist/src/game-params';
 import {Clock} from '../../src/clock';
+import {logger} from '../test-logger';
 
 class TestEntity {
     public id: string = 'testID';
@@ -94,7 +95,7 @@ function getAvgTime(samples: Float64Array): number {
             fBuffer.updateBuffer(testEntity);
             samples[i] = clock.now();
         }
-        console.log(`Formatter Buffer avg time: ${getAvgTime(samples)} ms (${sampleCount} samples)`);
+        logger.info(`Formatter Buffer avg time: ${getAvgTime(samples)} ms (${sampleCount} samples)`);
 
         samples.fill(0);
         updateBuffer();
@@ -104,7 +105,7 @@ function getAvgTime(samples: Float64Array): number {
             samples[i] = clock.now();
         }
 
-        console.log(`Raw Buffer avg time: ${getAvgTime(samples)} ms (${sampleCount} samples)`);
+        logger.info(`Raw Buffer avg time: ${getAvgTime(samples)} ms (${sampleCount} samples)`);
 
         samples.fill(0);
         for (let i = 0; i < sampleCount; i++) {
@@ -113,6 +114,6 @@ function getAvgTime(samples: Float64Array): number {
             samples[i] = clock.now();
         }
 
-        console.log(`JSON Buffer avg time: ${getAvgTime(samples)} ms (${sampleCount} samples)`);
+        logger.info(`JSON Buffer avg time: ${getAvgTime(samples)} ms (${sampleCount} samples)`);
     }
 }

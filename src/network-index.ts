@@ -8,7 +8,7 @@ import {IOEvent} from 'event-types';
 import {isNullOrUndefined} from 'util';
 import Socket = SocketIO.Socket;
 import {Component, Composite} from './component';
-import {BufferFormat, ByteSizes, DataFormat, DataType, FieldType} from 'game-params';
+import {DataFormat, FieldType} from 'game-params';
 import {Clock} from './clock';
 import {EntityType} from 'entity-type';
 
@@ -240,6 +240,7 @@ export class Networkable extends Component implements INetworkEntity {
 // SyncServer->Client->NetworkEntity->...
 import {ServerComponent, SyncServer} from './sync-server';
 import {FormattedBuffer} from './formatted-buffer';
+import {logger} from './logger';
 
 /**
  * Provides arbitrary access to entities that are needed by clients
@@ -308,7 +309,7 @@ export class NetworkIndex extends ServerComponent {
         }
 
         if (!this.types.has(EntityType[type.name])) {
-            console.log(`Register type ${type.name} as ${EntityType[type.name]}`);
+            logger.info(`Register type ${type.name} as ${EntityType[type.name]}`);
             this.types.set(EntityType[type.name], type);
             this.entities.set(EntityType[type.name], new Map());
         }

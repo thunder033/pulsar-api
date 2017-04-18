@@ -12,6 +12,7 @@ import {Simulator} from './simulation';
 import {WarpFactory} from './warp';
 import {Song} from './song';
 import {bind} from 'bind-decorator';
+import {logger} from './logger';
 
 /**
  * Providers users the ability to join and leave matches
@@ -230,7 +231,7 @@ export class MatchMaker extends ServerComponent {
                 this.server.getComponent(Simulator).endSimulation(match);
             }
 
-            console.log(`removed match ${match.getName()}`);
+            logger.info(`removed match ${match.getName()}`);
             this.matches.splice(matchIndex, 1);
             this.server.broadcast(MatchEvent.matchListUpdate, this.matches.map((m) => m.getId()));
         }
