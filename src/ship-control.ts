@@ -4,7 +4,7 @@
 import {ClientComponent} from './client';
 import {IGameComponent, Simulation, Simulator} from './simulation';
 import {Ship} from './ship';
-import {PriorityQueue} from './priority-queue';
+import {PriorityQueue} from 'priority-queue';
 import {Connection} from './connection';
 import {Match} from './match';
 import {GameEvent} from 'pulsar-lib/dist/src/event-types';

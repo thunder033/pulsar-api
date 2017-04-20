@@ -4,7 +4,7 @@
 
 import {ServerComponent, SyncServer} from './sync-server';
 import {ClientComponent} from './client';
-import {PriorityQueue} from './priority-queue';
+import {PriorityQueue} from 'priority-queue';
 import Timer = NodeJS.Timer;
 import {Match} from './match';
 import {Clock} from './clock';

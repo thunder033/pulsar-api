@@ -36,7 +36,7 @@
     "log4js": "^1.1.1",
     "measured": "^1.1.0",
     "module-alias": "^2.0.0",
-    "pulsar-lib": "github:thunder033/pulsar-lib#v1.0.22",
+    "pulsar-lib": "github:thunder033/pulsar-lib#v1.0.23",
     "q": "^1.4.1",
     "socket.io": "^1.7.2",
     "typescript": "2.1.6",
