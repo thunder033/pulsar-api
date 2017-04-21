@@ -5,6 +5,7 @@
 import {BinaryNetworkEntity, NetworkEntity} from './network-index';
 import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
 import {bind} from 'bind-decorator';
+import {logger} from './logger';
 
 export class Ship extends BinaryNetworkEntity {
 
@@ -69,7 +70,7 @@ export class Ship extends BinaryNetworkEntity {
                     this.strafeToNearestLane();
                 }
 
-                console.log(`set ship to ${this.positionX.toFixed(2)}`);
+                logger.debug(`set ship to ${this.positionX.toFixed(2)}`);
                 this.lane = this.destLane;
                 this.velocityX = 0;
                 this.activeCmd = Direction.NONE;

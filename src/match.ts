@@ -10,6 +10,7 @@ import {Client} from './client';
 import {MatchEvent} from 'event-types';
 import {Connection} from './connection';
 import {Song} from './song';
+import {logger} from './logger';
 
 /**
  * Specialized Room for staging new play sessions between users
@@ -61,7 +62,7 @@ export class Match extends Room implements INetworkEntity {
      * @returns {undefined}
      */
     public end(): void {
-        console.log('ended match ', this.name);
+        logger.info('ended match ', this.name);
 
         this.broadcast(MatchEvent.matchEnded, {matchId: this.getId()});
         // Return users to the lobby at the end of the match

@@ -8,6 +8,7 @@ import {INetworkEntity, NetworkIndex, SyncResponse} from './network-index';
 import Timer = NodeJS.Timer;
 import {Building} from './building';
 import {Clock} from './clock';
+import {logger} from './logger';
 
 /**
  * Maintains the connect for a single client
@@ -84,7 +85,7 @@ export class Connection extends ClientComponent {
         const req = data.body;
         const errorKey = `${IOEvent.serverError}-${data.reqId}`;
         const networkIndex = this.server.getComponent(NetworkIndex);
-        console.log(`${data.reqId}: ${req.type} ${req.id}`);
+        logger.info(`${data.reqId}: ${req.type} ${req.id}`);
 
         if (typeof req.type === 'number' && req.id) {
             const type = networkIndex.getType(parseInt(req.type, 10));
@@ -107,7 +108,7 @@ export class Connection extends ClientComponent {
     }
 
     private terminate() {
-        console.log(`terminate session for ${this.user.getName()}`);
+        logger.info(`terminate session for ${this.user.getName()}`);
         this.terminated = true;
         clearInterval(this.pingInterval);
 

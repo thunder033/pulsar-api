@@ -5,6 +5,7 @@
 import {IOEvent} from 'event-types';
 import {NetworkEntity} from './network-index';
 import {Client} from './client';
+import {logger} from './logger';
 
 /**
  * Encapsulates and defines behaviors for SocketIO rooms
@@ -46,7 +47,7 @@ export class Room extends NetworkEntity {
     public add(user: Client): void {
         if (isNaN(this.capacity) || this.users.length < this.capacity) {
             if (!this.contains(user)) { // users can't be in the room twice
-                console.log(`${this.name} add user ${user.getName()}`);
+                logger.info(`${this.name} add user ${user.getName()}`);
                 this.users.push(user);
 
                 const message = {userId: user.getId(), roomId: this.getId()};
@@ -67,7 +68,7 @@ export class Room extends NetworkEntity {
     public remove(user: Client): boolean {
         const userIndex = this.users.indexOf(user);
         if (userIndex > -1) {
-            console.log(`${this.name} remove user ${user.getName()}`);
+            logger.info(`${this.name} remove user ${user.getName()}`);
             this.users.splice(userIndex, 1);
 
             const message = {userId: user.getId(), roomId: this.getId()};

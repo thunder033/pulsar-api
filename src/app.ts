@@ -3,7 +3,7 @@
 /**
  * Created by gjrwcs on 2/16/2017.
  */
-
+require('dotenv').load(); // tslint:disable-line:no-var-requires
 import { setAliases } from './configure-aliases';
 setAliases();
 

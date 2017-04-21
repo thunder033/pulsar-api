@@ -24,7 +24,7 @@
     "prefer-const": true,
     "no-bitwise": false,
     "quotemark": [true, "single", "avoid-escape"],
-    "no-console": false,
+    "no-console": [true, "log", "debug"],
     "no-reference": false,
     "variable-name": [true,
       "ban-keywords",
