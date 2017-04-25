@@ -92,6 +92,8 @@ export class Simulation extends CompositeNetworkEntity {
     private operations: PriorityQueue;
 
     private stepInterval: Timer;
+    private logInterval: Timer;
+
     private lastStepTime: number;
     private match: Match;
     private clock: Clock;
@@ -202,7 +204,7 @@ export class Simulation extends CompositeNetworkEntity {
         this.state.setState(GameState.Playing);
 
         if (process.env.NODE_ENV === 'development') {
-            setInterval(() => {
+            this.logInterval = setInterval(() => {
                 // clear the console and put the cursor at 0,0
                 // http://stackoverflow.com/questions/9006988/node-js-on-windows-how-to-clear-console
                 process.stdout.write('\u001b[2J\u001b[0;0H');
@@ -220,6 +222,7 @@ export class Simulation extends CompositeNetworkEntity {
      */
     public end() {
         clearInterval(this.stepInterval);
+        clearInterval(this.logInterval);
     }
 
     /**
