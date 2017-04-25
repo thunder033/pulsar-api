@@ -6,7 +6,7 @@ import {ServerComponent, SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
 import {Client, ClientComponent} from './client';
 import {Room} from './room';
-import {IOEvent, MatchEvent} from 'event-types';
+import {GameEvent, IOEvent, MatchEvent} from 'event-types';
 import {Building} from './building';
 import {Simulator} from './simulation';
 import {WarpFactory} from './warp';
@@ -56,6 +56,16 @@ export class MatchMember extends ClientComponent {
         } else {
             this.socket.emit(IOEvent.serverError, `Client is not a member of match to start`);
         }
+    }
+
+    public waitForLoaded(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.socket.on(GameEvent.clientLoaded, resolve);
+
+            const timeoutDuration = 30 * 1000;
+            const timeoutError = new Error(`Timed out waiting for user ${this.user.getName()} to load`);
+            setTimeout(() => reject(timeoutError), timeoutDuration);
+        });
     }
 
     /**
