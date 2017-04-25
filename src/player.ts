@@ -18,6 +18,7 @@ export class Player extends ClientComponent implements INetworkEntity, IGameComp
     constructor(parent: Composite) {
         super(parent);
         this.score = 0;
+        this.match = null;
         this.multiplier = 1;
     }
 
@@ -41,6 +42,12 @@ export class Player extends ClientComponent implements INetworkEntity, IGameComp
         const networkIndex = this.server.getComponent(NetworkIndex);
         networkIndex.registerType(this.getType());
         networkIndex.putNetworkEntity(this.getType(), this);
+    }
+
+    public onDisconnect(): void {
+        if (this.match !== null) {
+            this.match.end();
+        }
     }
 
     public attachMatch(match: Match): void {
