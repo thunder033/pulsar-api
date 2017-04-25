@@ -150,6 +150,10 @@ export class MatchMember extends ClientComponent {
         if (!(this.match instanceof Match)) {
             try {
                 this.match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
+
+                if (this.match.getSong() !== null) {
+                    this.socket.emit(MatchEvent.setSong, this.match.getSong());
+                }
             } catch (e) {
                 console.error(e);
                 this.socket.emit(IOEvent.serverError, e.message || e);
