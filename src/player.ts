@@ -3,9 +3,10 @@
  */
 import {INetworkEntity, INetworkEntityCtor, NetworkEntity, NetworkIndex} from './network-index';
 import {Match} from './match';
-import {IGameComponent, Simulator} from './simulation';
+import {IGameComponent, Simulation, Simulator} from './simulation';
 import {ClientComponent} from './client';
 import {Composite} from './component';
+import {GameEvent} from 'pulsar-lib/dist/src/event-types';
 
 export class Player extends ClientComponent implements INetworkEntity, IGameComponent {
 
@@ -14,6 +15,8 @@ export class Player extends ClientComponent implements INetworkEntity, IGameComp
 
     private match: Match;
     private hue: number;
+
+    private simulation: Simulation;
 
     constructor(parent: Composite) {
         super(parent);
@@ -42,6 +45,14 @@ export class Player extends ClientComponent implements INetworkEntity, IGameComp
         const networkIndex = this.server.getComponent(NetworkIndex);
         networkIndex.registerType(this.getType());
         networkIndex.putNetworkEntity(this.getType(), this);
+
+        this.socket.on(GameEvent.pause, () => {
+            this.simulation.suspend();
+        });
+
+        this.socket.on(GameEvent.resume, () => {
+            this.simulation.resume();
+        });
     }
 
     public onDisconnect(): void {
@@ -54,8 +65,8 @@ export class Player extends ClientComponent implements INetworkEntity, IGameComp
         this.match = match;
         this.score = 0;
 
-        const simulation = this.server.getComponent(Simulator).getSimulation(match);
-        this.hue = simulation.getNewPlayerHue();
+        this.simulation = this.server.getComponent(Simulator).getSimulation(match);
+        this.hue = this.simulation.getNewPlayerHue();
     }
 
     public update(dt: number) {

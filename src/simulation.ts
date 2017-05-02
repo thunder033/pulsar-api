@@ -29,7 +29,7 @@ export interface IGameComponent extends IComponent {
     getSerializable(): Object;
 }
 
-type SimulationOperation = (dt: number) => void;
+type SimulationOperation = (dt: number, tt?: number) => void;
 
 export class Simulator extends ServerComponent {
 
@@ -95,7 +95,8 @@ export class Simulation extends CompositeNetworkEntity {
     private lastStepTime: number;
     private match: Match;
     private clock: Clock;
-    private startTime: number;
+    private startTimestamp: number; // unix timestamp when match starts
+    private startTime: number; // time on internal simulation clock when game starts
     private meter: Measured.Meter;
 
     private readonly SYNC_INTERVAL: number = 50;
@@ -114,7 +115,7 @@ export class Simulation extends CompositeNetworkEntity {
         this.state = new GameState();
         this.state.setState(GameState.Loading);
 
-        this.startTime = NaN;
+        this.startTimestamp = NaN;
         this.warpDrive = new WarpDrive();
 
         this.schedule(this.warpDrive.update);
@@ -132,8 +133,8 @@ export class Simulation extends CompositeNetworkEntity {
      * Sets a start time for the game and notifies all clients
      */
     public onClientsLoaded() {
-        this.startTime = Date.now() + Match.MATCH_START_SYNC_TIME;
-        this.match.broadcast(GameEvent.clientsReady, {gameId: this.getId(), startTime: this.startTime});
+        this.startTimestamp = Date.now() + Match.MATCH_START_SYNC_TIME;
+        this.match.broadcast(GameEvent.clientsReady, {gameId: this.getId(), startTime: this.startTimestamp});
     }
 
     public loadWarpField(warpField: WarpField) {
@@ -141,7 +142,7 @@ export class Simulation extends CompositeNetworkEntity {
     }
 
     public getStartTime(): number {
-        return this.startTime;
+        return this.startTimestamp;
     }
 
     /**
@@ -197,6 +198,7 @@ export class Simulation extends CompositeNetworkEntity {
             throw new Error('Simulation can only be started once.');
         }
 
+        this.startTime = this.getTime();
         this.lastStepTime = Date.now();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
         this.state.setState(GameState.Playing);
@@ -213,6 +215,13 @@ export class Simulation extends CompositeNetworkEntity {
 
     public suspend() {
         this.state.setState(GameState.Paused);
+        this.match.broadcast(GameEvent.pause);
+    }
+
+    public resume() {
+        this.state.setState(GameState.Playing);
+        const time = this.getTime() - this.startTime;
+        this.match.broadcast(GameEvent.resume, {time});
     }
 
     /**
@@ -251,14 +260,14 @@ export class Simulation extends CompositeNetworkEntity {
             return;
         }
 
-        const stepTime = Date.now();
-        const dt = stepTime - this.lastStepTime;
-        this.lastStepTime = stepTime;
+        const tt = this.getTime() - this.startTime; // total time
+        const dt = tt - this.lastStepTime; // delta time
+        this.lastStepTime = tt;
 
         const it = this.operations.getIterator();
 
         while (it.isEnd() === false) {
-            (it.next() as SimulationOperation)(dt);
+            (it.next() as SimulationOperation)(dt, tt);
         }
     }
 
