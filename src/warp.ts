@@ -12,6 +12,7 @@ import {Scoring} from './scoring';
 import {IOEvent} from 'event-types';
 import {WarpField} from './warp-field';
 import {MatchMaker, MatchMember} from './match-maker';
+import {logger} from './logger';
 
 export class WarpFactory extends ServerComponent {
 
@@ -33,14 +34,15 @@ export class WarpFactory extends ServerComponent {
 
         match.getHost().waitForWarpField().then((fieldParams) => {
             game.loadWarpField(WarpField.reconstruct(fieldParams));
+            game.sync(null, match.getName());
             return Promise.all(usersReady);
         }).then(() => {
             game.onClientsLoaded();
-            game.sync(null, match.getName());
             const remainingStart = game.getStartTime() - Date.now();
             setTimeout(() => game.start(), remainingStart);
         }).catch((e) => {
-            match.broadcast(IOEvent.serverError, e);
+            logger.error(e);
+            match.broadcast(IOEvent.serverError, e.message || e);
         });
     }
 }
