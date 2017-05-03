@@ -26,14 +26,14 @@ export class Ship extends BinaryNetworkEntity {
         return lane >= -1 && lane <= Track.NUM_LANES;
     }
 
-    constructor() {
+    constructor(lane: number = 0) {
         super(Ship, DataFormat.SHIP);
         this.activeCmd = Direction.NONE;
         this.lastCmd = Direction.NONE;
 
-        this.positionX = 0;
-        this.destLane = 0;
-        this.lane = 0;
+        this.destLane = lane;
+        this.lane = lane;
+        this.positionX = Track.POSITION_X + this.destLane * Track.LANE_WIDTH + Track.LANE_WIDTH / 2;
     }
 
     @bind
