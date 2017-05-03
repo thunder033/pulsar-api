@@ -75,6 +75,7 @@ export class GameState extends StateMachine {
     @state public static Paused;
     @state public static LevelComplete;
     @state public static Loading;
+    @state public static Syncing;
 }
 
 function instanceOfGameComponent(obj: any): obj is IGameComponent {
@@ -97,6 +98,7 @@ export class Simulation extends CompositeNetworkEntity {
     private lastStepTime: number;
     private match: Match;
     private clock: Clock;
+    private elapsedTime: number;
     private startTimestamp: number; // unix timestamp when match starts
     private startTime: number; // time on internal simulation clock when game starts
     private meter: Measured.Meter;
@@ -118,6 +120,7 @@ export class Simulation extends CompositeNetworkEntity {
         this.state.setState(GameState.Loading);
 
         this.startTimestamp = NaN;
+        this.elapsedTime = 0;
         this.warpDrive = new WarpDrive();
 
         this.schedule(this.warpDrive.update);
@@ -201,7 +204,7 @@ export class Simulation extends CompositeNetworkEntity {
         }
 
         this.startTime = this.getTime();
-        this.lastStepTime = Date.now();
+        this.lastStepTime = 0;
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
         this.state.setState(GameState.Playing);
 
@@ -211,19 +214,21 @@ export class Simulation extends CompositeNetworkEntity {
                 // http://stackoverflow.com/questions/9006988/node-js-on-windows-how-to-clear-console
                 process.stdout.write('\u001b[2J\u001b[0;0H');
                 logger.info(this.meter.toJSON());
+                logger.info(`Game State ${this.state.getState()}`);
             }, 1500);
         }
     }
 
-    public suspend() {
+    public suspend(playerId?: string) {
         this.state.setState(GameState.Paused);
-        this.match.broadcast(GameEvent.pause);
+        this.match.broadcast(GameEvent.pause, {playerId});
     }
 
-    public resume() {
+    public resume(playerId?: string) {
         this.state.setState(GameState.Playing);
+        this.lastStepTime = this.getTime();
         const time = this.getTime() - this.startTime;
-        this.match.broadcast(GameEvent.resume, {time});
+        this.match.broadcast(GameEvent.resume, {time, playerId});
     }
 
     /**
@@ -263,14 +268,15 @@ export class Simulation extends CompositeNetworkEntity {
             return;
         }
 
-        const tt = this.getTime() - this.startTime; // total time
-        const dt = tt - this.lastStepTime; // delta time
-        this.lastStepTime = tt;
+        const now = this.getTime(); // total time
+        const dt = now - this.lastStepTime; // delta time
+        this.elapsedTime += dt;
+        this.lastStepTime = now;
 
         const it = this.operations.getIterator();
 
         while (it.isEnd() === false) {
-            (it.next() as SimulationOperation)(dt, tt);
+            (it.next() as SimulationOperation)(dt, this.elapsedTime);
         }
     }
 

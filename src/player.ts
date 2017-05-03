@@ -47,11 +47,11 @@ export class Player extends ClientComponent implements INetworkEntity, IGameComp
         networkIndex.putNetworkEntity(this.getType(), this);
 
         this.socket.on(GameEvent.pause, () => {
-            this.simulation.suspend();
+            this.simulation.suspend(this.getId());
         });
 
         this.socket.on(GameEvent.resume, () => {
-            this.simulation.resume();
+            this.simulation.resume(this.getId());
         });
     }
 
