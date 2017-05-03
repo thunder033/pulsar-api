@@ -38,6 +38,12 @@ export abstract class StateMachine {
     @enumerable(false)
     private stateListeners: StateListener[];
 
+    public static all(machine: {new(): StateMachine}): number {
+        return Object.keys(machine).reduce((all: number, state: string) => {
+            return all | machine[state];
+        }, 0);
+    }
+
     constructor() {
         this.state = 0;
         this.stateListeners = [];

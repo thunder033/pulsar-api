@@ -35,6 +35,7 @@ export class Match extends Room implements INetworkEntity {
         this.matchMaker = matchMaker;
         this.started = false;
         this.startTime = NaN;
+        this.song = null;
     }
 
     public remove(user: Client): boolean {
@@ -80,6 +81,10 @@ export class Match extends Room implements INetworkEntity {
 
     public setLabel(label: string): void {
         this.label = label;
+    }
+
+    public getSong(): any {
+        return this.song;
     }
 
     public setSong(song: Song): void {

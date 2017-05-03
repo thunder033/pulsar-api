@@ -6,7 +6,7 @@ import {ServerComponent, SyncServer} from './sync-server';
 import Socket = SocketIO.Socket;
 import {Client, ClientComponent} from './client';
 import {Room} from './room';
-import {IOEvent, MatchEvent} from 'event-types';
+import {GameEvent, IOEvent, MatchEvent} from 'event-types';
 import {Building} from './building';
 import {Simulator} from './simulation';
 import {WarpFactory} from './warp';
@@ -58,6 +58,19 @@ export class MatchMember extends ClientComponent {
         }
     }
 
+    public waitForLoaded(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const timeoutDuration = 30 * 1000;
+            const timeoutError = new Error(`Timed out waiting for user ${this.user.getName()} to load`);
+            const timeout = setTimeout(() => reject(timeoutError), timeoutDuration);
+
+            this.socket.on(GameEvent.clientLoaded, () => {
+                clearTimeout(timeout);
+                resolve();
+            });
+        });
+    }
+
     /**
      * Waits for the client (if it's the host) to generate & send a warp field
      * @returns {Promise<T>}
@@ -68,11 +81,14 @@ export class MatchMember extends ClientComponent {
         }
 
         return new Promise((resolve, reject) => {
-            this.socket.on(MatchEvent.uploadLevel, resolve);
-
             const timeoutDuration = 30 * 1000;
             const timeoutError = new Error('Timed out waiting for host to send generated level.');
-            setTimeout(() => reject(timeoutError), timeoutDuration);
+            const timeout = setTimeout(() => reject(timeoutError), timeoutDuration);
+
+            this.socket.on(MatchEvent.uploadLevel, (level) => {
+                clearTimeout(timeout);
+                resolve(level);
+            });
         });
     }
 
@@ -150,6 +166,10 @@ export class MatchMember extends ClientComponent {
         if (!(this.match instanceof Match)) {
             try {
                 this.match = this.server.getComponent(MatchMaker).joinMatch(this.user, data.name);
+
+                if (this.match.getSong() !== null) {
+                    this.socket.emit(MatchEvent.setSong, this.match.getSong());
+                }
             } catch (e) {
                 console.error(e);
                 this.socket.emit(IOEvent.serverError, e.message || e);

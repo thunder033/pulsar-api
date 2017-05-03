@@ -42,8 +42,17 @@ export class WarpField extends BinaryNetworkEntity {
         return this.level[this.sliceIndex].getGems();
     }
 
-    public static reconstruct(buffer: Buffer): WarpField {
-        return new WarpField();
+    public static reconstruct(buffer: any): WarpField {
+        const warpField = new WarpField();
+        warpField.level = [];
+        for (let i = 0; i < buffer.level.length; i++) {
+            const slice = buffer.level[i];
+            warpField.level[i] = new LevelSlice(slice.gems, slice.loudness || 1, slice.speed || 1);
+        }
+
+        warpField.timeStep = buffer.timeStep;
+        warpField.duration = buffer.duration;
+        return warpField;
     }
 
     constructor() {

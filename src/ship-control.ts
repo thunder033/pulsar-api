@@ -32,7 +32,8 @@ export class ShipControl extends ClientComponent implements IGameComponent {
         const simulation = this.server.getComponent(Simulator).getSimulation(this.match);
         simulation.schedule(this.update);
 
-        this.ship = new Ship();
+        const lane = this.user === match.getUsers()[0] ? 0 : 2;
+        this.ship = new Ship(lane);
         simulation.schedule(this.ship.update);
         simulation.schedule(this.syncClients, 10);
         this.simulation = simulation;

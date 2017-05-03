@@ -29,7 +29,7 @@ export interface IGameComponent extends IComponent {
     getSerializable(): Object;
 }
 
-type SimulationOperation = (dt: number) => void;
+type SimulationOperation = (dt: number, tt?: number) => void;
 
 export class Simulator extends ServerComponent {
 
@@ -75,6 +75,7 @@ export class GameState extends StateMachine {
     @state public static Paused;
     @state public static LevelComplete;
     @state public static Loading;
+    @state public static Syncing;
 }
 
 function instanceOfGameComponent(obj: any): obj is IGameComponent {
@@ -92,10 +93,14 @@ export class Simulation extends CompositeNetworkEntity {
     private operations: PriorityQueue;
 
     private stepInterval: Timer;
+    private logInterval: Timer;
+
     private lastStepTime: number;
     private match: Match;
     private clock: Clock;
-    private startTime: number;
+    private elapsedTime: number;
+    private startTimestamp: number; // unix timestamp when match starts
+    private startTime: number; // time on internal simulation clock when game starts
     private meter: Measured.Meter;
 
     private readonly SYNC_INTERVAL: number = 50;
@@ -114,7 +119,8 @@ export class Simulation extends CompositeNetworkEntity {
         this.state = new GameState();
         this.state.setState(GameState.Loading);
 
-        this.startTime = NaN;
+        this.startTimestamp = NaN;
+        this.elapsedTime = 0;
         this.warpDrive = new WarpDrive();
 
         this.schedule(this.warpDrive.update);
@@ -132,8 +138,8 @@ export class Simulation extends CompositeNetworkEntity {
      * Sets a start time for the game and notifies all clients
      */
     public onClientsLoaded() {
-        this.startTime = Date.now() + Match.MATCH_START_SYNC_TIME;
-        this.match.broadcast(GameEvent.clientsReady, {gameId: this.getId(), startTime: this.startTime});
+        this.startTimestamp = Date.now() + Match.MATCH_START_SYNC_TIME;
+        this.match.broadcast(GameEvent.clientsReady, {gameId: this.getId(), startTime: this.startTimestamp});
     }
 
     public loadWarpField(warpField: WarpField) {
@@ -141,7 +147,7 @@ export class Simulation extends CompositeNetworkEntity {
     }
 
     public getStartTime(): number {
-        return this.startTime;
+        return this.startTimestamp;
     }
 
     /**
@@ -197,22 +203,32 @@ export class Simulation extends CompositeNetworkEntity {
             throw new Error('Simulation can only be started once.');
         }
 
-        this.lastStepTime = Date.now();
+        this.startTime = this.getTime();
+        this.lastStepTime = 0;
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
         this.state.setState(GameState.Playing);
 
         if (process.env.NODE_ENV === 'development') {
-            setInterval(() => {
+            this.logInterval = setInterval(() => {
                 // clear the console and put the cursor at 0,0
                 // http://stackoverflow.com/questions/9006988/node-js-on-windows-how-to-clear-console
                 process.stdout.write('\u001b[2J\u001b[0;0H');
                 logger.info(this.meter.toJSON());
+                logger.info(`Game State ${this.state.getState()}`);
             }, 1500);
         }
     }
 
-    public suspend() {
+    public suspend(playerId?: string) {
         this.state.setState(GameState.Paused);
+        this.match.broadcast(GameEvent.pause, {playerId});
+    }
+
+    public resume(playerId?: string) {
+        this.state.setState(GameState.Playing);
+        this.lastStepTime = this.getTime();
+        const time = this.getTime() - this.startTime;
+        this.match.broadcast(GameEvent.resume, {time, playerId});
     }
 
     /**
@@ -220,6 +236,7 @@ export class Simulation extends CompositeNetworkEntity {
      */
     public end() {
         clearInterval(this.stepInterval);
+        clearInterval(this.logInterval);
     }
 
     /**
@@ -251,14 +268,15 @@ export class Simulation extends CompositeNetworkEntity {
             return;
         }
 
-        const stepTime = Date.now();
-        const dt = stepTime - this.lastStepTime;
-        this.lastStepTime = stepTime;
+        const now = this.getTime(); // total time
+        const dt = now - this.lastStepTime; // delta time
+        this.elapsedTime += dt;
+        this.lastStepTime = now;
 
         const it = this.operations.getIterator();
 
         while (it.isEnd() === false) {
-            (it.next() as SimulationOperation)(dt);
+            (it.next() as SimulationOperation)(dt, this.elapsedTime);
         }
     }
 

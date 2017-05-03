@@ -11,6 +11,8 @@ import {Component} from './component';
 import {Scoring} from './scoring';
 import {IOEvent} from 'event-types';
 import {WarpField} from './warp-field';
+import {MatchMaker, MatchMember} from './match-maker';
+import {logger} from './logger';
 
 export class WarpFactory extends ServerComponent {
 
@@ -27,17 +29,20 @@ export class WarpFactory extends ServerComponent {
 
     public createGame(match: Match) {
         const game = this.server.getComponent(Simulator).createSimulation(match, this.gameComponents);
+        const usersReady = match.getUsers().map((user) => user.getComponent(MatchMember).waitForLoaded());
         match.start(game.getId());
 
-        // TODO: wait for the clients to respond they have loaded (buffered the song)
         match.getHost().waitForWarpField().then((fieldParams) => {
             game.loadWarpField(WarpField.reconstruct(fieldParams));
-            game.onClientsLoaded();
             game.sync(null, match.getName());
+            return Promise.all(usersReady);
+        }).then(() => {
+            game.onClientsLoaded();
             const remainingStart = game.getStartTime() - Date.now();
             setTimeout(() => game.start(), remainingStart);
         }).catch((e) => {
-            match.broadcast(IOEvent.serverError, e);
+            logger.error(e);
+            match.broadcast(IOEvent.serverError, e.message || e);
         });
     }
 }
