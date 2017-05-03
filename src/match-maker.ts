@@ -60,11 +60,14 @@ export class MatchMember extends ClientComponent {
 
     public waitForLoaded(): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.socket.on(GameEvent.clientLoaded, resolve);
-
             const timeoutDuration = 30 * 1000;
             const timeoutError = new Error(`Timed out waiting for user ${this.user.getName()} to load`);
-            setTimeout(() => reject(timeoutError), timeoutDuration);
+            const timeout = setTimeout(() => reject(timeoutError), timeoutDuration);
+
+            this.socket.on(GameEvent.clientLoaded, () => {
+                clearTimeout(timeout);
+                resolve();
+            });
         });
     }
 
@@ -78,11 +81,14 @@ export class MatchMember extends ClientComponent {
         }
 
         return new Promise((resolve, reject) => {
-            this.socket.on(MatchEvent.uploadLevel, resolve);
-
             const timeoutDuration = 30 * 1000;
             const timeoutError = new Error('Timed out waiting for host to send generated level.');
-            setTimeout(() => reject(timeoutError), timeoutDuration);
+            const timeout = setTimeout(() => reject(timeoutError), timeoutDuration);
+
+            this.socket.on(MatchEvent.uploadLevel, (level) => {
+                clearTimeout(timeout);
+                resolve(level);
+            });
         });
     }
 
