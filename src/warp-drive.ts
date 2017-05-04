@@ -7,7 +7,6 @@ import {GameState} from './simulation';
 import {BinaryNetworkEntity} from './network-index';
 import {DataFormat, DriveParams, SliceBar} from 'game-params';
 import {bind} from 'bind-decorator';
-import {Match} from './match';
 
 /**
  * Reads and utilizes WarpFields to advance the state of

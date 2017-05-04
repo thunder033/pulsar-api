@@ -119,6 +119,10 @@ export class Simulation extends CompositeNetworkEntity {
         this.state = new GameState();
         this.state.setState(GameState.Loading);
 
+        this.state.onState(GameState.LevelComplete, () => {
+            this.end();
+        });
+
         this.startTimestamp = NaN;
         this.elapsedTime = 0;
         this.warpDrive = new WarpDrive();
