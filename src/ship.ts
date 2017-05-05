@@ -6,6 +6,32 @@ import {BinaryNetworkEntity, NetworkEntity} from './network-index';
 import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
 import {bind} from 'bind-decorator';
 import {logger} from './logger';
+import {IGameComponent} from './simulation';
+import {Match} from './match';
+import {Component} from './component';
+import {ShipControl} from './ship-control';
+
+export class Regulator extends Component implements IGameComponent {
+
+    private ships: Ship[];
+
+    public attachMatch(match: Match): void {
+        this.ships = match.getUsers().map((user) => user.getComponent(ShipControl).getShip());
+    }
+
+    public canSwitchTo(ship: Ship, lane: number) {
+        return !this.ships.some((s) => s !== ship && lane === ship.getLaneFromPos());
+    }
+
+    @bind
+    public update(deltaTime: number): void {
+        // noop
+    }
+
+    public getSerializable(): Object {
+        return null;
+    }
+}
 
 export class Ship extends BinaryNetworkEntity {
 
@@ -15,6 +41,7 @@ export class Ship extends BinaryNetworkEntity {
 
     private destLane: number;
     private lane: number;
+    private track: Regulator;
 
     private activeCmd: number; // the current command the ship is executing
     private lastCmd: number; // the last command given to the ship
@@ -26,10 +53,11 @@ export class Ship extends BinaryNetworkEntity {
         return lane >= -1 && lane <= Track.NUM_LANES;
     }
 
-    constructor(lane: number = 0) {
+    constructor(track: Regulator, lane: number = 0) {
         super(Ship, DataFormat.SHIP);
         this.activeCmd = Direction.NONE;
         this.lastCmd = Direction.NONE;
+        this.track = track;
 
         this.destLane = lane;
         this.lane = lane;
@@ -144,7 +172,6 @@ export class Ship extends BinaryNetworkEntity {
                 this.activeCmd = direction;
                 this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
             }
-
         }
 
         this.lastCmd = direction;

@@ -13,6 +13,7 @@ import {IOEvent} from 'event-types';
 import {WarpField} from './warp-field';
 import {MatchMaker, MatchMember} from './match-maker';
 import {logger} from './logger';
+import {Regulator} from './ship';
 
 export class WarpFactory extends ServerComponent {
 
@@ -21,6 +22,7 @@ export class WarpFactory extends ServerComponent {
         ShipControl,
         ShipRoster,
         Scoring,
+        Regulator,
     ];
 
     constructor(syncServer: SyncServer) {
