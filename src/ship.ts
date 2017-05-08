@@ -2,7 +2,7 @@
  * Created by Greg on 3/12/2017.
  */
 
-import {BinaryNetworkEntity, NetworkEntity} from './network-index';
+import {BinaryNetworkEntity} from './network-index';
 import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
 import {bind} from 'bind-decorator';
 import {logger} from './logger';
@@ -124,6 +124,7 @@ export class Ship extends BinaryNetworkEntity {
             this.inactiveElapsed = 0;
         }
 
+        // this currently allows only ship to occupy a lane - hopefully refactor to be less kludgy
         if (this.constraint.canMoveTo(this, this.positionX + this.velocityX * dt)) {
             this.positionX += this.velocityX * dt;
         }
@@ -203,8 +204,8 @@ export class Ship extends BinaryNetworkEntity {
      * @returns {boolean}
      */
     public isInBounds(displacement: number = 0): boolean {
-        const minBound = Track.POSITION_X;
-        const maxBound = Track.POSITION_X + Track.WIDTH;
+        const minBound = Track.POSITION_X + Track.LANE_WIDTH / 3;
+        const maxBound = Track.POSITION_X + Track.WIDTH - Track.LANE_WIDTH / 3;
         const destPosition = this.positionX + displacement;
         // console.log(`${minBound.toFixed(2)} < ${destPosition.toFixed(2)} < ${maxBound.toFixed(2)}`);
         return destPosition <= maxBound && destPosition >= minBound;
