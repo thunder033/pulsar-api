@@ -17,10 +17,13 @@ export class Regulator extends Component implements IGameComponent {
 
     public attachMatch(match: Match): void {
         this.ships = match.getUsers().map((user) => user.getComponent(ShipControl).getShip());
+        this.ships.forEach((ship) => ship.addConstraint(this));
     }
 
-    public canSwitchTo(ship: Ship, lane: number) {
-        return !this.ships.some((s) => s !== ship && lane === ship.getLaneFromPos());
+    public canMoveTo(ship: Ship, positionX: number) {
+        const trackPos = positionX - Track.POSITION_X;
+        const lane = ~~(trackPos / Track.LANE_WIDTH);
+        return !this.ships.some((s) => s !== ship && lane === s.getLaneFromPos());
     }
 
     @bind
@@ -41,7 +44,7 @@ export class Ship extends BinaryNetworkEntity {
 
     private destLane: number;
     private lane: number;
-    private track: Regulator;
+    private constraint: Regulator;
 
     private activeCmd: number; // the current command the ship is executing
     private lastCmd: number; // the last command given to the ship
@@ -53,15 +56,18 @@ export class Ship extends BinaryNetworkEntity {
         return lane >= -1 && lane <= Track.NUM_LANES;
     }
 
-    constructor(track: Regulator, lane: number = 0) {
+    constructor(lane: number = 0) {
         super(Ship, DataFormat.SHIP);
         this.activeCmd = Direction.NONE;
         this.lastCmd = Direction.NONE;
-        this.track = track;
 
         this.destLane = lane;
         this.lane = lane;
         this.positionX = Track.POSITION_X + this.destLane * Track.LANE_WIDTH + Track.LANE_WIDTH / 2;
+    }
+
+    public addConstraint(constraint: Regulator) {
+        this.constraint = constraint;
     }
 
     @bind
@@ -104,7 +110,8 @@ export class Ship extends BinaryNetworkEntity {
                 this.activeCmd = Direction.NONE;
             }
             // Finally if there was an active command but input has stopped
-        } else if ((this.activeCmd !== Direction.NONE || !this.isAtLaneCenter()) &&
+        } else if ((this.activeCmd !== Direction.NONE ||
+            !this.isAtLaneCenter()) &&
             this.inactiveElapsed > this.inactiveSnapDuration) {
 
             this.strafeToNearestLane();
@@ -117,7 +124,9 @@ export class Ship extends BinaryNetworkEntity {
             this.inactiveElapsed = 0;
         }
 
-        this.positionX += this.velocityX * dt;
+        if (this.constraint.canMoveTo(this, this.positionX + this.velocityX * dt)) {
+            this.positionX += this.velocityX * dt;
+        }
 
         this.updateBuffer();
     }
@@ -170,7 +179,10 @@ export class Ship extends BinaryNetworkEntity {
 
             if (Ship.isValidDestLane(this.destLane + direction)) {
                 this.activeCmd = direction;
-                this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
+                if (this.constraint.canMoveTo(this, this.positionX + pingDelay * ShipEngine.MOVE_SPEED)) {
+                    this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
+                }
+
             }
         }
 
