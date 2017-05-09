@@ -7,7 +7,7 @@ setAliases();
 
 import { only, skip, slow, suite, test, timeout } from 'mocha-typescript';
 import { expect } from 'chai';
-import {Ship} from '../../src/ship';
+import {IShipConstraint, Ship} from '../../src/ship';
 import {Direction, Track} from 'game-params';
 import {NetworkIndex} from '../../src/network-index';
 import {SyncServer} from '../../src/sync-server';
@@ -17,10 +17,18 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
     return obj[prop];
 }
 
+class MockConstraint implements IShipConstraint {
+
+    canMoveTo(ship: Ship, positionX: number): boolean {
+        return true;
+    }
+}
+
 @suite class ShipSpec {
 
     ship: Ship;
     moveOffset: number = 0.1;
+    edgePadding = Track.LANE_WIDTH / 3;
 
     static before() {
         // init the application
@@ -33,6 +41,7 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
 
     before() {
         this.ship = new Ship();
+        this.ship.addConstraint(new MockConstraint());
     }
 
     @test 'Can instantiate a Ship'() {
@@ -46,7 +55,7 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
     }
 
     @test 'Calculates out of bounds at left edge'() {
-        this.ship.positionX = Track.POSITION_X;
+        this.ship.positionX = Track.POSITION_X + this.edgePadding;
         expect(this.ship.isInBounds()).to.be.true;
     }
 
@@ -56,7 +65,7 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
     }
 
     @test 'Calculates in bounds beyond left edge, moving right'() {
-        this.ship.positionX = Track.POSITION_X - this.moveOffset;
+        this.ship.positionX = Track.POSITION_X + this.edgePadding - this.moveOffset;
         expect(this.ship.isInBounds(this.moveOffset)).to.be.true;
     }
 
@@ -66,7 +75,7 @@ function pluck<T, K extends keyof T>(obj: T, prop: K): T[K] {
     }
 
     @test 'Calculates in bounds beyond right, moving left'() {
-        this.ship.positionX = Track.POSITION_X + Track.WIDTH + this.moveOffset;
+        this.ship.positionX = Track.POSITION_X + Track.WIDTH - this.edgePadding + this.moveOffset;
         expect(this.ship.isInBounds(-this.moveOffset)).to.be.true;
     }
 

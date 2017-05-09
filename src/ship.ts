@@ -11,7 +11,11 @@ import {Match} from './match';
 import {Component} from './component';
 import {ShipControl} from './ship-control';
 
-export class Regulator extends Component implements IGameComponent {
+export interface IShipConstraint {
+    canMoveTo(ship: Ship, positionX: number): boolean;
+}
+
+export class Regulator extends Component implements IGameComponent, IShipConstraint {
 
     private ships: Ship[];
 
@@ -44,7 +48,7 @@ export class Ship extends BinaryNetworkEntity {
 
     private destLane: number;
     private lane: number;
-    private constraint: Regulator;
+    private constraint: IShipConstraint;
 
     private activeCmd: number; // the current command the ship is executing
     private lastCmd: number; // the last command given to the ship
@@ -66,7 +70,7 @@ export class Ship extends BinaryNetworkEntity {
         this.positionX = Track.POSITION_X + this.destLane * Track.LANE_WIDTH + Track.LANE_WIDTH / 2;
     }
 
-    public addConstraint(constraint: Regulator) {
+    public addConstraint(constraint: IShipConstraint) {
         this.constraint = constraint;
     }
 
