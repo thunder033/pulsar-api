@@ -4,24 +4,18 @@
 import {GameState, IGameComponent, Simulation} from './simulation';
 import {Match} from './match';
 import {Component} from './component';
-import {LevelSlice, WarpField} from './warp-field';
+import {WarpField} from './warp-field';
 import {WarpDrive} from './warp-drive';
 import {Player} from './player';
 import {Ship} from './ship';
 import {ShipControl} from './ship-control';
 import {bind} from 'bind-decorator';
+import {Gem} from 'game-params';
 
 class ScoreState {
     public lastCollectedLane: number = 0;
     public multiplerStartSlice: number = 0;
     public lastCollectedSlice: number = 0;
-}
-
-enum Gem {
-    'NONE',
-    'GREEN',
-    'COLLECTED',
-    'BLACK',
 }
 
 export class Scoring extends Component implements IGameComponent {
