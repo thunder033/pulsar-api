@@ -40,6 +40,12 @@ export class Simulator extends ServerComponent {
         this.games = new Map();
     }
 
+    /**
+     * Create a new simulation for the match and attach components to it
+     * @param match {Match}
+     * @param gameComponents {IGameComponentCtor[]}
+     * @returns {Simulation}
+     */
     public createSimulation(match: Match, gameComponents: IGameComponentCtor[]): Simulation {
         const game = new Simulation(match);
         this.games.set(match.getId(), game);
@@ -223,11 +229,19 @@ export class Simulation extends CompositeNetworkEntity {
         }
     }
 
+    /**
+     * Change state to paused and broadcast event to clients
+     * @param playerId
+     */
     public suspend(playerId?: string) {
         this.state.setState(GameState.Paused);
         this.match.broadcast(GameEvent.pause, {playerId});
     }
 
+    /**
+     * Change state to playing and broadcast event to clients
+     * @param playerId
+     */
     public resume(playerId?: string) {
         this.state.setState(GameState.Playing);
         this.lastStepTime = this.getTime();
@@ -236,9 +250,11 @@ export class Simulation extends CompositeNetworkEntity {
     }
 
     /**
-     * End the simulation
+     * End the simulation and broadcast event
      */
     public end() {
+        const time = this.getTime() - this.startTime;
+        this.match.broadcast(GameEvent.playEnded, {time});
         clearInterval(this.stepInterval);
         clearInterval(this.logInterval);
     }
