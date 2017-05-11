@@ -208,7 +208,7 @@ export class Simulation extends CompositeNetworkEntity {
         }
 
         this.startTime = this.getTime();
-        this.lastStepTime = 0;
+        this.lastStepTime = this.getTime();
         this.stepInterval = setInterval(() => this.step(), 1000 / this.targetFPS);
         this.state.setState(GameState.Playing);
 
