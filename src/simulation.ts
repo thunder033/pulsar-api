@@ -108,6 +108,7 @@ export class Simulation extends CompositeNetworkEntity {
     private startTimestamp: number; // unix timestamp when match starts
     private startTime: number; // time on internal simulation clock when game starts
     private meter: Measured.Meter;
+    private pausedElapsed: number;
 
     private readonly SYNC_INTERVAL: number = 50;
     private syncElapsed: number = 0;
@@ -131,6 +132,7 @@ export class Simulation extends CompositeNetworkEntity {
 
         this.startTimestamp = NaN;
         this.elapsedTime = 0;
+        this.pausedElapsed = 0;
         this.warpDrive = new WarpDrive();
 
         this.schedule(this.warpDrive.update);
@@ -244,9 +246,14 @@ export class Simulation extends CompositeNetworkEntity {
      */
     public resume(playerId?: string) {
         this.state.setState(GameState.Playing);
+        this.pausedElapsed += this.getTime() - this.lastStepTime;
         this.lastStepTime = this.getTime();
-        const time = this.getTime() - this.startTime;
-        this.match.broadcast(GameEvent.resume, {time, playerId});
+        const time = this.getTime() - this.startTime - this.pausedElapsed;
+        this.match.broadcast(GameEvent.resume, {
+            time,
+            playerId,
+            pausedElapsed: this.pausedElapsed,
+        });
     }
 
     /**
@@ -296,7 +303,7 @@ export class Simulation extends CompositeNetworkEntity {
         const it = this.operations.getIterator();
 
         while (it.isEnd() === false) {
-            (it.next() as SimulationOperation)(dt, this.elapsedTime);
+            (it.next() as SimulationOperation)(dt, this.elapsedTime - this.pausedElapsed);
         }
     }
 
