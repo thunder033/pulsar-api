@@ -2,10 +2,43 @@
  * Created by Greg on 3/12/2017.
  */
 
-import {BinaryNetworkEntity, NetworkEntity} from './network-index';
+import {BinaryNetworkEntity} from './network-index';
 import {DataFormat, Direction, ShipEngine, Track} from 'game-params';
 import {bind} from 'bind-decorator';
 import {logger} from './logger';
+import {IGameComponent} from './simulation';
+import {Match} from './match';
+import {Component} from './component';
+import {ShipControl} from './ship-control';
+
+export interface IShipConstraint {
+    canMoveTo(ship: Ship, positionX: number): boolean;
+}
+
+export class Regulator extends Component implements IGameComponent, IShipConstraint {
+
+    private ships: Ship[];
+
+    public attachMatch(match: Match): void {
+        this.ships = match.getUsers().map((user) => user.getComponent(ShipControl).getShip());
+        this.ships.forEach((ship) => ship.addConstraint(this));
+    }
+
+    public canMoveTo(ship: Ship, positionX: number) {
+        const trackPos = positionX - Track.POSITION_X;
+        const lane = ~~(trackPos / Track.LANE_WIDTH);
+        return !this.ships.some((s) => s !== ship && lane === s.getLaneFromPos());
+    }
+
+    @bind
+    public update(deltaTime: number): void {
+        // noop
+    }
+
+    public getSerializable(): Object {
+        return null;
+    }
+}
 
 export class Ship extends BinaryNetworkEntity {
 
@@ -15,6 +48,7 @@ export class Ship extends BinaryNetworkEntity {
 
     private destLane: number;
     private lane: number;
+    private constraint: IShipConstraint;
 
     private activeCmd: number; // the current command the ship is executing
     private lastCmd: number; // the last command given to the ship
@@ -34,6 +68,10 @@ export class Ship extends BinaryNetworkEntity {
         this.destLane = lane;
         this.lane = lane;
         this.positionX = Track.POSITION_X + this.destLane * Track.LANE_WIDTH + Track.LANE_WIDTH / 2;
+    }
+
+    public addConstraint(constraint: IShipConstraint) {
+        this.constraint = constraint;
     }
 
     @bind
@@ -76,7 +114,8 @@ export class Ship extends BinaryNetworkEntity {
                 this.activeCmd = Direction.NONE;
             }
             // Finally if there was an active command but input has stopped
-        } else if ((this.activeCmd !== Direction.NONE || !this.isAtLaneCenter()) &&
+        } else if ((this.activeCmd !== Direction.NONE ||
+            !this.isAtLaneCenter()) &&
             this.inactiveElapsed > this.inactiveSnapDuration) {
 
             this.strafeToNearestLane();
@@ -89,7 +128,10 @@ export class Ship extends BinaryNetworkEntity {
             this.inactiveElapsed = 0;
         }
 
-        this.positionX += this.velocityX * dt;
+        // this currently allows only ship to occupy a lane - hopefully refactor to be less kludgy
+        if (this.constraint.canMoveTo(this, this.positionX + this.velocityX * dt)) {
+            this.positionX += this.velocityX * dt;
+        }
 
         this.updateBuffer();
     }
@@ -142,9 +184,11 @@ export class Ship extends BinaryNetworkEntity {
 
             if (Ship.isValidDestLane(this.destLane + direction)) {
                 this.activeCmd = direction;
-                this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
-            }
+                if (this.constraint.canMoveTo(this, this.positionX + pingDelay * ShipEngine.MOVE_SPEED)) {
+                    this.positionX += pingDelay * ShipEngine.MOVE_SPEED;
+                }
 
+            }
         }
 
         this.lastCmd = direction;
@@ -164,8 +208,8 @@ export class Ship extends BinaryNetworkEntity {
      * @returns {boolean}
      */
     public isInBounds(displacement: number = 0): boolean {
-        const minBound = Track.POSITION_X;
-        const maxBound = Track.POSITION_X + Track.WIDTH;
+        const minBound = Track.POSITION_X + Track.LANE_WIDTH / 3;
+        const maxBound = Track.POSITION_X + Track.WIDTH - Track.LANE_WIDTH / 3;
         const destPosition = this.positionX + displacement;
         // console.log(`${minBound.toFixed(2)} < ${destPosition.toFixed(2)} < ${maxBound.toFixed(2)}`);
         return destPosition <= maxBound && destPosition >= minBound;

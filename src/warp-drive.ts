@@ -7,7 +7,7 @@ import {GameState} from './simulation';
 import {BinaryNetworkEntity} from './network-index';
 import {DataFormat, DriveParams, SliceBar} from 'game-params';
 import {bind} from 'bind-decorator';
-import {Match} from './match';
+import {logger} from './logger';
 
 /**
  * Reads and utilizes WarpFields to advance the state of
@@ -53,6 +53,9 @@ export class WarpDrive extends BinaryNetworkEntity {
         this.fieldValues = warpField.getFieldValues();
         this.sliceIndex = ~~(-DriveParams.LEVEL_BUFFER_START / this.timeStep);
         this.endSliceIndex = this.fieldValues.length + ~~(DriveParams.LEVEL_BUFFER_END / this.timeStep);
+        logger.debug(
+            `Loaded: ${this.fieldValues.length} slices at ${this.timeStep} per step.
+            Starting at ${this.sliceIndex} and ending at ${this.endSliceIndex}`);
     }
 
     public getSliceIndex() {
